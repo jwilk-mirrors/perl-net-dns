@@ -5,7 +5,7 @@ This README is relevant for the Net-DNS subversion repositiory.
 The release branch was constructed from all available release tar-balls.
 
 I did not have access to the original CVS and Subversion repositories hence I had
-to impovise. Version 0.48 (which had just be converted to subversion and had most
+to improvise. Version 0.48 (which had just be converted to subversion and had most
 of its "LastChangedRevision" set to 102) was imported excactly at the moment when
 the new repository had a revision number of 102. 
 
