@@ -1,0 +1,16 @@
+
+
+This README is relevant for the Net-DNS subversion repositiory.
+
+The release branch was constructed from all available release tar-balls.
+
+I did not have access to the original CVS and Subversion repositories hence I had
+to impovise. Version 0.48 (which had just be converted to subversion and had most
+of its "LastChangedRevision" set to 102) was imported excactly at the moment when
+the new repository had a revision number of 102. 
+
+It appears as version 0.48 in this repository is exactly the same as
+version 0.48 on CPAN, but it is _not_ the original version.
+
+
+--Olaf Feb 6 2005
