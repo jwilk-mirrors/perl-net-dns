@@ -210,23 +210,6 @@ sub metafile {
 }
 
 
-sub top_targets {
-
-my $content='
-all :: pure_all
-
-pure_all ::  pm_to_blib ';
-$content .= 'static 'if $use_xs;
-$content .='
-
-static ::   netdns$(LIB_EXT)
-
-
-';
-#print $content;
-return $content;
-
-}
 
 sub postamble {
     my $content;
