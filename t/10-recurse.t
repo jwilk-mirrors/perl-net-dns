@@ -5,7 +5,7 @@ use strict;
 
 BEGIN {
 	if (-e 't/online.enabled' && ! -e 't/online.disabled' ) {
-
+	    
 	    #
 	    # Some people try to run these on private address space."
 	    use IO::Socket::INET;
@@ -43,8 +43,9 @@ BEGIN { use_ok('Net::DNS::Resolver::Recurse'); }
 
 
 {
-	my $res = Net::DNS::Resolver::Recurse->new;
 
+	my $res = Net::DNS::Resolver::Recurse->new;
+	$res->force_v4(1) if -e "t/IPv6.disabled";
 	isa_ok($res, 'Net::DNS::Resolver::Recurse');
 
 	$res->debug(1);	
@@ -91,6 +92,7 @@ my @HINTS= qw(
 			);
 
 my $res2 = Net::DNS::Resolver::Recurse->new ;
+$res2->force_v4(1) if -e "t/IPv6.disabled";
 $res2->nameservers( @HINTS );
 my $ans_at=$res2->send("a.t.", "A");
 if ($ans_at->header->ancount == 1 ){
@@ -102,6 +104,7 @@ SKIP: {
     
     {
 	my $res = Net::DNS::Resolver::Recurse->new ;
+	$res->force_v4(1) if -e "t/IPv6.disabled";
 	my $count;
 	$res->debug(1);
 	# Hard code root hints, there are some environments that will fail
