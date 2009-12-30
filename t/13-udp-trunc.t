@@ -55,6 +55,10 @@ BEGIN{
 
 
 {
+    $Net::DNS::Nameserver::has_inet6=0;    # Force IO::Socket::Inet to
+					   # cope with weird
+					   # environments
+
     my @full_response;
     my $ns = Net::DNS::Nameserver->new(
         LocalPort    => $TestPort,
