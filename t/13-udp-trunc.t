@@ -55,6 +55,8 @@ BEGIN{
 
 
 {
+
+    no warnings("once");
     $Net::DNS::Nameserver::has_inet6=0;    # Force IO::Socket::Inet to
 					   # cope with weird
 					   # environments
