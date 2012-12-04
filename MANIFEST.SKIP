@@ -1,0 +1,24 @@
+
+\B\.svn\b
+# Avoid Makemaker generated and utility files.
+^MANIFEST\.bak
+^Makefile$
+^blib/
+^MakeMaker-\d
+^pm_to_blib$
+# Avoid temp and backup files.
+~$
+\.old$
+\#$
+^\.#
+netdnslib/netdns.o$
+netdnslib/netdns.a$
+netdnslib/Makefile$
+DNS.bs
+DNS.c
+DNS.o
+MANIFEST.SKIP
+t/online.enabled
+^Net-DNS-\d+.\d+.*/
+.*\.ts$
+.*\.tar\.gz$

@@ -1,0 +1,6 @@
+$Id$
+
+Dave Barr's dnswalk now uses Net::DNS.  You can get a copy from:
+
+  http://sourceforge.net/projects/dnswalk/
+
