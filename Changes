@@ -1,6 +1,6 @@
 $Id$                       -*-text-*-
 
-**** 0.70 Dec 5, 2012
+**** 0.70 Dec 6, 2012
 
 Fix add NID L32 L64 LP resource records + unit tests to MANIFEST.
 
