@@ -5,7 +5,7 @@ use base Net::DNS::Packet;
 # $Id$
 #
 use vars qw($VERSION @ISA);
-$VERSION = (qw$LastChangedRevision$)[1];
+$VERSION = (qw$LastChangedRevision$)[1]; # Unchanged since 970
 
 
 =head1 NAME
