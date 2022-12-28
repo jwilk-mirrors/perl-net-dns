@@ -4,7 +4,7 @@
 
 use strict;
 use warnings;
-use Test::More tests => 103;
+use Test::More tests => 104;
 
 
 use_ok('Net::DNS::Packet');
@@ -20,6 +20,9 @@ ok( $object->edns,			     'edns() method works' );
 ok( $object->edns->isa('Net::DNS::RR::OPT'), 'edns() returns OPT RR object' );
 
 like( $object->string, '/HEADER/', 'string() returns representation of packet' );
+$object->header->do(1);
+$object->encode();
+like( $object->string, '/EDNS/', 'string() contains representation of EDNS' );
 $object->header->opcode('UPDATE');
 like( $object->string, '/UPDATE/', 'string() returns representation of update' );
 
@@ -229,6 +232,7 @@ eval {					## exercise dump and debug diagnostics
 	require Data::Dumper;
 	local $Data::Dumper::Maxdepth;
 	local $Data::Dumper::Sortkeys;
+	local $Data::Dumper::Useqq;
 	my $packet  = Net::DNS::Packet->new();
 	my $buffer  = $packet->data;
 	my $corrupt = substr $buffer, 0, 10;
@@ -237,6 +241,7 @@ eval {					## exercise dump and debug diagnostics
 	select( ( select($handle), $packet->dump )[0] );
 	$Data::Dumper::Maxdepth = 6;
 	$Data::Dumper::Sortkeys = 1;
+	$Data::Dumper::Useqq	= 1;
 	select( ( select($handle), $packet->dump )[0] );
 	select( ( select($handle), Net::DNS::Packet->new( \$buffer,  1 )->dump )[0] );
 	select( ( select($handle), Net::DNS::Packet->new( \$corrupt, 1 ) )[0] );

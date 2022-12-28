@@ -41,13 +41,15 @@ sub _decode_rdata {			## decode rdata from wire-format octet string
 
 	my $limit = $offset + $self->{rdlength} - 4;
 
+	my @index;
 	while ( $offset <= $limit ) {
 		my ( $code, $length ) = unpack "\@$offset nn", $$data;
 		my $value = unpack "\@$offset x4 a$length", $$data;
-		push @{$self->{options}}, $code;
+		push @index, $code;
 		$self->{option}{$code} = $value;
 		$offset += $length + 4;
 	}
+	@{$self->{index}} = @index;
 	return;
 }
 
@@ -56,7 +58,7 @@ sub _encode_rdata {			## encode rdata as wire-format octet string
 	my $self = shift;
 
 	my $option = $self->{option} || {};
-	return join '', map { pack( 'nna*', $_, length $option->{$_}, $option->{$_} ) } keys %$option;
+	return join '', map { pack( 'nna*', $_, length $option->{$_}, $option->{$_} ) } $self->options;
 }
 
 
@@ -77,9 +79,9 @@ sub string {				## overide RR method
 	unless ( $edns == 0 ) {
 		my $content = unpack 'H*', eval { $self->encode };
 		return <<"QQ";
-;; EDNS
-;; {	"VERSION":	$edns,
-;;	"BASE16":	"$content" }
+;; {	"EDNS-VERSION":	$edns,
+;;	"BASE16":	"$content"
+;;	}
 QQ
 	}
 
@@ -91,13 +93,12 @@ QQ
 	my @option = join ",\n;;\t\t", @format;
 
 	return <<"QQ";
-;; EDNS
-;; {	"VERSION":	$edns,
+;; {	"EDNS-VERSION":	$edns,
 ;;	"FLAGS":	"$flags",
 ;;	"RCODE":	$rcode,
 ;;	"UDPSIZE":	$size,
 ;;	"OPTIONS":	[@indent@option ]
-;; }
+;;	}
 QQ
 }
 
@@ -153,7 +154,7 @@ sub flags {
 sub options {
 	my ($self) = @_;
 	my $option = $self->{option} || {};
-	my @option = defined( $self->{options} ) ? @{$self->{options}} : sort { $a <=> $b } keys %$option;
+	my @option = defined( $self->{index} ) ? @{$self->{index}} : sort { $a <=> $b } keys %$option;
 	return @option;
 }
 
@@ -242,7 +243,7 @@ sub _JSONify {
 
 	my $string = qq("$value");	## stringify, then use isdual() as discriminant
 	return $value if UTIL  && Scalar::Util::isdual($value); # native integer
-	return $value if !UTIL && $string =~ /"\d{1,10}"/;	# best-effort workaround
+	return $value if !UTIL && $string =~ /^"\d{1,10}"$/;	# best-effort workaround
 	return $string;
 }
 
@@ -436,18 +437,17 @@ __END__
 
     $packet->edns->print;
 
-    ;; EDNS
-    ;; { "version":	0,
-    ;;	"flags":	"8000",
-    ;;	"rcode":	0,
-    ;;	"UDPsize":	1232,
-    ;;	"options"	: [
-    ;;		{ "NSID": "7261776279746573" },
-    ;;		{ "TCP-KEEPALIVE": 200 },
-    ;;		{ "DAU": [ 8, 10, 13, 14, 15, 16 ] },
-    ;;		{ "EXTENDED-ERROR": { "INFO-CODE": 123, "EXTRA-TEXT": "" } },
-    ;;		{ "65023": { "BASE16": "076578616d706c6500" } } ]
-    ;;	}
+	;; {	"EDNS-VERSION":	0,
+	;;	"FLAGS":	"8000",
+	;;	"RCODE":	0,
+	;;	"UDPSIZE":	1232,
+	;;	"OPTIONS"	: [
+	;;		{ "NSID": "7261776279746573" },
+	;;		{ "TCP-KEEPALIVE": 200 },
+	;;		{ "DAU": [ 8, 10, 13, 14, 15, 16 ] },
+	;;		{ "EXTENDED-ERROR": { "INFO-CODE": 123, "EXTRA-TEXT": "" } },
+	;;		{ "65023": { "BASE16": "076578616d706c6500" } } ]
+	;;	}
 
 =head1 DESCRIPTION
 

@@ -173,7 +173,7 @@ sub decode {
 	if ($debug) {
 		local $@ = $@;
 		print $@ if $@;
-		$self->print if $self;
+		eval { $self->print };
 	}
 
 	return wantarray ? ( $self, $offset ) : $self;
@@ -404,6 +404,9 @@ sub string {
 	my $origin = $server ? ";; Response received from $server ($length octets)\n" : "";
 	my @record = ( "$origin;; HEADER SECTION", $header->string );
 
+	my $edns = $self->edns;
+	CORE::push( @record, $edns->string ) if $edns->_specified;
+
 	if ( $opcode eq 'DSO' ) {
 		CORE::push( @record, ";; DSO SECTION" );
 		foreach ( @{$self->{dso}} ) {
@@ -432,7 +435,9 @@ sub string {
 	my @additional = $self->additional;
 	my $arcount    = scalar @additional;
 	my $ars	       = $arcount != 1 ? 's' : '';
-	CORE::push( @record, "\n;; ADDITIONAL SECTION ($arcount record$ars)", map { $_->string } @additional );
+	my $EDNSmarker = join ' ', qq[;; {\t"EDNS-VERSION":], $edns->version, qq[}\n];
+	CORE::push( @record, "\n;; ADDITIONAL SECTION ($arcount record$ars)" );
+	CORE::push( @record, map { ( $_ eq $edns ) ? $EDNSmarker : $_->string } @additional );
 
 	return join "\n", @record, "\n";
 }
@@ -835,6 +840,7 @@ sub dump {				## print internal data structure
 	require Data::Dumper;					# uncoverable pod
 	local $Data::Dumper::Maxdepth = $Data::Dumper::Maxdepth || 3;
 	local $Data::Dumper::Sortkeys = $Data::Dumper::Sortkeys || 1;
+	local $Data::Dumper::Useqq    = $Data::Dumper::Useqq	|| 1;
 	print Data::Dumper::Dumper(@_);
 	return;
 }

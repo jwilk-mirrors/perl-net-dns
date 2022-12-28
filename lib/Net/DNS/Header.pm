@@ -66,16 +66,11 @@ sub string {
 	my $an	   = $self->ancount;
 	my $ns	   = $self->nscount;
 	my $ar	   = $self->arcount;
-
-	my $opt	 = $$self->edns;
-	my $edns = $opt->_specified ? $opt->string : '';
-
-	return <<END . $edns if $opcode eq 'UPDATE';
+	return <<"QQ" if $opcode eq 'UPDATE';
 ;;	id = $id
 ;;	qr = $qr		opcode = $opcode	rcode = $rcode
 ;;	zocount = $qd	prcount = $an	upcount = $ns	adcount = $ar
-END
-
+QQ
 	my $aa = $self->aa;
 	my $tc = $self->tc;
 	my $rd = $self->rd;
@@ -84,14 +79,13 @@ END
 	my $ad = $self->ad;
 	my $cd = $self->cd;
 	my $do = $self->do;
-
-	return <<END . $edns;
+	return <<"QQ";
 ;;	id = $id
 ;;	qr = $qr	aa = $aa	tc = $tc	rd = $rd	opcode = $opcode
 ;;	ra = $ra	z  = $zz	ad = $ad	cd = $cd	rcode  = $rcode
 ;;	qdcount = $qd	ancount = $an	nscount = $ns	arcount = $ar
 ;;	do = $do
-END
+QQ
 }
 
 

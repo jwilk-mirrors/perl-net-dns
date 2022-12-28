@@ -522,6 +522,7 @@ sub dump {				## print internal data structure
 	require Data::Dumper;					# uncoverable pod
 	local $Data::Dumper::Maxdepth = $Data::Dumper::Maxdepth || 6;
 	local $Data::Dumper::Sortkeys = $Data::Dumper::Sortkeys || 1;
+	local $Data::Dumper::Useqq    = $Data::Dumper::Useqq	|| 1;
 	return print Data::Dumper::Dumper(@_);
 }
 
