@@ -1,7 +1,7 @@
 $Id$                       -*-text-*-
 
 
-**** 1.36 [unrleased]
+**** 1.36 Dec 30, 2022
 
 	Adopt JSON as presentation notation for EDNS options.
 	Zero packet->id not allowed in outbound packet.
