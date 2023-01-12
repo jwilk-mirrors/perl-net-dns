@@ -12,20 +12,20 @@ use_ok('Net::DNS');
 # Matching of RR name is not case sensitive
 my $domain = 'example.com';
 my $method = 'unique_push';
-my $packet = Net::DNS::Packet->new($domain);
+my $packet = Net::DNS::Update->new($domain);
 
 my $rr_1 = Net::DNS::RR->new('bla.foo 100 IN TXT "text" ;lower case');
 my $rr_2 = Net::DNS::RR->new('bla.Foo 100 IN Txt "text" ;mixed case');
 my $rr_3 = Net::DNS::RR->new('bla.foo 100 IN TXT "mixed CASE"');
 my $rr_4 = Net::DNS::RR->new('bla.foo 100 IN TXT "MIXED case"');
 
-$packet->unique_push( "answer", $rr_1 );
-$packet->unique_push( "answer", $rr_2 );
-is( $packet->header->ancount, 1, "unique_push  case sensitivity test 1" );
+$packet->$method( "answer", $rr_1 );
+$packet->$method( "answer", $rr_2 );
+is( $packet->header->ancount, 1, "$method case sensitivity test 1" );
 
-$packet->unique_push( "answer", $rr_3 );
-$packet->unique_push( "answer", $rr_4 );
-is( $packet->header->ancount, 3, "unique_push  case sensitivity test 2" );
+$packet->$method( "answer", $rr_3 );
+$packet->$method( "answer", $rr_4 );
+is( $packet->header->ancount, 3, "$method case sensitivity test 2" );
 
 
 my %sections = (

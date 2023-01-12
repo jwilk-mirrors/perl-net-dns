@@ -124,7 +124,8 @@ sub new {
 		}
 
 		s/\134([\060-\071]{3})/$unescape{$1}/eg;	# restore numeric escapes
-		s/\134(.)/$1/g;					# restore character escapes
+		s/\134([^\134])/$1/g;				# restore character escapes
+		s/\134(\134)/$1/g;				# restore escaped escapes
 		croak qq(label too long in "$s") if length > 63;
 	}
 
@@ -393,7 +394,10 @@ DEALINGS IN THE SOFTWARE.
 
 =head1 SEE ALSO
 
-L<perl>, L<Net::DNS>, L<Net::LibIDN2>, RFC1034, RFC1035, RFC5891, Unicode TR#16
+L<perl> L<Net::DNS> L<Net::LibIDN2>
+L<RFC1034|https://tools.ietf.org/html/rfc1034>
+L<RFC1035|https://tools.ietf.org/html/rfc1035>
+L<RFC5891|https://tools.ietf.org/html/rfc5891>
 
 =cut
 

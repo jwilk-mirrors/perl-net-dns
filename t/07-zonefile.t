@@ -365,7 +365,7 @@ EOF
 	is( $zonefile->read->rdstring, 'string',		    'redundant brackets ignored' );
 	is( $zonefile->read->rdstring, '"(string)"',		    'quoted brackets protected' );
 	is( $zonefile->read->rdstring, '"no;comment"',		    'quoted semicolon protected' );
-	is( $zonefile->read->rdstring, 'quoted\"quote',		    'quoted quote protected' );
+	is( $zonefile->read->rdstring, 'quoted\034quote',	    'quoted quote protected' );
 	is( $zonefile->read->rdstring, 'multiline resource record', 'multiline RR parsed correctly' );
 	is( $zonefile->read->rdstring, 'contiguousstring',	    'contiguous string reassembled' );
 	like( $zonefile->read->rdstring, '/quoted.*string$/', 'multiline string reassembled' );
