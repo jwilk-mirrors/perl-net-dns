@@ -276,8 +276,11 @@ DEALINGS IN THE SOFTWARE.
 
 =head1 SEE ALSO
 
-L<perl>, L<Net::DNS>, L<Net::DNS::Domain>, RFC1035, RFC2535,
-RFC3597, RFC4034
+L<perl> L<Net::DNS> L<Net::DNS::Domain>
+L<RFC1035|https://tools.ietf.org/html/rfc1035>
+L<RFC2535|https://tools.ietf.org/html/rfc2535>
+L<RFC3597|https://tools.ietf.org/html/rfc3597>
+L<RFC4034|https://tools.ietf.org/html/rfc4034>
 
 =cut
 

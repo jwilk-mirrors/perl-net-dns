@@ -749,9 +749,11 @@ DEALINGS IN THE SOFTWARE.
 
 =head1 SEE ALSO
 
-L<perl>, L<Net::DNS>, L<Net::DNS::Packet>, L<Net::DNS::Update>,
-L<Net::DNS::Header>, L<Net::DNS::Question>, L<Net::DNS::RR>,
-L<resolver(5)>, RFC 1034, RFC 1035
+L<perl> L<Net::DNS> L<Net::DNS::Packet> L<Net::DNS::Update>
+L<Net::DNS::Header> L<Net::DNS::Question> L<Net::DNS::RR>
+L<resolver(5)>
+L<RFC1034|https://tools.ietf.org/html/rfc1034>
+L<RFC1035|https://tools.ietf.org/html/rfc1035>
 
 =cut
 

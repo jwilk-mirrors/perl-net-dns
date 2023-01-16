@@ -148,7 +148,9 @@ DEALINGS IN THE SOFTWARE.
 
 =head1 SEE ALSO
 
-L<perl>, L<Net::DNS>, L<Net::DNS::DomainName>, RFC1035, RFC5322 (RFC822)
+L<perl> L<Net::DNS> L<Net::DNS::DomainName>
+L<RFC1035|https://tools.ietf.org/html/rfc1035>
+L<RFC5322|https://tools.ietf.org/html/rfc5322>
 
 =cut
 

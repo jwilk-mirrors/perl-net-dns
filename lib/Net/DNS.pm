@@ -23,8 +23,8 @@ Net::DNS is a collection of Perl modules that act as a Domain Name System
 (DNS) resolver. It allows the programmer to perform DNS queries that are
 beyond the capabilities of "gethostbyname" and "gethostbyaddr".
 
-The programmer should be familiar with the structure of a DNS packet.
-See RFC 1035 or DNS and BIND (Albitz & Liu) for details.
+The programmer should be familiar with the structure of a DNS packet
+and the zone file presentation format described in RFC1035.
 
 =cut
 
@@ -647,10 +647,9 @@ Net::DNS was created in 1997 by Michael Fuhr.
 
 =head1 SEE ALSO
 
-L<perl>, L<Net::DNS::Resolver>, L<Net::DNS::Question>, L<Net::DNS::RR>,
-L<Net::DNS::Packet>, L<Net::DNS::Update>,
-L<RFC1035|https://tools.ietf.org/html/rfc1035>,
-I<DNS and BIND> by Paul Albitz & Cricket Liu
+L<perl> L<Net::DNS::Resolver> L<Net::DNS::Question> L<Net::DNS::RR>
+L<Net::DNS::Packet> L<Net::DNS::Update>
+L<RFC1035|https://tools.ietf.org/html/rfc1035>
 
 =cut
 

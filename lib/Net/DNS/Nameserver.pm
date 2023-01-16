@@ -224,7 +224,8 @@ sub ReplyHandler {
 #------------------------------------------------------------------------------
 
 sub inet_new {
-	return USE_SOCKET_IP ? IO::Socket::IP->new(@_) : IO::Socket::INET->new(@_);
+	my @arg = @_;
+	return USE_SOCKET_IP ? IO::Socket::IP->new(@arg) : IO::Socket::INET->new(@arg);
 }
 
 #------------------------------------------------------------------------------
@@ -847,9 +848,10 @@ DEALINGS IN THE SOFTWARE.
 
 =head1 SEE ALSO
 
-L<perl>, L<Net::DNS>, L<Net::DNS::Resolver>, L<Net::DNS::Packet>,
-L<Net::DNS::Update>, L<Net::DNS::Header>, L<Net::DNS::Question>,
-L<Net::DNS::RR>, RFC 1035
+L<perl> L<Net::DNS> L<Net::DNS::Resolver> L<Net::DNS::Packet>
+L<Net::DNS::Update> L<Net::DNS::Header> L<Net::DNS::Question>
+L<Net::DNS::RR>
+L<RFC1035|https://tools.ietf.org/html/rfc1035>
 
 =cut
 

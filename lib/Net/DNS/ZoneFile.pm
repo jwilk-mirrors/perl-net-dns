@@ -88,8 +88,8 @@ introduced by $INCLUDE directives.
 =cut
 
 sub new {
-	my $self = bless {fileopen => {}}, shift;
-	my ( $filename, $origin ) = @_;
+	my ( $class, $filename, $origin ) = @_;
+	my $self = bless {fileopen => {}}, $class;
 
 	$self->_origin($origin);
 
@@ -347,8 +347,9 @@ The return value is undefined if an error is encountered by the parser.
 sub parse {
 	my ($arg1) = @_;
 	shift if !ref($arg1) && $arg1 eq __PACKAGE__;
-	my $text = shift;
-	return &readfh( Net::DNS::ZoneFile::Text->new($text), @_ );
+	my $string  = shift;
+	my @include = grep {defined} shift;
+	return &readfh( Net::DNS::ZoneFile::Text->new($string), @include );
 }
 
 
@@ -621,8 +622,9 @@ DEALINGS IN THE SOFTWARE.
 
 =head1 SEE ALSO
 
-L<perl>, L<Net::DNS>, L<Net::DNS::RR>,
-RFC1035 Section 5.1, RFC2308
+L<perl> L<Net::DNS> L<Net::DNS::RR>
+L<RFC1035(5.1)|https://tools.ietf.org/html/rfc1035>
+L<RFC2308(4)|https://tools.ietf.org/html/rfc2308>
 
 L<BIND Administrator Reference Manual|http://bind.isc.org/>
 

@@ -1,10 +1,15 @@
 $Id$                       -*-text-*-
 
 
+**** 1.37 [unreleased]
+
+	Add links to relevant RFCs in package documentation.
+
+
 **** 1.36 Dec 30, 2022
 
 	Adopt JSON as presentation notation for EDNS options.
-	Zero packet->id not allowed in outbound packet.
+	Disallow zero packet->id in outbound packet.
 	Remove deprecated 2-argument TSIG->create() method.
 	Revise TSIG test scripts and documentation.
 
