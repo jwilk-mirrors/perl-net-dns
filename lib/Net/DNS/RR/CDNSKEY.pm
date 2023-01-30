@@ -26,9 +26,9 @@ sub algorithm {
 
 
 sub key {
-	my $self = shift;
-	return $self->SUPER::key(@_) unless defined( $_[0] ) && length( $_[0] ) < 2;
-	return $self->SUPER::keybin( $_[0] ? '' : chr(0) );
+	my ( $self, @arg ) = @_;
+	return $self->SUPER::key(@arg) unless scalar(@arg) && length( $arg[0] ) < 2;
+	return $self->SUPER::keybin( $arg[0] ? '' : chr(0) );
 }
 
 
@@ -91,6 +91,8 @@ DEALINGS IN THE SOFTWARE.
 
 =head1 SEE ALSO
 
-L<perl>, L<Net::DNS>, L<Net::DNS::RR>, L<Net::DNS::RR::DNSKEY>, RFC7344, RFC8078(erratum 5049)
+L<perl> L<Net::DNS> L<Net::DNS::RR>
+L<Net::DNS::RR::DNSKEY>
+L<RFC7344|https://tools.ietf.org/html/rfc7344>
 
 =cut

@@ -89,7 +89,7 @@ sub warning {
 	eval {&$method};
 	my ($warning) = split /\n/, "$@\n";
 	ok( $warning, "$test\t[$warning]" );
-	eval {&$method};
+	return eval {&$method};
 }
 
 warning( 'unresolved nameserver warning', sub { $resolver->nameserver('bogus.example.com.') } );

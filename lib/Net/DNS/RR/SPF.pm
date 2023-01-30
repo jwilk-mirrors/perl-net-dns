@@ -17,7 +17,8 @@ use integer;
 
 
 sub spfdata {
-	my @spf = shift->char_str_list(@_);
+	my ( $self, @argument ) = @_;
+	my @spf = shift->char_str_list(@argument);
 	return wantarray ? @spf : join '', @spf;
 }
 
@@ -106,6 +107,8 @@ DEALINGS IN THE SOFTWARE.
 
 =head1 SEE ALSO
 
-L<perl>, L<Net::DNS>, L<Net::DNS::RR>, L<Net::DNS::RR::TXT>, RFC7208
+L<perl> L<Net::DNS> L<Net::DNS::RR>
+L<Net::DNS::RR::TXT>
+L<RFC7208|https://tools.ietf.org/html/rfc7208>
 
 =cut

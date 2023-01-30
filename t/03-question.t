@@ -197,7 +197,7 @@ use Test::More tests => 105;
 }
 
 
-eval {					## exercise but do not test print
+eval {					## no critic		# exercise but do not test print
 	require IO::File;
 	my $object = Net::DNS::Question->new('example.com');
 	my $file   = '03-question.txt';

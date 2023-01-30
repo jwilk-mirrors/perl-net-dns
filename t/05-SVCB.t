@@ -110,13 +110,14 @@ END
 
 ####	Test Vectors
 
-my $zonefile = new Net::DNS::ZoneFile( \*DATA );
+my $zonefile = Net::DNS::ZoneFile->new( \*DATA );
 
 sub testcase {
 	my $ident  = shift;
 	my $vector = $zonefile->read;
 	my $expect = $zonefile->read;
 	is( $vector->string, $expect->string, $ident );
+	return;
 }
 
 sub failure {
@@ -124,6 +125,7 @@ sub failure {
 	eval { $zonefile->read };
 	my ($exception) = split /\n/, "$@\n";
 	ok( $exception, "$ident\t[$exception]" );
+	return;
 }
 
 

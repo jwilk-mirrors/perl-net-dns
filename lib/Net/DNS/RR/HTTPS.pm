@@ -73,6 +73,7 @@ DEALINGS IN THE SOFTWARE.
 
 =head1 SEE ALSO
 
-L<perl>, L<Net::DNS>, L<Net::DNS::RR>, L<Net::DNS::RR::SVCB>
+L<perl> L<Net::DNS> L<Net::DNS::RR>
+L<Net::DNS::RR::SVCB>
 
 =cut

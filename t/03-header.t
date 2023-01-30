@@ -18,9 +18,7 @@ ok( $header->isa('Net::DNS::Header'), 'packet->header object' );
 
 
 sub waggle {
-	my $object    = shift;
-	my $attribute = shift;
-	my @sequence  = @_;
+	my ( $object, $attribute, @sequence ) = @_;
 	for my $value (@sequence) {
 		my $change = $object->$attribute($value);
 		my $stored = $object->$attribute();
@@ -119,7 +117,7 @@ SKIP: {
 }
 
 
-eval {					## exercise printing functions
+eval {					## no critic		# exercise printing functions
 	require IO::File;
 	my $file   = "03-header.tmp";
 	my $handle = IO::File->new( $file, '>' ) || die "Could not open $file for writing";

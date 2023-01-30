@@ -19,8 +19,8 @@ use Net::DNS::DomainName;
 
 
 sub _decode_rdata {			## decode rdata from wire-format octet string
-	my $self = shift;
-	my ( $data, $offset, @opaque ) = @_;
+	my ( $self, @argument ) = @_;
+	my ( $data, $offset, @opaque ) = @argument;
 
 	$self->{subtype}  = unpack "\@$offset n", $$data;
 	$self->{hostname} = Net::DNS::DomainName2535->decode( $data, $offset + 2, @opaque );
@@ -29,8 +29,8 @@ sub _decode_rdata {			## decode rdata from wire-format octet string
 
 
 sub _encode_rdata {			## encode rdata as wire-format octet string
-	my $self = shift;
-	my ( $offset, @opaque ) = @_;
+	my ( $self,   @argument ) = @_;
+	my ( $offset, @opaque )	  = @argument;
 
 	my $hostname = $self->{hostname};
 	return pack 'n a*', $self->subtype, $hostname->encode( $offset + 2, @opaque );
@@ -46,26 +46,23 @@ sub _format_rdata {			## format rdata portion of RR string.
 
 
 sub _parse_rdata {			## populate RR from rdata in argument list
-	my $self = shift;
+	my ( $self, @argument ) = @_;
 
-	$self->subtype(shift);
-	$self->hostname(shift);
+	for (qw(subtype hostname)) { $self->$_( shift @argument ) }
 	return;
 }
 
 
 sub subtype {
-	my $self = shift;
-
-	$self->{subtype} = 0 + shift if scalar @_;
+	my ( $self, @value ) = @_;
+	for (@value) { $self->{subtype} = 0 + $_ }
 	return $self->{subtype} || 0;
 }
 
 
 sub hostname {
-	my $self = shift;
-
-	$self->{hostname} = Net::DNS::DomainName2535->new(shift) if scalar @_;
+	my ( $self, @value ) = @_;
+	for (@value) { $self->{hostname} = Net::DNS::DomainName2535->new($_) }
 	return $self->{hostname} ? $self->{hostname}->name : undef;
 }
 
@@ -142,6 +139,8 @@ DEALINGS IN THE SOFTWARE.
 
 =head1 SEE ALSO
 
-L<perl>, L<Net::DNS>, L<Net::DNS::RR>, RFC1183, RFC5864
+L<perl> L<Net::DNS> L<Net::DNS::RR>
+L<RFC1183(1)|https://tools.ietf.org/html/rfc1183>
+L<RFC5864|https://tools.ietf.org/html/rfc5864>
 
 =cut

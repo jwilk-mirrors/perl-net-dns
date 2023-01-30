@@ -4,7 +4,7 @@
 
 use strict;
 use warnings;
-use Test::More tests => 70;
+use Test::More tests => 80;
 
 use Net::DNS;
 use Net::DNS::Parameters;
@@ -80,6 +80,13 @@ for my $edns ( Net::DNS::Packet->new()->edns ) {
 }
 
 
+my $edns = Net::DNS::Packet->new()->edns;
+
+foreach my $option ( keys %Net::DNS::Parameters::ednsoptionbyval ) {
+	$edns->option( $option => {'OPTION-DATA' => 'arbitrary'} );
+}
+
+
 my @testcase = (
 	["LLQ" => {"BASE16" => "000100000000000000000000000000000000"}],
 	[["NSID" => {"OPTION-DATA" => "rawbytes"}], ["NSID" => {"IDENTIFIER" => "7261776279746573"}]],
@@ -99,15 +106,9 @@ my @testcase = (
 	["PADDING"	  => 100],
 	["CHAIN"	  => {"BASE16" => "076578616d706c6500"}],
 	["KEY-TAG"	  => ( 29281, 30562, 31092, 25971 )],
+	["EXTENDED-ERROR" => ( "INFO-CODE" => 4, "EXTRA-TEXT" => '{"JSON":"EXAMPLE"}' )],
 	["EXTENDED-ERROR" => ( "INFO-CODE" => 123 )],
 	["65023"	  => {"BASE16" => "076578616d706c6500"}] );
-
-
-my $edns = Net::DNS::Packet->new()->edns;
-
-foreach my $option ( keys %Net::DNS::Parameters::ednsoptionbyval ) {
-	$edns->option( $option => {'OPTION-DATA' => 'arbitrary'} );
-}
 
 foreach (@testcase) {
 	my ( $canonical, @alternative ) = ref( $$_[0] ) eq 'ARRAY' ? @$_ : $_;
@@ -129,6 +130,19 @@ foreach (@testcase) {
 	}
 }
 
+
+is( Net::DNS::RR::OPT::_JSONify(undef),	  'null',      '_JSONify undef' );
+is( Net::DNS::RR::OPT::_JSONify(1234567), '1234567',   '_JSONify integer' );
+is( Net::DNS::RR::OPT::_JSONify('12345'), '12345',     '_JSONify string integer' );
+is( Net::DNS::RR::OPT::_JSONify('1.234'), '1.234',     '_JSONify string non-integer' );
+is( Net::DNS::RR::OPT::_JSONify('1e+20'), '1e+20',     '_JSONify string with exponent' );
+is( Net::DNS::RR::OPT::_JSONify('abcde'), '"abcde"',   '_JSONify non-numeric string' );
+is( Net::DNS::RR::OPT::_JSONify('\\092'), '"\\\\092"', '_JSONify escape character' );
+
+my @json = Net::DNS::RR::OPT::_JSONify( {'BASE16' => '1234'} );
+is( "@json", qq[{"BASE16": "1234"}], 'short BASE16 string' );
+
+
 $edns->print;
 
 my $options = $edns->options;
@@ -137,11 +151,6 @@ my $decoded = Net::DNS::RR->decode( \$encoded );
 my @result  = $decoded->options;
 is( scalar(@result), $options, "expected number of options ($options)" );
 
-
-Net::DNS::RR::OPT::_JSONify(123);	## integer
-Net::DNS::RR::OPT::_JSONify("123");	## integer (string representation)
-Net::DNS::RR::OPT::_JSONify("abc");	## string
-
 exit;
 
 
@@ -149,7 +158,13 @@ use constant UTIL => scalar eval { require Scalar::Util; Scalar::Util->can('isdu
 
 sub _presentable {
 	my ( $value, @list ) = @_;
-	return join ', ', map { _presentable($_) } $value, @list if scalar(@list);
+	if ( scalar @list ) {		## unstructured argument list
+		my @token = _presentable( [$value, @list] );
+		pop @token;
+		shift @token;
+		return @token;
+	}
+
 	if ( ref($value) eq 'HASH' ) {
 		my @tags = keys %$value;
 		my $tail = pop @tags;
@@ -173,10 +188,15 @@ sub _presentable {
 	}
 
 	my $string = "$value";		## stringify, then use isdual() as discriminant
-	return $value if UTIL && Scalar::Util::isdual($value);	# native integer
+	return $string if UTIL && Scalar::Util::isdual($value); # native integer
 	for ($string) {
-		return $_ if /^(0|-?\d{1,10})$/;		# integer (string representation)
-		s/^"(.*)"$/$1/;					# strip redundant quotes
+		unless ( utf8::is_utf8($value) ) {
+			return $_ if /^-?\d{1,10}$/;		# integer (string representation)
+			return $_ if /^-?\d+\.\d+$/;		# non-integer
+			return $_ if /^-?\d(\.\d*)?e[+-]\d\d?$/;
+		}
+		s/^"(.*)"$/$1/;					# strip enclosing quotes
+		s/"/\\"/g;					# escape interior quotes
 	}
 	return qq("$string");
 }

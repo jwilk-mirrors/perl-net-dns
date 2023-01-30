@@ -19,8 +19,7 @@ use Net::DNS::Text;
 
 
 sub _decode_rdata {			## decode rdata from wire-format octet string
-	my $self = shift;
-	my ( $data, $offset ) = @_;
+	my ( $self, $data, $offset ) = @_;
 
 	( $self->{cpu}, $offset ) = Net::DNS::Text->decode( $data, $offset );
 	( $self->{os},	$offset ) = Net::DNS::Text->decode( $data, $offset );
@@ -43,26 +42,24 @@ sub _format_rdata {			## format rdata portion of RR string.
 
 
 sub _parse_rdata {			## populate RR from rdata in argument list
-	my $self = shift;
+	my ( $self, @argument ) = @_;
 
-	$self->cpu(shift);
-	$self->os(@_);
+	$self->cpu( shift @argument );
+	$self->os(@argument);
 	return;
 }
 
 
 sub cpu {
-	my $self = shift;
-
-	$self->{cpu} = Net::DNS::Text->new(shift) if scalar @_;
+	my ( $self, @value ) = @_;
+	for (@value) { $self->{cpu} = Net::DNS::Text->new($_) }
 	return $self->{cpu} ? $self->{cpu}->value : undef;
 }
 
 
 sub os {
-	my $self = shift;
-
-	$self->{os} = Net::DNS::Text->new(shift) if scalar @_;
+	my ( $self, @value ) = @_;
+	for (@value) { $self->{os} = Net::DNS::Text->new($_) }
 	return $self->{os} ? $self->{os}->value : undef;
 }
 
@@ -135,6 +132,7 @@ DEALINGS IN THE SOFTWARE.
 
 =head1 SEE ALSO
 
-L<perl>, L<Net::DNS>, L<Net::DNS::RR>, RFC1035 Section 3.3.2
+L<perl> L<Net::DNS> L<Net::DNS::RR>
+L<RFC1035(3.3.2)|https://tools.ietf.org/html/rfc1035>
 
 =cut

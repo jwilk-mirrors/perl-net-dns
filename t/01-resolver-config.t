@@ -113,7 +113,7 @@ ok( $class->new( debug => 1 )->_diag(@Net::DNS::Resolver::ISA), 'debug message' 
 }
 
 
-eval {					## exercise printing functions
+eval {					## no critic		# exercise printing functions
 	my $object = Net::DNS::Resolver->new();
 	my $file   = "01-resolver.tmp";
 	my $handle = IO::File->new( $file, '>' ) || die "Could not open $file for writing";

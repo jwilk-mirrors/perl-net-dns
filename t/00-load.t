@@ -15,7 +15,7 @@ if ($handle) {
 	my $json = join '', (<$handle>);
 	for ($json) {
 		s/\s:\s/ => /g;					# Perl? en voilà!
-		my $hashref = eval $_;
+		my $hashref = eval $_;	## no critic
 		%metadata = %$hashref;
 	}
 	close $handle;

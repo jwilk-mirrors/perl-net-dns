@@ -20,8 +20,8 @@ use Net::DNS::Text;
 
 
 sub _decode_rdata {			## decode rdata from wire-format octet string
-	my $self = shift;
-	my ( $data, $offset, @opaque ) = @_;
+	my ( $self, @argument ) = @_;
+	my ( $data, $offset, @opaque ) = @argument;
 
 	@{$self}{qw(order preference)} = unpack "\@$offset n2", $$data;
 	( $self->{flags},   $offset ) = Net::DNS::Text->decode( $data, $offset + 4 );
@@ -33,8 +33,8 @@ sub _decode_rdata {			## decode rdata from wire-format octet string
 
 
 sub _encode_rdata {			## encode rdata as wire-format octet string
-	my $self = shift;
-	my ( $offset, @opaque ) = @_;
+	my ( $self,   @argument ) = @_;
+	my ( $offset, @opaque )	  = @argument;
 
 	my $rdata = pack 'n2', @{$self}{qw(order preference)};
 	$rdata .= $self->{flags}->encode;
@@ -55,57 +55,51 @@ sub _format_rdata {			## format rdata portion of RR string.
 
 
 sub _parse_rdata {			## populate RR from rdata in argument list
-	my $self = shift;
+	my ( $self, @argument ) = @_;
 
-	foreach (qw(order preference flags service regexp replacement)) { $self->$_(shift) }
+	foreach (qw(order preference flags service regexp replacement)) { $self->$_( shift @argument ) }
 	return;
 }
 
 
 sub order {
-	my $self = shift;
-
-	$self->{order} = 0 + shift if scalar @_;
+	my ( $self, @value ) = @_;
+	for (@value) { $self->{order} = 0 + $_ }
 	return $self->{order} || 0;
 }
 
 
 sub preference {
-	my $self = shift;
-
-	$self->{preference} = 0 + shift if scalar @_;
+	my ( $self, @value ) = @_;
+	for (@value) { $self->{preference} = 0 + $_ }
 	return $self->{preference} || 0;
 }
 
 
 sub flags {
-	my $self = shift;
-
-	$self->{flags} = Net::DNS::Text->new(shift) if scalar @_;
+	my ( $self, @value ) = @_;
+	for (@value) { $self->{flags} = Net::DNS::Text->new($_) }
 	return $self->{flags} ? $self->{flags}->value : undef;
 }
 
 
 sub service {
-	my $self = shift;
-
-	$self->{service} = Net::DNS::Text->new(shift) if scalar @_;
+	my ( $self, @value ) = @_;
+	for (@value) { $self->{service} = Net::DNS::Text->new($_) }
 	return $self->{service} ? $self->{service}->value : undef;
 }
 
 
 sub regexp {
-	my $self = shift;
-
-	$self->{regexp} = Net::DNS::Text->new(shift) if scalar @_;
+	my ( $self, @value ) = @_;
+	for (@value) { $self->{regexp} = Net::DNS::Text->new($_) }
 	return $self->{regexp} ? $self->{regexp}->value : undef;
 }
 
 
 sub replacement {
-	my $self = shift;
-
-	$self->{replacement} = Net::DNS::DomainName2535->new(shift) if scalar @_;
+	my ( $self, @value ) = @_;
+	for (@value) { $self->{replacement} = Net::DNS::DomainName2535->new($_) }
 	return $self->{replacement} ? $self->{replacement}->name : undef;
 }
 
@@ -231,6 +225,7 @@ DEALINGS IN THE SOFTWARE.
 
 =head1 SEE ALSO
 
-L<perl>, L<Net::DNS>, L<Net::DNS::RR>, RFC2915, RFC2168, RFC3403
+L<perl> L<Net::DNS> L<Net::DNS::RR>
+L<RFC3403|https://tools.ietf.org/html/rfc3403>
 
 =cut

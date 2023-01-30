@@ -87,7 +87,7 @@ QQ
 	my $flags  = sprintf '%04x', $self->flags;
 	my $rcode  = $self->rcode;
 	my $size   = $self->UDPsize;
-	my @format = map { join( "\n;;\t\t\t\t", $self->_format_option($_) ) } $self->options;
+	my @format = map { join( "\n;;\t\t\t", $self->_format_option($_) ) } $self->options;
 	my @indent = scalar(@format) ? "\n;;\t\t" : ();
 	my @option = join ",\n;;\t\t", @format;
 
@@ -211,6 +211,12 @@ sub _set_option {
 }
 
 
+sub _specified {
+	my $self = shift;
+	return scalar grep { $self->{$_} } qw(size flags rcode option);
+}
+
+
 sub _format_option {
 	my ( $self, $number ) = @_;
 	my $option = ednsoptionbyval($number);
@@ -221,19 +227,17 @@ sub _format_option {
 
 sub _JSONify {
 	my $value = shift;
+	return 'null' unless defined $value;
+
 	if ( ref($value) eq 'HASH' ) {
 		my @tags = sort keys %$value;
 		my $tail = pop @tags;
-		my @body = map {
-			my ( $a, @z ) = _JSONify( $$value{$_} );
-			unshift @z, qq("$_": $a);
-			$z[-1] .= ',';
-			@z;
-		} @tags;
-		for ( $$value{BASE16} ) { $_ = qq("$_") if defined }
-		my ( $a, @tail ) = _JSONify( $$value{$tail} );
-		unshift @tail, qq("$tail": $a);
-		return ( '{', @body, @tail, '}' );
+		for ( $$value{BASE16} ) { $_ = pack( 'U0a*', $_ ) if defined }	  # mark as UTF-8
+		my @body = map { my @x = ( qq("$_":), _JSONify( $$value{$_} ) ); $x[-1] .= ','; @x } @tags;
+		push @body, ( qq("$tail":), _JSONify( $$value{$tail} ) );
+		$body[0] = '{' . $body[0];
+		$body[-1] .= '}';
+		return @body;
 	}
 
 	if ( ref($value) eq 'ARRAY' ) {
@@ -245,19 +249,18 @@ sub _JSONify {
 	}
 
 	my $string = "$value";		## stringify, then use isdual() as discriminant
-	return $value if UTIL && Scalar::Util::isdual($value);	# native integer
+	return $string if UTIL && Scalar::Util::isdual($value); # native numeric representation
 	for ($string) {
-		return $_ if /^(0|-?\d{1,10})$/;		# integer (string representation)
-		s/^"(.*)"$/$1/;					# strip redundant quotes
-		s/\\/\\\\/g;					# JSON escaped escape
+		unless ( utf8::is_utf8($value) ) {
+			return $_ if /^-?\d+$/;			# integer (string representation)
+			return $_ if /^-?\d+\.\d+$/;		# non-integer
+			return $_ if /^-?\d(\.\d*)?e[+-]\d\d?$/;
+		}
+		s/\\/\\\\/g;					# escaped escape
+		s/^"(.*)"$/$1/;					# strip enclosing quotes
+		s/"/\\"/g;					# escape interior quotes
 	}
 	return qq("$string");
-}
-
-
-sub _specified {
-	my $self = shift;
-	return scalar grep { $self->{$_} } qw(size flags rcode option);
 }
 
 
@@ -269,7 +272,7 @@ sub _compose {
 	return pack 'H*', pop @argument;
 }
 
-sub _decompose { return unpack 'H*', pop @_ }
+sub _decompose { return pack 'U0a*', unpack 'H*', pop @_ }	# mark as UTF-8
 
 
 package Net::DNS::RR::OPT::DAU;					# RFC6975
@@ -343,7 +346,7 @@ sub _compose {
 
 sub _decompose {
 	my %object;
-	@object{@field10} = unpack 'H16H*', pop @_;
+	@object{@field10} = map { pack 'U0a*', $_ } unpack 'H16H*', pop @_;    # mark as UTF-8
 	return \%object;
 }
 
@@ -401,19 +404,25 @@ sub _decompose { return [unpack 'n*', pop @_] }
 
 package Net::DNS::RR::OPT::EXTENDED_ERROR;			# RFC8914
 
-my @field15 = qw(INFO-CODE EXTRA-TEXT);
-
 sub _compose {
-	my ( undef, %argument ) = map { ref($_) ? %$_ : $_ } @_;
-	my ( $code, $extra )	= map { defined ? $_  : '' } @argument{@field15};
-	return pack 'na*', 0 + $code, Net::DNS::Text->new($extra)->raw;
+	my ( undef, @arg ) = @_;
+	my %arg	 = ref( $arg[0] ) ? %{$arg[0]} : @arg;
+	my $text = join '', Net::DNS::RR::OPT::_JSONify( $arg{'EXTRA-TEXT'} || '' );
+	return pack 'na*', $arg{'INFO-CODE'}, Net::DNS::Text->new($text)->raw;
 }
 
 sub _decompose {
-	my ( $code, $extra ) = unpack 'na*', pop @_;
-	my @error = grep {defined} $Net::DNS::Parameters::dnserrorbyval{$code};
-	my $txtra = Net::DNS::Text->decode( \$extra, 0, length $extra )->string;
-	return {'INFO-CODE' => $code, 'EXTRA-TEXT' => $txtra, map( ( 'ERROR' => "$_" ), @error )};
+	my ( $code, $text ) = unpack 'na*', pop @_;
+	my @error = map { $_ ? ( 'ERROR' => $_ ) : () } $Net::DNS::Parameters::dnserrorbyval{$code};
+	my $extra = Net::DNS::Text->decode( \$text, 0, length $text );
+	my $REGEX = q/("[^"]*")|([\[\]{}:,])|\s+/;
+	for ( $extra->value ) {
+		last unless /^[{\]]/;
+		s/([\@\$])/\\$1/g;
+		my @token = map { s/^:$/=>/; $_ } grep {defined} split /$REGEX/o;
+		return {'INFO-CODE' => $code, @error, 'EXTRA-TEXT' => eval "@token"};
+	}
+	return {'INFO-CODE' => $code, @error, 'EXTRA-TEXT' => $extra->string};
 }
 
 
@@ -563,7 +572,7 @@ option value:
 
 Copyright (c)2001,2002 RIPE NCC.  Author Olaf M. Kolkman.
 
-Portions Copyright (c)2012,2017-2022 Dick Franks.
+Portions Copyright (c)2012,2017-2023 Dick Franks.
 
 All rights reserved.
 

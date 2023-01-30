@@ -295,7 +295,7 @@ use Net::DNS::RR;
 }
 
 
-eval {					## exercise printing functions
+eval {					## no critic		# exercise printing functions
 	require Data::Dumper;
 	require IO::File;
 	local $Data::Dumper::Maxdepth;

@@ -5,6 +5,9 @@ $Id$                       -*-text-*-
 
 	Add links to relevant RFCs in package documentation.
 
+Fix rt.cpan.org #145944
+	Case sensitivity issue with AXFR
+
 
 **** 1.36 Dec 30, 2022
 

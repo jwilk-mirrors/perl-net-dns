@@ -81,6 +81,7 @@ DEALINGS IN THE SOFTWARE.
 
 =head1 SEE ALSO
 
-L<perl>, L<Net::DNS>, L<Net::DNS::RR>, RFC1035 Section 3.3.10
+L<perl> L<Net::DNS> L<Net::DNS::RR>
+L<RFC1035(3.3.10)|https://tools.ietf.org/html/rfc1035>
 
 =cut

@@ -750,8 +750,7 @@ sub _wrap {
 		$coln = $cols	  if chomp;			# force line break
 		push( @fill, $_ ) if length;
 	}
-	push @line, join ' ', @fill;
-	return @line;
+	return ( @line, join ' ', @fill );
 }
 
 

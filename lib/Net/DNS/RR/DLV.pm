@@ -73,6 +73,9 @@ DEALINGS IN THE SOFTWARE.
 
 =head1 SEE ALSO
 
-L<perl>, L<Net::DNS>, L<Net::DNS::RR>, L<Net::DNS::RR::DS>, RFC8749, RFC4431
+L<perl> L<Net::DNS> L<Net::DNS::RR>
+L<Net::DNS::RR::DS>
+L<RFC8749|https://tools.ietf.org/html/rfc8749>
+L<RFC4431|https://tools.ietf.org/html/rfc4431>
 
 =cut

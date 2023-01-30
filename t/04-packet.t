@@ -227,7 +227,7 @@ is( $rr->size, '4096', 'EDNS0 packet size correct' );
 }
 
 
-eval {					## exercise dump and debug diagnostics
+eval {					## no critic		# exercise dump and debug diagnostics
 	require IO::File;
 	require Data::Dumper;
 	local $Data::Dumper::Maxdepth;

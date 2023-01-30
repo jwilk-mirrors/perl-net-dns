@@ -18,7 +18,7 @@
 ## in %Net::DNS::Parameters::typesbyname and module added to MANIFEST.
 ##
 
-
+## no critic
 package Net::DNS::RR::XXXX;
 
 use strict;
@@ -42,8 +42,7 @@ use integer;
 
 
 sub _decode_rdata {			## decode rdata from wire-format octet string
-	my $self = shift;
-	my ( $data, $offset ) = @_;
+	my ( $self, $data, $offset ) = @_;
 
 	##		$data		reference to a wire-format packet buffer
 	##		$offset		location of rdata within packet buffer
@@ -62,7 +61,7 @@ sub _encode_rdata {			## encode rdata as wire-format octet string
 	my $self = shift;
 
 	## Scalar attribute
-	##	my $rdata = pack( 'n', $self->{preference} );
+	##	$rdata = pack( 'n', $self->{preference} );
 	##
 	## Domain name attribute
 	##	$rdata .= $self->{foo}->encode;
@@ -79,26 +78,26 @@ sub _format_rdata {			## format rdata portion of RR string.
 	##
 	##	my $foo = $self->{foo}->string();
 	##
-	##	join ' ', $self->{preference}, $foo;
+	##	return join ' ', $self->{preference}, $foo;
 	##
 	## Alternatively, rdata attributes may be returned as a list.
 	##
-	##	my @list = ( $self->{preference}, $foo );
+	##	@rdata = ( $self->{preference}, $foo );
 	##
 	return my @rdata;
 }
 
 
 sub _parse_rdata {			## populate RR from rdata in argument list
-	my $self = shift;
+	my ( $self, @argument ) = @_;
 
-	##	my @rdata = @_;			# non-empty list parsed from RR string
+	##	my @rdata = @argument;			# non-empty list parsed from RR string
 	##
 	## Scalar attribute
-	##	$self->{preference} = shift;
+	##	$self->{preference} = shift @rdata;
 	##
 	## Domain name attribute
-	##	$self->{foo} = new Net::DNS::DomainName(shift);
+	##	$self->{foo} = new Net::DNS::DomainName( shift @rdata );
 	##
 	return;
 }
@@ -116,17 +115,15 @@ sub _defaults {				## specify RR attribute default values
 
 
 sub preference {
-	my $self = shift;
-
-	$self->{preference} = 0 + shift if scalar @_;
+	my ( $self, @value ) = @_;
+	for (@value) { $self->{preference} = 0 + $_ }
 	return $self->{preference} || 0;
 }
 
 
 sub foo {
-	my $self = shift;
-
-	$self->{foo} = Net::DNS::DomainName->new(shift) if scalar @_;
+	my ( $self, @value ) = @_;
+	for (@value) { $self->{foo} = Net::DNS::DomainName->new($_) }
 	return $self->{foo} ? $self->{foo}->name : undef;
 }
 
@@ -212,6 +209,7 @@ DEALINGS IN THE SOFTWARE.
 
 =head1 SEE ALSO
 
-L<perl>, L<Net::DNS>, L<Net::DNS::RR>, RFC????
+L<perl> L<Net::DNS> L<Net::DNS::RR>
+L<RFC????|https://tools.ietf.org/html/rfc????>
 
 =cut
