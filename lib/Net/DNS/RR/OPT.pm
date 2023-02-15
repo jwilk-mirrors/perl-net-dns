@@ -175,8 +175,12 @@ sub _get_option {
 	return $payload unless wantarray;
 	my $package = join '::', __PACKAGE__, ednsoptionbyval($number);
 	$package =~ s/-/_/g;
-	my @structure = $package->can('_decompose') ? eval { $package->_decompose($payload) } : ();
-	return @structure if scalar(@structure);
+	if ( $package->can('_decompose') ) {
+		return {'OPTION-LENGTH' => 0} unless length $payload;
+		my @structure = eval { $package->_decompose($payload) };
+		return @structure if scalar @structure;
+	}
+	warn $@ if $@;
 	return length($payload) ? {BASE16 => unpack 'H*', $payload} : '';
 }
 
@@ -194,17 +198,17 @@ sub _set_option {
 
 	if ( ref($arg) eq 'HASH' ) {
 		for ( keys %$arg ) { $$arg{uc $_} = $$arg{$_} } # tolerate mixed case
-		my $octets = $$arg{'OPTION-DATA'};
 		my $length = $$arg{'OPTION-LENGTH'};
-		$octets = '' if defined($length) && $length == 0;
+		my $octets = $$arg{'OPTION-DATA'};
 		$octets = pack 'H*', $$arg{'BASE16'} if defined $$arg{'BASE16'};
+		$octets = '' if defined($length) && $length == 0;
 		return $options->{$number} = $octets if defined $octets;
 	}
 
 	my $option  = ednsoptionbyval($number);
 	my $package = join '::', __PACKAGE__, $option;
 	$package =~ s/-/_/g;
-	return eval { $options->{$number} = $package->_compose(@value) } if $package->can('_compose');
+	return eval { $options->{$number} = $package->_compose(@value) } if length($arg) && $package->can('_compose');
 
 	croak "unable to compose option $number" if ref($arg);
 	return $options->{$number} = $arg;
@@ -242,9 +246,8 @@ sub _JSONify {
 
 	if ( ref($value) eq 'ARRAY' ) {
 		my @array = @$value;
-		return qq([ ]) unless scalar @array;
-		my @tail = _JSONify( pop @array );
-		my @body = map { my @x = _JSONify($_); $x[-1] .= ','; @x } @array;
+		my @tail  = map { _JSONify($_) } grep {defined} pop @array;
+		my @body  = map { my @x = _JSONify($_); $x[-1] .= ','; @x } @array;
 		return ( '[', @body, @tail, ']' );
 	}
 
@@ -254,7 +257,7 @@ sub _JSONify {
 		unless ( utf8::is_utf8($value) ) {
 			return $_ if /^-?\d+$/;			# integer (string representation)
 			return $_ if /^-?\d+\.\d+$/;		# non-integer
-			return $_ if /^-?\d(\.\d*)?e[+-]\d\d?$/;
+			return $_ if /^-?\d+(\.\d+)?e[+-]\d\d?$/i;
 		}
 		s/\\/\\\\/g;					# escaped escape
 		s/^"(.*)"$/$1/;					# strip enclosing quotes
@@ -309,7 +312,7 @@ sub _compose {
 sub _decompose {
 	my %object;
 	@object{@field8} = unpack 'nC2a*', pop @_;
-	my ($family) = grep {defined} $family{$object{FAMILY}}, 2;
+	my $family = $family{$object{FAMILY}} || die 'unrecognised address family';
 	for ( $object{ADDRESS} ) {
 		$_ = bless( {address => $_}, $family )->address;
 		s/:[:0]+$/::/;
@@ -327,7 +330,7 @@ sub _compose {
 
 sub _decompose {
 	my $argument = pop @_;
-	return length($argument) ? {'EXPIRE-TIMER' => unpack 'N', $argument} : {'OPTION-LENGTH' => 0};
+	return {'EXPIRE-TIMER' => unpack 'N', $argument};
 }
 
 
@@ -360,7 +363,7 @@ sub _compose {
 
 sub _decompose {
 	my $argument = pop @_;
-	return length($argument) ? {'TIMEOUT' => unpack 'n', $argument} : {'OPTION-LENGTH' => 0};
+	return {'TIMEOUT' => unpack 'n', $argument};
 }
 
 
@@ -413,20 +416,22 @@ sub _compose {
 
 sub _decompose {
 	my ( $code, $text ) = unpack 'na*', pop @_;
-	my @error = map { $_ ? ( 'ERROR' => $_ ) : () } $Net::DNS::Parameters::dnserrorbyval{$code};
+	my $error = $Net::DNS::Parameters::dnserrorbyval{$code};
+	my @error = defined($error) ? ( 'ERROR' => $error ) : ();
 	my $extra = Net::DNS::Text->decode( \$text, 0, length $text );
 	my $REGEX = q/("[^"]*")|([\[\]{}:,])|\s+/;
 	for ( $extra->value ) {
-		last unless /^[{\]]/;
+		last unless /^[\[\{]/;
 		s/([\@\$])/\\$1/g;
-		my @token = map { s/^:$/=>/; $_ } grep {defined} split /$REGEX/o;
-		return {'INFO-CODE' => $code, @error, 'EXTRA-TEXT' => eval "@token"};
+		my $info = eval join( ' ', map { s/^:$/=>/; $_ } grep {defined} split /$REGEX/o );
+		return {'INFO-CODE' => $code, @error, 'EXTRA-TEXT' => $info || last};
 	}
 	return {'INFO-CODE' => $code, @error, 'EXTRA-TEXT' => $extra->string};
 }
 
 
 package Net::DNS::RR::OPT::REPORT_CHANNEL;			# draft-ietf-dnsop-dns-error-reporting
+$Net::DNS::Parameters::ednsoptionbyval{65023} = 'REPORT-CHANNEL';	## experimental/private use
 
 sub _compose {
 	my ( undef, @argument ) = map { ref($_) ? %$_ : $_ } @_;

@@ -46,12 +46,11 @@ my @field = qw(typecovered algorithm labels orgttl sigexpiration siginception ke
 
 
 sub _decode_rdata {			## decode rdata from wire-format octet string
-	my ( $self, @argument ) = @_;
-	my ( $data, $offset, @opaque ) = @argument;
+	my ( $self, $data, $offset ) = @_;
 
 	my $limit = $offset + $self->{rdlength};
 	@{$self}{@field} = unpack "\@$offset n C2 N3 n", $$data;
-	( $self->{signame}, $offset ) = Net::DNS::DomainName2535->decode( $data, $offset + 18 );
+	( $self->{signame}, $offset ) = Net::DNS::DomainName->decode( $data, $offset + 18 );
 	$self->{sigbin} = substr $$data, $offset, $limit - $offset;
 
 	croak('misplaced or corrupt SIG') unless $limit == length $$data;
@@ -62,20 +61,18 @@ sub _decode_rdata {			## decode rdata from wire-format octet string
 
 
 sub _encode_rdata {			## encode rdata as wire-format octet string
-	my ( $self,   @argument ) = @_;
-	my ( $offset, @opaque )	  = @argument;
-
-	my ( $hash, $packet ) = @opaque;
+	my ( $self, $offset, @opaque ) = @_;
 
 	my $signame = $self->{signame};
 
 	if ( DNSSEC && !$self->{sigbin} ) {
+		my ( undef, $packet ) = @opaque;
 		my $private = delete $self->{private};		# one shot is all you get
 		my $sigdata = $self->_CreateSigData($packet);
 		$self->_CreateSig( $sigdata, $private || die 'missing key reference' );
 	}
 
-	return pack 'n C2 N3 n a* a*', @{$self}{@field}, $signame->encode, $self->sigbin;
+	return pack 'n C2 N3 n a* a*', @{$self}{@field}, $signame->canonical, $self->sigbin;
 }
 
 

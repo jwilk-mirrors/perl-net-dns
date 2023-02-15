@@ -266,7 +266,7 @@ my $placebo = sub { my $constructor = shift; &$constructor; };
 
 sub origin {
 	my ( $class, $name ) = @_;
-	my $domain = defined $name ? Net::DNS::Domain->new($name) : return $placebo;
+	my $domain = defined $name ? __PACKAGE__->new($name) : return $placebo;
 
 	return sub {						# closure w.r.t. $domain
 		my $constructor = shift;

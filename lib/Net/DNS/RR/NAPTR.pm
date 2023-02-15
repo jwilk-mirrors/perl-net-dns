@@ -20,21 +20,19 @@ use Net::DNS::Text;
 
 
 sub _decode_rdata {			## decode rdata from wire-format octet string
-	my ( $self, @argument ) = @_;
-	my ( $data, $offset, @opaque ) = @argument;
+	my ( $self, $data, $offset ) = @_;
 
 	@{$self}{qw(order preference)} = unpack "\@$offset n2", $$data;
 	( $self->{flags},   $offset ) = Net::DNS::Text->decode( $data, $offset + 4 );
 	( $self->{service}, $offset ) = Net::DNS::Text->decode( $data, $offset );
 	( $self->{regexp},  $offset ) = Net::DNS::Text->decode( $data, $offset );
-	$self->{replacement} = Net::DNS::DomainName2535->decode( $data, $offset, @opaque );
+	$self->{replacement} = Net::DNS::DomainName2535->decode( $data, $offset );
 	return;
 }
 
 
 sub _encode_rdata {			## encode rdata as wire-format octet string
-	my ( $self,   @argument ) = @_;
-	my ( $offset, @opaque )	  = @argument;
+	my ( $self, $offset, @opaque ) = @_;
 
 	my $rdata = pack 'n2', @{$self}{qw(order preference)};
 	$rdata .= $self->{flags}->encode;

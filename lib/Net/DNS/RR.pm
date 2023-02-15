@@ -544,9 +544,7 @@ sub rdata {
 	return $self->_empty ? '' : eval { $self->_encode_rdata( 0x4000, {} ) } unless @_;
 
 	my $data = shift || '';
-	my $hash = {};
-	$self->_decode_rdata( \$data, 0, $hash ) if ( $self->{rdlength} = length $data );
-	croak 'compression pointer in rdata'	 if keys %$hash;
+	$self->_decode_rdata( \$data, 0 ) if ( $self->{rdlength} = length $data );
 	return;
 }
 

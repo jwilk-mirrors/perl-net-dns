@@ -97,7 +97,9 @@ sub decode {
 	my $self   = bless {label => $label}, shift;
 	my $buffer = shift;					# reference to data buffer
 	my $offset = shift || 0;				# offset within buffer
-	my $cache  = shift || {};				# hashed objectref by offset
+	my $linked = shift;					# caller's compression index
+	my $cache  = $linked;
+	$cache->{$offset} = $self;				# hashed objectref by offset
 
 	my $buflen = length $$buffer;
 	my $index  = $offset;
@@ -116,9 +118,10 @@ sub decode {
 		} else {					# compression pointer
 			my $link = 0x3FFF & unpack( "\@$index n", $$buffer );
 			croak 'corrupt compression pointer' unless $link < $offset;
+			croak 'invalid compression pointer' unless $linked;
 
 			# uncoverable condition false
-			$self->{origin} = $cache->{$link} ||= Net::DNS::DomainName->decode( $buffer, $link, $cache );
+			$self->{origin} = $cache->{$link} ||= __PACKAGE__->decode( $buffer, $link, $cache );
 			return wantarray ? ( $self, $index + 2 ) : $self;
 		}
 	}

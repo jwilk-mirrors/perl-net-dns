@@ -20,18 +20,16 @@ use Net::DNS::Mailbox;
 
 
 sub _decode_rdata {			## decode rdata from wire-format octet string
-	my ( $self, @argument ) = @_;
-	my ( $data, $offset, @opaque ) = @argument;
+	my ( $self, $data, $offset ) = @_;
 
-	( $self->{mbox}, $offset ) = Net::DNS::Mailbox2535->decode( $data, $offset, @opaque );
-	$self->{txtdname} = Net::DNS::DomainName2535->decode( $data, $offset, @opaque );
+	( $self->{mbox}, $offset ) = Net::DNS::Mailbox2535->decode( $data, $offset );
+	$self->{txtdname} = Net::DNS::DomainName2535->decode( $data, $offset );
 	return;
 }
 
 
 sub _encode_rdata {			## encode rdata as wire-format octet string
-	my ( $self,   @argument ) = @_;
-	my ( $offset, @opaque )	  = @argument;
+	my ( $self, $offset, @opaque ) = @_;
 
 	my $txtdname = $self->{txtdname};
 	my $rdata    = $self->{mbox}->encode( $offset, @opaque );

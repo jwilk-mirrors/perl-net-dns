@@ -4,11 +4,10 @@
 
 use strict;
 use warnings;
-use Test::More tests => 80;
+use Test::More tests => 79;
 
 use Net::DNS;
 use Net::DNS::Parameters;
-local $Net::DNS::Parameters::ednsoptionbyval{65023} = 'REPORT-CHANNEL';	   # experimental/private use
 
 
 my $code = 41;
@@ -70,10 +69,15 @@ for my $edns ( Net::DNS::Packet->new()->edns ) {
 
 	ok( !$edns->_specified, 'state unmodified following delete' );
 
-	my @exception = ( {8 => {"FAMILY" => 99}}, {65001 => []} );
+	my @exception = ( {8 => {"FAMILY" => 99}}, {8 => {"BASE16" => '00990000'}}, {65001 => []} );
 	foreach (@exception) {
 		my @test = _presentable($_);
-		eval { $edns->option(%$_) };
+		my ($number) = keys %$_;
+		eval {
+			local $SIG{__WARN__} = sub { die @_ };
+			my $value = $edns->option(%$_);
+			my @value = $edns->option($number);
+		};
 		my ($exception) = split /\n/, "$@\n";
 		ok( $exception, "compose(@test):\t[$exception]" );
 	}
@@ -83,7 +87,7 @@ for my $edns ( Net::DNS::Packet->new()->edns ) {
 my $edns = Net::DNS::Packet->new()->edns;
 
 foreach my $option ( keys %Net::DNS::Parameters::ednsoptionbyval ) {
-	$edns->option( $option => {'OPTION-DATA' => 'arbitrary'} );
+	$edns->option( $option => {'BASE16' => '076578616d706c6500'} );
 }
 
 
@@ -93,22 +97,22 @@ my @testcase = (
 	["4"		 => {"OPTION-DATA" => ""}],
 	["DAU"		 => ( 8, 10, 13, 14, 15, 16 )],
 	["DHU"		 => ( 1, 2,  4 )],
-	["N3U"		 => {"OPTION-DATA" => ""}],
+	["N3U"		 => 1],
 	["CLIENT-SUBNET" => ( "FAMILY" => 1, "ADDRESS" => "192.0.2.1", "SOURCE-PREFIX" => 24 )],
-	["CLIENT-SUBNET" => {"BASE16"	   => "0002380020010db8fd1342"}],
-	["EXPIRE"	 => {"OPTION-DATA" => ""}],
+	["CLIENT-SUBNET" => {"BASE16" => "0002380020010db8fd1342"}],
 	["EXPIRE"	 => 604800],
 	[["COOKIE" => ["7261776279746573", ""]], ["COOKIE" => "7261776279746573"]],
-	["TCP-KEEPALIVE" => {"OPTION-DATA" => ""}],
 	["TCP-KEEPALIVE" => 200],
 	[["PADDING" => {"OPTION-DATA" => ""}], ["PADDING" => 0], ["PADDING" => ""]],
 	["PADDING"	  => {"OPTION-DATA" => "rawbytes"}],
 	["PADDING"	  => 100],
 	["CHAIN"	  => {"BASE16" => "076578616d706c6500"}],
 	["KEY-TAG"	  => ( 29281, 30562, 31092, 25971 )],
-	["EXTENDED-ERROR" => ( "INFO-CODE" => 4, "EXTRA-TEXT" => '{"JSON":"EXAMPLE"}' )],
+	["EXTENDED-ERROR" => ( "INFO-CODE" => 0, "EXTRA-TEXT" => '{"JSON":"EXAMPLE"}' )],
+	["EXTENDED-ERROR" => ( "INFO-CODE" => 0, "EXTRA-TEXT" => '{JSON: unparsable}' )],
 	["EXTENDED-ERROR" => ( "INFO-CODE" => 123 )],
-	["65023"	  => {"BASE16" => "076578616d706c6500"}] );
+	["65023"	  => {"BASE16" => "076578616d706c6500"}],
+	);
 
 foreach (@testcase) {
 	my ( $canonical, @alternative ) = ref( $$_[0] ) eq 'ARRAY' ? @$_ : $_;
