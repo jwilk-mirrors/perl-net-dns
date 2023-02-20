@@ -9,7 +9,7 @@ use Test::More;
 use Net::DNS::Packet;
 use Net::DNS::Parameters;
 
-plan tests => 72;
+plan tests => 77;
 
 
 my $packet = Net::DNS::Packet->new(qw(. NS IN));
@@ -28,10 +28,14 @@ sub waggle {
 }
 
 
-my $newid = Net::DNS::Packet->new()->header->id;
-waggle( $header, 'id', $header->id, $newid, $header->id );
+my $newid = Net::DNS::Packet->new()->header->id(0);
+ok( $newid, 'expected non-zero packet ID' );
 
-waggle( $header, 'opcode', qw(STATUS UPDATE QUERY) );
+waggle( $header, 'opcode', qw(QUERY UPDATE DSO) );
+waggle( $header, 'id',	   $header->id, 0, $header->id );	# Zero ID => DSO unidirectional
+waggle( $header, 'opcode', qw(QUERY) );
+waggle( $header, 'id',	   $header->id, $newid, $header->id );
+
 waggle( $header, 'rcode',  qw(REFUSED FORMERR NOERROR) );
 
 waggle( $header, 'qr', 1, 0, 1, 0 );
