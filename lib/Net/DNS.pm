@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 our $VERSION;
-$VERSION = '1.36_02';
+$VERSION = '1.36_03';
 $VERSION = eval {$VERSION};
 our $SVNVERSION = (qw$Id$)[2];
 
