@@ -66,6 +66,11 @@ sub string {
 	my $an	   = $self->ancount;
 	my $ns	   = $self->nscount;
 	my $ar	   = $self->arcount;
+	return <<"QQ" if $opcode eq 'DSO';
+;;	id = $id
+;;	qr = $qr		opcode = $opcode	rcode = $rcode
+;;	qdcount = $qd	ancount = $an	nscount = $ns	arcount = $ar
+QQ
 	return <<"QQ" if $opcode eq 'UPDATE';
 ;;	id = $id
 ;;	qr = $qr		opcode = $opcode	rcode = $rcode

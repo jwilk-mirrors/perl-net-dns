@@ -979,10 +979,10 @@ sub _make_query_packet {
 	my ($packet) = @argument;
 	if ( ref($packet) ) {
 		my $edns = $packet->edns;			# advertise UDPsize for local stack
-		$edns->size( $self->{udppacketsize} ) unless defined $edns->{size};
+		$edns->udpsize( $self->{udppacketsize} ) unless defined $edns->{udpsize};
 	} else {
 		$packet = Net::DNS::Packet->new(@argument);
-		$packet->edns->size( $self->{udppacketsize} );
+		$packet->edns->udpsize( $self->{udppacketsize} );
 
 		my $header = $packet->header;
 		$header->ad( $self->{adflag} );			# RFC6840, 5.7

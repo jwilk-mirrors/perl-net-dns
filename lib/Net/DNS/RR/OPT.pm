@@ -20,8 +20,6 @@ use Net::DNS::Parameters qw(:rcode :ednsoption);
 
 use constant UTIL => scalar eval { require Scalar::Util; Scalar::Util->can('isdual') };
 
-use constant CLASS_TTL_RDLENGTH => length pack 'n N n', (0) x 3;
-
 use constant OPT => Net::DNS::Parameters::typebyname qw(OPT);
 
 require Net::DNS::DomainName;
@@ -33,21 +31,22 @@ require Net::DNS::Text;
 sub _decode_rdata {			## decode rdata from wire-format octet string
 	my ( $self, $data, $offset ) = @_;
 
-	my $index = $offset - CLASS_TTL_RDLENGTH;		# OPT redefines class and TTL fields
-	@{$self}{qw(size rcode version flags)} = unpack "\@$index n C2 n", $$data;
-	@{$self}{rcode} = @{$self}{rcode} << 4;
-	delete @{$self}{qw(class ttl)};
+	if ( defined $self->{ttl} ) {				# OPT redefines class and TTL fields
+		@{$self}{qw(rcode version flags)} = unpack( 'C2n', pack 'N', delete $self->{ttl} );
+		$self->{udpsize} = delete $self->{class};
+	}
 
 	my $limit = $offset + $self->{rdlength} - 4;
-
 	my @index;
-	while ( $offset <= $limit ) {
-		my ( $code, $length ) = unpack "\@$offset nn", $$data;
-		my $value = unpack "\@$offset x4 a$length", $$data;
-		push @index, $code;
-		$self->{option}{$code} = $value;
-		$offset += $length + 4;
-	}
+	eval {
+		while ( $offset <= $limit ) {
+			my ( $code, $length ) = unpack "\@$offset nn", $$data;
+			my $value = unpack "\@$offset x4 a$length", $$data;
+			$self->{option}{$code} = $value;
+			push @index, $code;
+			$offset += $length + 4;
+		}
+	};
 	@{$self->{index}} = @index;
 	return;
 }
@@ -61,54 +60,26 @@ sub _encode_rdata {			## encode rdata as wire-format octet string
 }
 
 
-sub encode {				## overide RR method
+sub encode {				## override RR method
 	my $self = shift;
-
 	my $data = $self->_encode_rdata;
-	my $size = $self->UDPsize;
 	my @xttl = ( $self->rcode >> 4, $self->version, $self->flags );
-	return pack 'C n n C2n n a*', 0, OPT, $size, @xttl, length($data), $data;
+	return pack 'C n n C2n na*', 0, OPT, $self->UDPsize, @xttl, length($data), $data;
 }
 
 
-sub string {				## overide RR method
-	my $self = shift;
-
-	my $edns = $self->version;
-	unless ( $edns == 0 ) {
-		my $content = unpack 'H*', eval { $self->encode };
-		return <<"QQ";
-;; {	"EDNS-VERSION":	$edns,
-;;	"BASE16":	"$content"
-;;	}
-QQ
-	}
-
-	my $flags  = sprintf '%04x', $self->flags;
-	my $rcode  = $self->rcode;
-	my $size   = $self->UDPsize;
-	my @format = map { join( "\n;;\t\t\t", $self->_format_option($_) ) } $self->options;
-	my @indent = scalar(@format) ? "\n;;\t\t" : ();
-	my @option = join ",\n;;\t\t", @format;
-
-	return <<"QQ";
-;; {	"EDNS-VERSION":	$edns,
-;;	"FLAGS":	"$flags",
-;;	"RCODE":	$rcode,
-;;	"UDPSIZE":	$size,
-;;	"OPTIONS":	[@indent@option ]
-;;	}
-QQ
+sub string {				## override RR method
+	my @line = split /[\r\n]+/, shift->json;
+	return join '', map {";;$_\n"} @line;
 }
 
-
-sub class {				## overide RR method
+sub class {				## override RR method
 	my ( $self, @value ) = @_;
 	$self->_deprecate(qq[please use "UDPsize()"]);
 	return $self->UDPsize(@value);
 }
 
-sub ttl {				## overide RR method
+sub ttl {				## override RR method
 	my ( $self, @value ) = @_;
 	$self->_deprecate(qq[please use "flags()" or "rcode()"]);
 	for (@value) {
@@ -116,6 +87,48 @@ sub ttl {				## overide RR method
 		@{$self}{rcode} = @{$self}{rcode} << 4;
 	}
 	return pack 'C2n', $self->rcode >> 4, $self->version, $self->flags;
+}
+
+sub generic {				## override RR method
+	my $self = shift;
+	local $self->{class} = $self->UDPsize;
+	my @xttl = ( $self->rcode >> 4, $self->version, $self->flags );
+	local $self->{ttl} = unpack 'N', pack( 'C2n', @xttl );
+	return $self->SUPER::generic;
+}
+
+sub token {				## override RR method
+	return grep { !m/^[()]$/ } split /\s+/, &generic;
+}
+
+sub json {
+	my $self = shift;					# uncoverable pod
+
+	my $version = $self->version;
+	unless ( $version == 0 ) {
+		my $content = unpack 'H*', $self->encode;
+		return <<"QQ";
+ {	"EDNS-VERSION":	$version,
+	"BASE16":	"$content"
+	}
+QQ
+	}
+
+	my $flags  = sprintf '%04x', $self->flags;
+	my $rcode  = $self->rcode;
+	my $size   = $self->UDPsize;
+	my @format = map { join( "\n\t\t\t", $self->_format_option($_) ) } $self->options;
+	my @indent = scalar(@format) ? "\n\t\t" : ();
+	my @option = join ",\n\t\t", @format;
+
+	return <<"QQ";
+ {	"EDNS-VERSION":	$version,
+	"FLAGS":	"$flags",
+	"RCODE":	$rcode,
+	"UDPSIZE":	$size,
+	"OPTIONS":	[@indent@option ]
+	}
+QQ
 }
 
 
@@ -126,13 +139,13 @@ sub version {
 }
 
 
-sub UDPsize {
-	my ( $self, @value ) = @_;
-	for (@value) { $self->{size} = 0 + $_ }
-	return ( $self->{size} || 0 ) > 512 ? $self->{size} : 0;
+sub udpsize {
+	my ( $self, @value ) = @_;				# uncoverable pod
+	for (@value) { $self->{udpsize} = 0 + $_ }
+	return ( $self->{udpsize} || 0 ) > 512 ? $self->{udpsize} : 0;
 }
 
-sub size { return &UDPsize; }					# uncoverable pod
+sub size { return &udpsize; }					# uncoverable pod
 
 
 sub rcode {
@@ -217,7 +230,7 @@ sub _set_option {
 
 sub _specified {
 	my $self = shift;
-	return scalar grep { $self->{$_} } qw(size flags rcode option);
+	return scalar grep { $self->{$_} } qw(udpsize flags rcode option);
 }
 
 
@@ -471,12 +484,12 @@ __END__
 	;;	"FLAGS":	"8000",
 	;;	"RCODE":	0,
 	;;	"UDPSIZE":	1232,
-	;;	"OPTIONS"	: [
-	;;		{ "NSID": "7261776279746573" },
-	;;		{ "DAU": [ 8, 10, 13, 14, 15, 16 ] },
-	;;		{ "TCP-KEEPALIVE": { "TIMEOUT": 200 } },
-	;;		{ "EXTENDED-ERROR": { "INFO-CODE": 123, "EXTRA-TEXT": "" } },
-	;;		{ "65023": { "BASE16": "076578616d706c6500" } } ]
+	;;	"OPTIONS":	[
+	;;		{"NSID": "7261776279746573"},
+	;;		{"DAU": [ 8, 10, 13, 14, 15, 16 ]},
+	;;		{"TCP-KEEPALIVE": {"TIMEOUT": 200}},
+	;;		{"EXTENDED-ERROR": {"INFO-CODE": 123, "EXTRA-TEXT": ""}},
+	;;		{"65023": {"BASE16": "076578616d706c6500"}} ]
 	;;	}
 
 =head1 DESCRIPTION

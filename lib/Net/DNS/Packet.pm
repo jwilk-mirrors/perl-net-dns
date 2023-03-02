@@ -404,17 +404,17 @@ sub string {
 	my $origin = $server ? ";; Response received from $server ($length octets)\n" : "";
 	my @record = ( "$origin;; HEADER SECTION", $header->string );
 
-	my $edns = $self->edns;
-	CORE::push( @record, $edns->string ) if $edns->_specified;
-
 	if ( $opcode eq 'DSO' ) {
 		CORE::push( @record, ";; DSO SECTION" );
 		foreach ( @{$self->{dso}} ) {
 			my ( $t, $v ) = @$_;
-			CORE::push( @record, pack 'a* A18 a*', ";;\t", dsotypebyval($t), unpack( 'H*', $v ) );
+			CORE::push( @record, sprintf( ";;\t%s\t%s", dsotypebyval($t), unpack( 'H*', $v ) ) );
 		}
 		return join "\n", @record, "\n";
 	}
+
+	my $edns = $self->edns;
+	CORE::push( @record, $edns->string ) if $edns->_specified;
 
 	my @section  = $opcode eq 'UPDATE' ? qw(ZONE PREREQUISITE UPDATE) : qw(QUESTION ANSWER AUTHORITY);
 	my @question = $self->question;
