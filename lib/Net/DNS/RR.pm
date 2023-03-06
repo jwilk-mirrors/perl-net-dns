@@ -121,8 +121,8 @@ sub _new_string {
 
 	my $self = $base->_subclass( $type, $populated );	# create RR object
 	$self->owner($owner);
-	$self->class($class) if defined $class;			# specify CLASS
-	$self->ttl($ttl)     if defined $ttl;			# specify TTL
+	&class( $self, $class );				# specify CLASS
+	&ttl( $self, $ttl );					# specify TTL
 
 	return $self unless $populated;				# empty RR
 
@@ -445,8 +445,8 @@ Resource record class.
 =cut
 
 sub class {
-	my ( $self, @value ) = @_;
-	for (@value) { return $self->{class} = classbyname($_) }
+	my ( $self, $class ) = @_;
+	return $self->{class} = classbyname($class) if defined $class;
 	return defined $self->{class} ? classbyval( $self->{class} ) : 'IN';
 }
 
@@ -754,13 +754,12 @@ sub _wrap {
 
 ################################################################################
 
-our $AUTOLOAD;
-
 sub DESTROY { }				## Avoid tickling AUTOLOAD (in cleanup)
 
 ## no critic
 sub AUTOLOAD {				## Default method
-	my $self     = shift;
+	my $self = shift;
+	our $AUTOLOAD;						# keep 'use strict' happy
 	my ($method) = reverse split /::/, $AUTOLOAD;
 
 	for ($method) {			## tolerate mixed-case attribute name
