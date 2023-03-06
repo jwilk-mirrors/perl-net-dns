@@ -31,10 +31,11 @@ require Net::DNS::Text;
 sub _decode_rdata {			## decode rdata from wire-format octet string
 	my ( $self, $data, $offset ) = @_;
 
-	if ( defined $self->{ttl} ) {				# OPT redefines class and TTL fields
-		@{$self}{qw(rcode version flags)} = unpack( 'C2n', pack 'N', delete $self->{ttl} );
-		$self->{udpsize} = delete $self->{class};
-	}
+	my $class = delete $self->{class};			# OPT redefines CLASS and TTL fields
+	$self->{udpsize} = $class if defined $class;
+
+	my $ttl = delete $self->{ttl};
+	@{$self}{qw(rcode version flags)} = unpack 'C2n', pack( 'N', $ttl ) if defined $ttl;
 
 	my $limit = $offset + $self->{rdlength} - 4;
 	my @index;
@@ -64,7 +65,7 @@ sub encode {				## override RR method
 	my $self = shift;
 	my $data = $self->_encode_rdata;
 	my @xttl = ( $self->rcode >> 4, $self->version, $self->flags );
-	return pack 'C n n C2n na*', 0, OPT, $self->UDPsize, @xttl, length($data), $data;
+	return pack 'C n n C2n na*', 0, OPT, $self->udpsize, @xttl, length($data), $data;
 }
 
 
@@ -76,7 +77,7 @@ sub string {				## override RR method
 sub class {				## override RR method
 	my ( $self, @value ) = @_;
 	$self->_deprecate(qq[please use "UDPsize()"]);
-	return $self->UDPsize(@value);
+	return $self->udpsize(@value);
 }
 
 sub ttl {				## override RR method
@@ -91,7 +92,7 @@ sub ttl {				## override RR method
 
 sub generic {				## override RR method
 	my $self = shift;
-	local $self->{class} = $self->UDPsize;
+	local $self->{class} = $self->udpsize;
 	my @xttl = ( $self->rcode >> 4, $self->version, $self->flags );
 	local $self->{ttl} = unpack 'N', pack( 'C2n', @xttl );
 	return $self->SUPER::generic;
@@ -116,7 +117,7 @@ QQ
 
 	my $flags  = sprintf '%04x', $self->flags;
 	my $rcode  = $self->rcode;
-	my $size   = $self->UDPsize;
+	my $size   = $self->udpsize;
 	my @format = map { join( "\n\t\t\t", $self->_format_option($_) ) } $self->options;
 	my @indent = scalar(@format) ? "\n\t\t" : ();
 	my @option = join ",\n\t\t", @format;

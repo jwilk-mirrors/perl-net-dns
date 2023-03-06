@@ -3,7 +3,7 @@ package Net::DNS::Parameters;
 ################################################
 ##
 ##	Domain Name System (DNS) Parameters
-##	(last updated 2023-01-26)
+##	(last updated 2023-03-01)
 ##
 ################################################
 
