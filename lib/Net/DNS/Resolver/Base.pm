@@ -275,8 +275,7 @@ sub searchlist {
 }
 
 sub domain {
-	my ($head) = &searchlist;
-	return wantarray ? ( grep {defined} $head ) : $head;
+	return (&searchlist)[0];
 }
 
 
@@ -705,9 +704,14 @@ sub _accept_reply {
 
 sub axfr {				## zone transfer
 	my ( $self, @argument ) = @_;
+	my $zone  = scalar(@argument) ? shift @argument : $self->domain;
+	my @class = @argument;
+
+	my $request = $self->_make_query_packet( $zone, 'AXFR', @class );
 
 	return eval {
-		my ( $select, $verify, @rr, $soa ) = $self->_axfr_start(@argument);
+		$self->_diag("axfr( $zone @class )");
+		my ( $select, $verify, @rr, $soa ) = $self->_axfr_start($request);
 
 		my $iterator = sub {	## iterate over RRs
 			my $rr = shift(@rr);
@@ -757,14 +761,9 @@ sub axfr_next {				## historical
 
 
 sub _axfr_start {
-	my ( $self, $domain, @class ) = @_;
-	$domain = $self->domain unless defined $domain;
-
-	my $request = $self->_make_query_packet( $domain, 'AXFR', @class );
+	my ( $self, $request ) = @_;
 	my $content = $request->data;
 	my $TCP_msg = pack 'n a*', length($content), $content;
-
-	$self->_diag("axfr( $domain @class )");
 
 	my ( $select, $reply, $rcode );
 	foreach my $ns ( $self->nameservers ) {

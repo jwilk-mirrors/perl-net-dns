@@ -234,9 +234,8 @@ sub decode {
 	my $next = $index + $self->{rdlength};
 	die 'corrupt wire-format data' if length $$data < $next;
 
-	$self->{offset} = $offset || 0;
+	local $self->{offset} = $offset || 0;
 	$self->_decode_rdata( $data, $index, @opaque ) if $next > $index or $self->type eq 'OPT';
-	delete $self->{offset};
 
 	return wantarray ? ( $self, $next ) : $self;
 }
@@ -719,8 +718,7 @@ my %warned;
 
 sub _deprecate {
 	my ( undef, @note ) = @_;
-	carp join ' ', 'deprecated method;', "@note" unless $warned{"@note"}++;
-	return;
+	return carp "deprecated method; @note" unless $warned{"@note"}++;
 }
 
 
@@ -758,17 +756,22 @@ sub DESTROY { }				## Avoid tickling AUTOLOAD (in cleanup)
 
 ## no critic
 sub AUTOLOAD {				## Default method
-	my $self = shift;
-	our $AUTOLOAD;						# keep 'use strict' happy
-	my ($method) = reverse split /::/, $AUTOLOAD;
-
-	for ($method) {			## tolerate mixed-case attribute name
-		return $self->$_(@_) if tr [A-Z-] [a-z_];
-	}
+	my ($self) = @_;
 
 	no strict 'refs';		## no critic ProhibitNoStrict
-	*{$AUTOLOAD} = sub {undef};	## suppress repetition and deep recursion
+	our $AUTOLOAD;
+	my ($method) = reverse split /::/, $AUTOLOAD;
+
+	for ( my $action = $method ) {	## tolerate mixed-case attribute name
+		tr [A-Z-] [a-z_];
+		if ( $self->can($action) ) {
+			*{$AUTOLOAD} = sub { shift->$action(@_) };
+			return &{$AUTOLOAD};
+		}
+	}
+
 	my $oref = ref($self);
+	*{$AUTOLOAD} = sub {undef};	## suppress deep recursion
 	croak qq[$self has no class method "$method"] unless $oref;
 
 	my $string = $self->string;
