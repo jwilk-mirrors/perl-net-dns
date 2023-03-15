@@ -53,7 +53,7 @@ sub _decode_rdata {			## decode rdata from wire-format octet string
 	$offset += $other_size + 2;
 
 	croak('misplaced or corrupt TSIG') unless $limit == length $$data;
-	my $raw = substr $$data, 0, $self->{offset};
+	my $raw = substr $$data, 0, $self->{offset}++;
 	$self->{rawref} = \$raw;
 	return;
 }
@@ -107,7 +107,7 @@ sub _size {				## estimate encoded size
 }
 
 
-sub encode {				## overide RR method
+sub encode {				## override RR method
 	my ( $self, @argument ) = @_;
 	my $kname = $self->{owner}->encode();			# uncompressed key name
 	my $rdata = eval { $self->_encode_rdata(@argument) } || '';
@@ -115,9 +115,8 @@ sub encode {				## overide RR method
 }
 
 
-sub string {				## overide RR method
-	my $self = shift;
-
+sub string {				## override RR method
+	my $self	= shift;
 	my $owner	= $self->{owner}->string;
 	my $type	= $self->type;
 	my $algorithm	= $self->algorithm;

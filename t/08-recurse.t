@@ -5,12 +5,7 @@
 use strict;
 use warnings;
 use Test::More;
-
-
-BEGIN {
-	local @INC = ( @INC, qw(t) );
-	require NonFatal;
-}
+use TestToolkit;
 
 use Net::DNS;
 use Net::DNS::Resolver::Recurse;

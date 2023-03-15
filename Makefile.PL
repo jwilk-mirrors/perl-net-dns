@@ -216,11 +216,9 @@ exit;
 package MY;				## customise generated Makefile
 
 sub test {
-	return shift->SUPER::test() if $^O =~ /cygwin|MSWin/i;
-
 	return join '', shift->SUPER::test(), <<'END';
-# suppress parallel test execution
-FULLPERLRUN = HARNESS_OPTIONS=j1:c $(FULLPERL)
+# suppress parallel test execution	include ./t test directory
+FULLPERLRUN = HARNESS_OPTIONS=j1:c $(FULLPERL) "-I./t"
 END
 }
 

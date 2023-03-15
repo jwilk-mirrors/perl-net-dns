@@ -54,7 +54,7 @@ sub _decode_rdata {			## decode rdata from wire-format octet string
 	$self->{sigbin} = substr $$data, $offset, $limit - $offset;
 
 	croak('misplaced or corrupt SIG') unless $limit == length $$data;
-	my $raw = substr $$data, 0, $self->{offset};
+	my $raw = substr $$data, 0, $self->{offset}++;
 	$self->{rawref} = \$raw;
 	return;
 }

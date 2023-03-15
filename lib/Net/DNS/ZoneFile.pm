@@ -132,19 +132,22 @@ sub read {
 
 	return &_read unless ref $self;				# compatibility interface
 
-	local $SIG{__DIE__};
-
 	if (wantarray) {
 		my @zone;					# return entire zone
 		eval {
-			my $rr;
-			push( @zone, $rr ) while $rr = $self->_getRR;
+			local $SIG{__DIE__};
+			while ( my $rr = $self->_getRR ) {
+				push( @zone, $rr );
+			}
 		};
 		croak join ' ', $@, ' file', $self->name, 'line', $self->line, "\n " if $@;
 		return @zone;
 	}
 
-	my $rr = eval { $self->_getRR };			# return single RR
+	my $rr = eval {
+		local $SIG{__DIE__};
+		$self->_getRR;					# return single RR
+		};
 	croak join ' ', $@, ' file', $self->name, 'line', $self->line, "\n " if $@;
 	return $rr;
 }
