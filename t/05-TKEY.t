@@ -5,6 +5,7 @@
 use strict;
 use warnings;
 use Test::More tests => 24;
+use TestToolkit;
 
 use Net::DNS;
 
@@ -19,20 +20,14 @@ my @also = qw( other_data );
 
 my $wire = '03616c67076578616d706c6500558567665585676600010011000564756d6d79000564756d6d79';
 
+my $typecode = unpack 'xn', Net::DNS::RR->new( type => $type )->encode;
+is( $typecode, $code, "$type RR type code = $code" );
 
-{
-	my $typecode = unpack 'xn', Net::DNS::RR->new(". $type")->encode;
-	is( $typecode, $code, "$type RR type code = $code" );
+my $hash = {};
+@{$hash}{@attr} = @data;
 
-	my $hash = {};
-	@{$hash}{@attr} = @data;
 
-	my $rr = Net::DNS::RR->new(
-		name => $name,
-		type => $type,
-		%$hash
-		);
-
+for my $rr ( Net::DNS::RR->new( name => $name, type => $type, %$hash ) ) {
 	my $string = $rr->string;
 	my $rr2	   = Net::DNS::RR->new($string);
 	is( $rr2->string, $string, 'new/string transparent' );
@@ -67,14 +62,11 @@ my $wire = '03616c67076578616d706c6500558567665585676600010011000564756d6d790005
 	my @wire = unpack 'C*', $encoded;
 	$wire[length($empty) - 1]--;
 	my $wireformat = pack 'C*', @wire;
-	eval { Net::DNS::RR->decode( \$wireformat ); };
-	my ($exception) = split /\n/, "$@\n";
-	ok( $exception, "corrupt wire-format\t[$exception]" );
+	exception( 'corrupt wire-format', sub { Net::DNS::RR->decode( \$wireformat ) } );
 }
 
 
-{
-	my $rr = Net::DNS::RR->new(". $type");
+for my $rr ( Net::DNS::RR->new(". $type") ) {
 	foreach (@attr) {
 		ok( !$rr->$_(), "'$_' attribute of empty RR undefined" );
 	}

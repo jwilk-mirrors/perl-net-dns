@@ -5,18 +5,10 @@
 use strict;
 use warnings;
 use Test::More tests => 108;
+use TestToolkit;
 
-use Net::DNS::RR;
 
-
-{					## check exception raised for unparsable argument
-	foreach my $testcase ( undef, '', ' ', '. NULL x', '. OPT x', '. ATMA x', [], {} ) {
-		my $test = defined $testcase ? "'$testcase'" : 'undef';
-		eval { Net::DNS::RR->new($testcase) };
-		my ($exception) = split /\n/, "$@\n";
-		ok( $exception, "Net::DNS::RR->new($test)\t[$exception]" );
-	}
-}
+use_ok('Net::DNS::RR');
 
 
 {					## check plausible ways to create empty record
@@ -40,10 +32,11 @@ use Net::DNS::RR;
 	my ( $name, $class, $ttl, $type, $rdata ) = qw(example.com IN 123 A 192.0.2.1);
 	my $rr	  = Net::DNS::RR->new("$name $ttl $class $type $rdata");
 	my $rdlen = length( $rr->rdata );
+	is( $rr->name,	   $name,  'expected value returned by $rr->name' );
 	is( $rr->owner,	   $name,  'expected value returned by $rr->owner' );
 	is( $rr->type,	   $type,  'expected value returned by $rr->type' );
 	is( $rr->class,	   $class, 'expected value returned by $rr->class' );
-	is( $rr->ttl,	   $ttl,   'expected value returned by $rr->ttl' );
+	is( $rr->TTL,	   $ttl,   'expected value returned by $rr->TTL' );
 	is( $rr->rdstring, $rdata, 'expected value returned by $rr->rdstring' );
 	is( $rr->rdlength, $rdlen, 'expected value returned by $rr->rdlength' );
 }
@@ -116,19 +109,11 @@ use Net::DNS::RR;
 }
 
 
-{					## check for exception if RFC3597 format hexadecimal data inconsistent
-	foreach my $testcase ( '\# 0 c0 00 02 01', '\# 3 c0 00 02 01', '\# 5 c0 00 02 01' ) {
-		eval { Net::DNS::RR->new("example.com 3600 IN A $testcase") };
-		my ($exception) = split /\n/, "$@\n";
-		ok( $exception, "mismatched length: $testcase\t[$exception]" );
-	}
-}
-
-
 {					## check object construction from attribute list
-	foreach my $testcase ( [type => 'A', address => '192.0.2.1'], [type => 'A', address => ['192.0.2.1']], ) {
-		my $rr = Net::DNS::RR->new(@$testcase);
-		is( length( $rr->rdata ), 4, "Net::DNS::RR->new( @$testcase )" );
+	foreach my $testcase ( [type => 'A', address => '192.0.2.1'], [type => 'A', address => ['192.0.2.1']] ) {
+		my $rdata = Net::DNS::RR->new(@$testcase)->rdata;
+		my @array = map { ref($_) ? "[@$_]" : $_ } @$testcase;
+		is( length($rdata), 4, "Net::DNS::RR->new(@array)" );
 	}
 
 	foreach my $testcase (
@@ -137,79 +122,8 @@ use Net::DNS::RR;
 		[type => 'MX',		class => 'IN', ttl => 123],
 		) {
 		my $rr = Net::DNS::RR->new(@$testcase);
-		is( length( $rr->rdata ), 0, "Net::DNS::RR->new( @$testcase )" );
+		is( length( $rr->rdstring ), 0, "Net::DNS::RR->new( @$testcase )" );
 	}
-}
-
-
-{					## check for exception for nonexistent attribute
-	my $method = 'bogus-method';
-	foreach my $testcase ( [type => 'A'], [type => 'ATMA'], [type => 'ATMA', unimplemented => 'x'], ) {
-		eval { Net::DNS::RR->new(@$testcase)->$method('x') };
-		my ($exception) = split /\n/, "$@\n";
-		ok( $exception, "unknown method:\t[$exception]" );
-	}
-	my $rr = Net::DNS::RR->new( type => 'A' );
-	is( $rr->$method, undef, 'suppress repeated unknown method exception' );
-	is( $rr->DESTROY, undef, 'DESTROY() exists to placate pre-5.18 AUTOLOAD' );
-}
-
-
-{					## check for exception on bad class method
-	eval { xxxx Net::DNS::RR( type => 'X' ); };
-	my ($exception) = split /\n/, "$@\n";
-	ok( $exception, "unknown class method:\t[$exception]" );
-}
-
-
-{					## check for exception if RR name not recognised
-	eval { Net::DNS::RR->new('example.com. IN BOGUS') };
-	my ($exception) = split /\n/, "$@\n";
-	ok( $exception, "unrecognised RR type:\t[$exception]" );
-}
-
-
-{					## check for exception when abusing $rr->type()
-	my $rr = Net::DNS::RR->new( type => 'A' );
-	eval { $rr->type('X'); };
-	my ($exception) = split /\n/, "$@\n";
-	ok( $exception, "cannot change type:\t[$exception]" );
-}
-
-
-{					## check for exception when abusing $rr->ttl()
-	my $rr = Net::DNS::RR->new( type => 'A' );
-	eval { $rr->ttl('1year'); };
-	my ($exception) = split /\n/, "$@\n";
-	ok( $exception, "unknown time unit:\t[$exception]" );
-}
-
-
-{					## check for exception when abusing $rr->rdata()
-	my $rr = Net::DNS::RR->new( type => 'SOA' );
-	eval { $rr->rdata( pack 'H* H*', '00c000', '00000001' x 5 ); };
-	my ($exception) = split /\n/, "$@\n";
-	ok( $exception, "compressed rdata:\t[$exception]" );
-}
-
-
-{					## check propagation of exception in string()
-					## (relies on bug that nobody cares enough to fix)
-	my $rr = Net::DNS::RR->new( type => 'MINFO', emailbx => '.' );
-	local $SIG{__WARN__} = sub { die @_ };
-	eval { $rr->string() };
-	my ($exception) = split /\n/, "$@\n";
-	ok( $exception, "exception in string:\t[$exception]" );
-}
-
-
-{					## check propagation of exception in rdstring()
-					## (relies on bug that nobody cares enough to fix)
-	my $rr = Net::DNS::RR->new( type => 'MINFO', emailbx => '.' );
-	local $SIG{__WARN__} = sub { die @_ };
-	eval { $rr->rdatastr() };
-	my ($exception) = split /\n/, "$@\n";
-	ok( $exception, "exception in rdstring:\t[$exception]" );
 }
 
 
@@ -222,38 +136,29 @@ use Net::DNS::RR;
 		'example.com	123 A',
 		'example.com	123 IN A',
 		'example.com	A 192.0.2.1',
+		'1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.8.B.D.0.1.0.0.2.ip6.arpa	PTR example.com.'
 		) {
 		my $rr	    = Net::DNS::RR->new("$testcase");
 		my $encoded = $rr->encode;
-		my $decoded = decode Net::DNS::RR( \$encoded );
+		my $decoded = Net::DNS::RR->decode( \$encoded );
 		$rr->ttl( $decoded->ttl ) unless $rr->ttl;
 		is( $decoded->string, $rr->string, "encode/decode $testcase" );
 	}
 
 	my $opt	    = Net::DNS::RR->new( type => 'OPT' );
 	my $encoded = $opt->encode;
-	my ( $decoded, $offset ) = decode Net::DNS::RR( \$encoded );
+	my ( $decoded, $offset ) = Net::DNS::RR->decode( \$encoded );
 	is( $decoded->string, $opt->string,	"encode/decode OPT RR" );
 	is( $offset,	      length($encoded), "decode returns offset of next RR" );
 }
 
 
 {					## check canonical encode function
-	foreach my $testcase ( 'example.com 123 IN A', 'EXAMPLE.com 123 A 192.0.2.1', ) {
+	foreach my $testcase ( 'example.com 0 IN A', 'EXAMPLE.com 123 A 192.0.2.1', ) {
 		my $rr	      = Net::DNS::RR->new("$testcase");
 		my $expected  = unpack 'H*', $rr->encode(0);
 		my $canonical = unpack 'H*', $rr->canonical;
 		is( $canonical, $expected, "canonical encode $testcase" );
-	}
-}
-
-
-{
-	foreach my $testcase ( '', '000001', '0000010001000000010004', ) {
-		my $wiredata	= pack 'H*', $testcase;
-		my $question	= eval { decode Net::DNS::RR( \$wiredata ); };
-		my ($exception) = split /\n/, "$@\n";
-		ok( $exception, "corrupt wire-format\t[$exception]" );
 	}
 }
 
@@ -295,6 +200,9 @@ use Net::DNS::RR;
 }
 
 
+is( Net::DNS::RR->new( type => 'A' )->DESTROY, undef, 'DESTROY() exists to placate pre-5.18 AUTOLOAD' );
+
+
 eval {					## no critic		# exercise printing functions
 	require Data::Dumper;
 	require IO::File;
@@ -316,6 +224,35 @@ eval {					## no critic		# exercise printing functions
 	Net::DNS::RR::_wrap( 'exercise', '', "\n", "\n", "line\n", 'wrapping' );
 };
 
+
+exception( 'unrecognised class method', sub { Net::DNS::RR->unknown() } );
+noexception( 'RR->unknown() returns undef', sub { die if defined Net::DNS::RR->unknown() } );
+
+exception( "unparsable RR->new(undef)", sub { Net::DNS::RR->new(undef) } );
+exception( "unparsable RR->new( [] )",	sub { Net::DNS::RR->new( [] ) } );
+exception( "unparsable RR->new( {} )",	sub { Net::DNS::RR->new( {} ) } );
+
+exception( "unparsable RR->new('()')",	      sub { Net::DNS::RR->new('()') } );
+exception( "unparsable RR->new('. NULL x')",  sub { Net::DNS::RR->new('. NULL x') } );
+exception( "unparsable RR->new('. ATMA x')",  sub { Net::DNS::RR->new('. ATMA x') } );
+exception( "unparsable RR->new('. BOGUS x')", sub { Net::DNS::RR->new('. BOGUS x') } );
+
+foreach ( '# 0 c0000201', '# 3 c0000201', '# 5 c0000201' ) {
+	exception( "mismatched length $_", sub { Net::DNS::RR->new(". A $_") } );
+}
+
+exception( 'RR type is immutable',   sub { Net::DNS::RR->new( type => 'AAAA' )->type('BOGUS') } );
+exception( 'unrecognised time unit', sub { Net::DNS::RR->new( type => 'AAAA' )->ttl('1y') } );
+exception( 'unrecognised method',    sub { Net::DNS::RR->new( type => 'AAAA',  bogus   => 0 ) } );
+exception( 'unimplemented RRtype',   sub { Net::DNS::RR->new( type => 'ATMA',  bogus   => 0 ) } );
+exception( 'RR->string warning',     sub { Net::DNS::RR->new( type => 'MINFO', emailbx => '.' )->string } );
+exception( 'RR->rdstring warning',   sub { Net::DNS::RR->new( type => 'MINFO', emailbx => '.' )->rdstring } );
+
+foreach ( '', '0841424344454647480001', '0000010001000000010004', ) {
+	exception( 'decode(corrupt data)', sub { Net::DNS::RR->decode( \pack 'H*', $_ ) } );
+}
+
+noexception( 'rdatastr deprecation warning', sub { Net::DNS::RR->new( type => 'AAAA' )->rdatastr for ( 1 .. 2 ) } );
 
 exit;
 

@@ -5,6 +5,7 @@
 use strict;
 use warnings;
 use Test::More;
+use TestToolkit;
 
 use Net::DNS;
 
@@ -30,20 +31,14 @@ my @also = qw( certificate format tag );
 
 my $wire = '00010002033132333435363738396162636465666768696a6b6c6d6e6f707172737475767778797a';
 
+my $typecode = unpack 'xn', Net::DNS::RR->new( type => $type )->encode;
+is( $typecode, $code, "$type RR type code = $code" );
 
-{
-	my $typecode = unpack 'xn', Net::DNS::RR->new(". $type")->encode;
-	is( $typecode, $code, "$type RR type code = $code" );
+my $hash = {};
+@{$hash}{@attr} = @data;
 
-	my $hash = {};
-	@{$hash}{@attr} = @data;
 
-	my $rr = Net::DNS::RR->new(
-		name => $name,
-		type => $type,
-		%$hash
-		);
-
+for my $rr ( Net::DNS::RR->new( name => $name, type => $type, %$hash ) ) {
 	my $string = $rr->string;
 	my $rr2	   = Net::DNS::RR->new($string);
 	is( $rr2->string, $string, 'new/string transparent' );
@@ -79,31 +74,21 @@ my $wire = '00010002033132333435363738396162636465666768696a6b6c6d6e6f7071727374
 
 
 {
-	is( Net::DNS::RR->new("foo IN CERT 0 2 3 foo=")->certtype,  0,	'certtype may be zero' );
-	is( Net::DNS::RR->new("foo IN CERT 1 0 3 foo=")->keytag,    0,	'keytag may be zero' );
-	is( Net::DNS::RR->new("foo IN CERT 1 2 0 foo=")->algorithm, 0,	'algorithm may be zero' );
-	is( Net::DNS::RR->new("foo IN CERT 1 2 3 ''  ")->cert,	    '', 'cert may be empty' );
+	is( Net::DNS::RR->new('foo IN CERT 0 2 3 foo=')->certtype,  0,	'certtype may be zero' );
+	is( Net::DNS::RR->new('foo IN CERT 1 0 3 foo=')->keytag,    0,	'keytag may be zero' );
+	is( Net::DNS::RR->new('foo IN CERT 1 2 0 foo=')->algorithm, 0,	'algorithm may be zero' );
+	is( Net::DNS::RR->new('foo IN CERT 1 2 3 ""  ')->cert,	    "", 'cert may be empty' );
 }
 
 
-{
-	my $rr = Net::DNS::RR->new("foo IN CERT 1 2 3 foo=");
+for my $rr ( Net::DNS::RR->new('foo IN CERT 1 2 3 foo=') ) {
 	is( $rr->algorithm('MNEMONIC'), 'DSA', 'algorithm mnemonic' );
 	$rr->algorithm(255);
 	is( $rr->algorithm('MNEMONIC'), 255, 'algorithm with no mnemonic' );
+	exception( 'unknown algorithm mnemonic', sub { $rr->algorithm('X') } );
 
-	eval { $rr->algorithm('X'); };
-	my ($exception) = split /\n/, "$@\n";
-	ok( $exception, "unknown mnemonic\t[$exception]" );
-}
-
-
-{
-	my $rr = Net::DNS::RR->new("foo IN CERT 1 2 3 foo=");
-	is( $rr->certtype('PKIX'), 1, 'valid certtype mnemonic' );
-	eval { $rr->certtype('X'); };
-	my ($exception) = split /\n/, "$@\n";
-	ok( $exception, "unknown mnemonic\t[$exception]" );
+	noexception( 'valid certtype mnemonic', sub { $rr->certtype('PKIX') } );
+	exception( 'unknown certtype mnemonic', sub { $rr->certtype('X') } );
 }
 
 

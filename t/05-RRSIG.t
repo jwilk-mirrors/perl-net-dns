@@ -5,6 +5,7 @@
 use strict;
 use warnings;
 use Test::More;
+use TestToolkit;
 
 use Net::DNS;
 
@@ -19,7 +20,7 @@ foreach my $package (@prerequisite) {
 	exit;
 }
 
-plan tests => 71;
+plan tests => 70;
 
 
 my $name = 'net-dns.org';
@@ -38,20 +39,11 @@ my @also = qw( sig sigin sigex vrfyerrstr );
 my $wire =
 '0002070200000E1052346FD7520CE2D7EDED076E65742D646E73036F7267002119428D83590A475D8E8170E941B10206BF12FC6010D97E2044AEC911FDBE5AF2B32AA77B480FA5C942FBEADA3F7FB2440FA00C81EB324230B0BB9DAA87788AEA00EF7330D4DC444D2EA59B67904C33732D263A767271641A97CA90B739FEDB17752647F18D85C1484E1B95FEA16AF86B3E8344C9E9EC8C17AC9D6218D2DF59';
 
+my $hash = {};
+@{$hash}{@attr} = @data;
 
-{
-	my $typecode = unpack 'xn', Net::DNS::RR->new(". $type")->encode;
-	is( $typecode, $code, "$type RR type code = $code" );
 
-	my $hash = {};
-	@{$hash}{@attr} = @data;
-
-	my $rr = Net::DNS::RR->new(
-		name => $name,
-		type => $type,
-		%$hash
-		);
-
+for my $rr ( Net::DNS::RR->new( name => $name, type => $type, %$hash ) ) {
 	my $string = $rr->string;
 	my $rr2	   = Net::DNS::RR->new($string);
 	is( $rr2->string, $string, 'new/string transparent' );
@@ -92,16 +84,14 @@ my $wire =
 }
 
 
-{
-	my $rr = Net::DNS::RR->new(". $type");
+for my $rr ( Net::DNS::RR->new(". $type") ) {
 	foreach ( @attr, 'rdstring' ) {
 		ok( !$rr->$_(), "'$_' attribute of empty RR undefined" );
 	}
 }
 
 
-{
-	my $rr	  = Net::DNS::RR->new(". $type @data");
+for my $rr ( Net::DNS::RR->new(". $type @data") ) {
 	my $class = ref($rr);
 
 	$rr->algorithm(255);
@@ -118,30 +108,17 @@ my $wire =
 	is( $class->algorithm('RSASHA256'), 8,		 'class method algorithm("RSASHA256")' );
 	is( $class->algorithm(8),	    'RSASHA256', 'class method algorithm(8)' );
 	is( $class->algorithm(255),	    255,	 'class method algorithm(255)' );
-}
 
+	my $object = Net::DNS::RR->new(". $type");
+	my $scalar = '';
+	$object->{algorithm} = 0;	## methods callable with invalid arguments
 
-{
-	my $object   = Net::DNS::RR->new(". $type");
-	my $class    = ref($object);
-	my $scalar   = '';
-	my %testcase = (		## methods callable with invalid arguments
-		'_CreateSig'	 => [$object, $scalar, $object],
-		'_CreateSigData' => [$object, $object],
-		'_VerifySig'	 => [$object, $object, $object],
-		'create'	 => [$class,  $scalar, $object],
-		'verify'	 => [$object, $object, $object],
-		);
+	noexception( '_CreateSig callable',	sub { $object->_CreateSig( $scalar, $object ) } );
+	noexception( '_CreateSigData callable', sub { $object->_CreateSigData($object) } );
+	noexception( '_VerifySig callable',	sub { $object->_VerifySig( $object, $object ) } );
 
-	$object->{algorithm} = 0;				# induce exception
-
-	foreach my $method ( sort keys %testcase ) {
-		my $arglist = $testcase{$method};
-		my ( $object, @arglist ) = @$arglist;
-		eval { $object->$method(@arglist) };
-		my ($exception) = split /\n/, "$@\n";
-		ok( defined $exception, "$method method callable\t[$exception]" );
-	}
+	exception( 'create callable', sub { $class->create( $scalar, $object ) } );
+	exception( 'verify callable', sub { $object->verify( $object, $object ) } );
 }
 
 
@@ -189,10 +166,7 @@ my $wire =
 }
 
 
-{
-	my $rr = Net::DNS::RR->new("$name $type @data");
-	$rr->print;
-}
+Net::DNS::RR->new("$name $type @data")->print;
 
 exit;
 

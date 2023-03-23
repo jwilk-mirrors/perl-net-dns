@@ -16,19 +16,20 @@ Net::DNS::RR::CDNSKEY - DNS CDNSKEY resource record
 use integer;
 
 
+sub _format_rdata {			## format rdata portion of RR string.
+	my $self = shift;
+
+	return $self->SUPER::_format_rdata() if $self->algorithm;
+	return my @rdata = @{$self}{qw(flags protocol algorithm)}, "AA==";
+}
+
+
 sub algorithm {
 	my ( $self, $arg ) = @_;
 	return $self->SUPER::algorithm($arg) if $arg;
 	return $self->SUPER::algorithm() unless defined $arg;
-	@{$self}{qw(flags protocol algorithm)} = ( 0, 3, 0 );
+	@{$self}{qw(flags protocol algorithm keybin)} = ( 0, 3, 0, chr(0) );
 	return;
-}
-
-
-sub key {
-	my ( $self, @arg ) = @_;
-	return $self->SUPER::key(@arg) unless scalar(@arg) && length( $arg[0] ) < 2;
-	return $self->SUPER::keybin( $arg[0] ? '' : chr(0) );
 }
 
 

@@ -5,6 +5,7 @@
 use strict;
 use warnings;
 use Test::More tests => 35;
+use TestToolkit;
 
 
 use_ok('Net::DNS::DomainName');
@@ -39,74 +40,24 @@ use_ok('Net::DNS::DomainName');
 			. '2d30313233343536373839' . '00';
 	is( lc unpack( 'H*', $buffer ), $hex, 'simple wire-format encoding' );
 
-	my ( $decoded, $offset ) = decode Net::DNS::DomainName( \$buffer );
+	my ( $decoded, $offset ) = Net::DNS::DomainName->decode( \$buffer );
 	is( $decoded->name, $domain->name, 'simple wire-format decoding' );
 
-	is( decode Net::DNS::DomainName( \$subdomain->encode )->name, $subdomain->name, 'simple wire-format decoding' );
+	is( Net::DNS::DomainName->decode( \$subdomain->encode )->name, $subdomain->name,
+		'simple wire-format decoding' );
 
 	my $data = '03737562c000c000c000';
 	$buffer .= pack( 'H*', $data );
 
 	my $cache = {};
-	( $decoded, $offset ) = decode Net::DNS::DomainName( \$buffer, $offset, $cache );
+	( $decoded, $offset ) = Net::DNS::DomainName->decode( \$buffer, $offset, $cache );
 	is( $decoded->name, $subdomain->name, 'compressed wire-format decoding' );
 
 	my @labels = $decoded->_wire;
 	is( scalar(@labels), 2, "decoded name has two labels" );
 
-	$decoded = decode Net::DNS::DomainName( \$buffer, $offset, $cache );
+	$decoded = Net::DNS::DomainName->decode( \$buffer, $offset, $cache );
 	is( $decoded->name, $domain->name, 'compressed wire-format decoding' );
-}
-
-
-{
-	my $buffer = pack 'H*', '0200';
-	eval { my $domain = decode Net::DNS::DomainName( \$buffer ); };
-	my ($exception) = split /\n/, "$@\n";
-	ok( $exception, "corrupt wire-format\t[$exception]" );
-}
-
-
-{
-	my $buffer = pack 'H*', 'c002';
-	eval { my $domain = decode Net::DNS::DomainName( \$buffer ); };
-	my ($exception) = split /\n/, "$@\n";
-	ok( $exception, "bad compression pointer\t[$exception]" );
-}
-
-
-{
-	my $buffer = pack 'H*', 'c000';
-	eval { my $domain = decode Net::DNS::DomainName( \$buffer ); };
-	my ($exception) = split /\n/, "$@\n";
-	ok( $exception, "name compression loop\t[$exception]" );
-}
-
-
-{
-	my $hex = '40'
-			. '4142434445464748494a4b4c4d4e4f505152535455565758595a'
-			. '6162636465666768696a6b6c6d6e6f707172737475767778797a'
-			. '2d30313233343536373839ff' . '00';
-	my $buffer = pack 'H*', $hex;
-	eval { my $domain = decode Net::DNS::DomainName( \$buffer ); };
-	my ($exception) = split /\n/, "$@\n";
-	ok( $exception, "unsupported wire-format\t[$exception]" );
-}
-
-
-{
-	my $hex = '80'
-			. '4142434445464748494a4b4c4d4e4f505152535455565758595a'
-			. '6162636465666768696a6b6c6d6e6f707172737475767778797a'
-			. '2d30313233343536373839ff'
-			. '4142434445464748494a4b4c4d4e4f505152535455565758595a'
-			. '6162636465666768696a6b6c6d6e6f707172737475767778797a'
-			. '2d30313233343536373839ff' . '00';
-	my $buffer = pack 'H*', $hex;
-	eval { my $domain = decode Net::DNS::DomainName( \$buffer ); };
-	my ($exception) = split /\n/, "$@\n";
-	ok( $exception, "unsupported wire-format\t[$exception]" );
 }
 
 
@@ -116,7 +67,7 @@ use_ok('Net::DNS::DomainName');
 	my $data      = $domain->encode( 0,	       $hash );
 	my $compress  = $domain->encode( length $data, $hash );
 	my $canonical = $domain->encode( length $data );
-	my $decoded   = decode Net::DNS::DomainName( \$data );
+	my $decoded   = Net::DNS::DomainName->decode( \$data );
 	my $downcased = Net::DNS::DomainName->new( lc $domain->name )->encode( 0, {} );
 	ok( $domain->isa('Net::DNS::DomainName'),  'object returned by new() constructor' );
 	ok( $decoded->isa('Net::DNS::DomainName'), 'object returned by decode() constructor' );
@@ -159,6 +110,22 @@ use_ok('Net::DNS::DomainName');
 	is( length $canonical, length $data, 'Net::DNS::DomainName2535 canonical form is uncompressed' );
 	is( $canonical,	       $downcased,   'Net::DNS::DomainName2535 canonical form is lower case' );
 }
+
+
+my $truncated = pack 'H*', '0200';
+exception( 'truncated wire-format', sub { Net::DNS::DomainName->decode( \$truncated ) } );
+
+my $type1label = pack 'H*', join '', '40', '4142434445464748494a4b4c4d4e4f50' x 4, '00';
+exception( 'unsupported wire-format', sub { Net::DNS::DomainName->decode( \$type1label ) } );
+
+my $type2label = pack 'H*', join '', '80', '4142434445464748494a4b4c4d4e4f50' x 8, '00';
+exception( 'unsupported wire-format', sub { Net::DNS::DomainName->decode( \$type2label ) } );
+
+my $overreach = pack 'H*', 'c002';
+exception( 'bad compression pointer', sub { Net::DNS::DomainName->decode( \$overreach ) } );
+
+my $loop = pack 'H*', '0344454603414243c000';
+exception( 'compression loop', sub { Net::DNS::DomainName->decode( \$loop, 4 ) } );
 
 
 exit;

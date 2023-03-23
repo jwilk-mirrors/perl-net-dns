@@ -5,6 +5,7 @@
 use strict;
 use warnings;
 use Test::More tests => 31;
+use TestToolkit;
 
 use Net::DNS;
 
@@ -18,20 +19,14 @@ my @also = qw( string negate family address );			# apitem attributes
 
 my $wire = '00010401e000021001ff00011c83c0a8260001000000020000';
 
+my $typecode = unpack 'xn', Net::DNS::RR->new( type => $type )->encode;
+is( $typecode, $code, "$type RR type code = $code" );
 
-{
-	my $typecode = unpack 'xn', Net::DNS::RR->new(". $type")->encode;
-	is( $typecode, $code, "$type RR type code = $code" );
+my $hash = {};
+@{$hash}{@attr} = @data;
 
-	my $hash = {};
-	@{$hash}{@attr} = @data;
 
-	my $rr = Net::DNS::RR->new(
-		name => $name,
-		type => $type,
-		%$hash
-		);
-
+for my $rr ( Net::DNS::RR->new( name => $name, type => $type, %$hash ) ) {
 	my $string = $rr->string;
 	my $rr2	   = Net::DNS::RR->new($string);
 	is( $rr2->string, $string, 'new/string transparent' );
@@ -44,8 +39,7 @@ my $wire = '00010401e000021001ff00011c83c0a8260001000000020000';
 }
 
 
-{
-	my $rr = Net::DNS::RR->new("$name $type @data");
+for my $rr ( Net::DNS::RR->new("$name $type @data") ) {
 	foreach my $item ( $rr->aplist ) {
 		foreach (@also) {
 			ok( defined( $item->$_ ), "aplist item->$_() attribute" );
@@ -75,18 +69,11 @@ my $wire = '00010401e000021001ff00011c83c0a8260001000000020000';
 	my @wire = unpack 'C*', $encoded;
 	$wire[length($empty) - 1]--;
 	my $wireformat = pack 'C*', @wire;
-	eval { Net::DNS::RR->decode( \$wireformat ); };
-	my ($exception) = split /\n/, "$@\n";
-	ok( $exception, "corrupt wire-format\t[$exception]" );
+	exception( 'corrupt wire-format', sub { Net::DNS::RR->decode( \$wireformat ) } );
 }
 
 
-{
-	eval { Net::DNS::RR->new("$name $type 0:0::0/0"); };
-	my ($exception) = split /\n/, "$@\n";
-	ok( $exception, "unknown address family\t[$exception]" );
-}
-
+exception( 'unknown address family', sub { Net::DNS::RR->new("$name $type 0:0::0/0") } );
 
 exit;
 
