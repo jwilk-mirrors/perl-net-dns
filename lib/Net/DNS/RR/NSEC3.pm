@@ -111,13 +111,13 @@ sub flags {
 
 sub optout {
 	my ( $self, @value ) = @_;
-	if ( scalar @value ) {
-		for ( $self->{flags} ) {
-			$_ = 0x01 | ( $_ || 0 );
+	for ( $self->{flags} |= 0 ) {
+		if ( scalar @value ) {
+			$_ |= 0x01;
 			$_ ^= 0x01 unless shift @value;
 		}
 	}
-	return 0x01 & ( $self->{flags} || 0 );
+	return $self->{flags} & 0x01;
 }
 
 

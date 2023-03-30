@@ -67,12 +67,11 @@ for my $rr ( Net::DNS::RR->new( name => $name, type => $type, %$hash ) ) {
 		is( $rr2->$_, $rr->$_, "additional attribute rr->$_()" );
 	}
 
-	my $empty   = Net::DNS::RR->new("$name NULL");
 	my $encoded = $rr->encode;
 	my $decoded = Net::DNS::RR->decode( \$encoded );
 	my $hex1    = uc unpack 'H*', $decoded->encode;
 	my $hex2    = uc unpack 'H*', $encoded;
-	my $hex3    = uc unpack 'H*', substr( $encoded, length $empty->encode );
+	my $hex3    = uc unpack 'H*', $rr->rdata;
 	is( $hex1, $hex2, 'encode/decode transparent' );
 	is( $hex3, $wire, 'encoded RDATA matches example' );
 
@@ -86,9 +85,9 @@ for my $rr ( Net::DNS::RR->new(". $type") ) {
 		ok( !$rr->$_(), "'$_' attribute of empty RR undefined" );
 	}
 
-	waggle( $rr, 'zone',   1, 0, 1, 0 );
-	waggle( $rr, 'revoke', 0, 1, 0, 1 );
-	waggle( $rr, 'sep',    1, 0, 1, 0 );
+	toggle( $rr, 'zone',   1, 0, 1, 0 );
+	toggle( $rr, 'revoke', 0, 1, 0, 1 );
+	toggle( $rr, 'sep',    1, 0, 1, 0 );
 
 	my $class = ref($rr);
 
@@ -126,7 +125,7 @@ Net::DNS::RR->new("$name $type @data")->print;
 exit;
 
 
-sub waggle {
+sub toggle {
 	my ( $object, $attribute, @sequence ) = @_;
 	for my $value (@sequence) {
 		my $change = $object->$attribute($value);

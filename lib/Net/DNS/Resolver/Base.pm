@@ -266,12 +266,9 @@ sub searchlist {
 	my ( $self, @domain ) = @_;
 	$self = $self->_defaults unless ref($self);
 
-	if ( scalar(@domain) || !defined(wantarray) ) {
-		foreach (@domain) { $_ = Net::DNS::Domain->new($_)->name }
-		$self->{searchlist} = [@domain];
-	}
-
-	return ( @{$self->{searchlist}} );
+	foreach (@domain) { $_ = Net::DNS::Domain->new($_)->name }
+	$self->{searchlist} = \@domain if scalar(@domain);
+	return @{$self->{searchlist}};
 }
 
 sub domain {
@@ -749,7 +746,9 @@ sub axfr {				## zone transfer
 sub axfr_start {			## historical
 	my ( $self, @argument ) = @_;				# uncoverable pod
 	$self->_deprecate('prefer  $iterator = $self->axfr(...)');
-	return defined( $self->{axfr_iter} = $self->axfr(@argument) );
+	my $iterator = $self->axfr(@argument);
+	( $self->{axfr_iter} ) = grep {defined} ( $iterator, sub {} );
+	return defined($iterator);
 }
 
 
@@ -1113,18 +1112,17 @@ sub _diag {				## debug output
 }
 
 
-our $AUTOLOAD;
-
 sub DESTROY { }				## Avoid tickling AUTOLOAD (in cleanup)
 
 sub AUTOLOAD {				## Default method
 	my ($self) = @_;
 
+	no strict 'refs';		## no critic ProhibitNoStrict
+	our $AUTOLOAD;
 	my $name = $AUTOLOAD;
 	$name =~ s/.*://;
 	croak qq[unknown method "$name"] unless $public_attr{$name};
 
-	no strict 'refs';		## no critic ProhibitNoStrict
 	*{$AUTOLOAD} = sub {
 		my $self = shift;
 		$self = $self->_defaults unless ref($self);
@@ -1132,7 +1130,7 @@ sub AUTOLOAD {				## Default method
 		return $self->{$name};
 	};
 
-	goto &{$AUTOLOAD};
+	return &$AUTOLOAD;
 }
 
 

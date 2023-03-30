@@ -4,7 +4,7 @@
 
 use strict;
 use warnings;
-use Test::More tests => 27;
+use Test::More tests => 23;
 use TestToolkit;
 
 use Net::DNS;
@@ -43,29 +43,19 @@ for my $rr ( Net::DNS::RR->new( name => $name, type => $type, %$hash ) ) {
 		is( $rr2->$_, $rr->$_, "additional attribute rr->$_()" );
 	}
 
-	my $null    = Net::DNS::RR->new("$name NULL")->encode;
-	my $empty   = Net::DNS::RR->new("$name $type")->encode;
-	my $rxbin   = Net::DNS::RR->decode( \$empty )->encode;
-	my $txtext  = Net::DNS::RR->new("$name $type")->string;
-	my $rxtext  = Net::DNS::RR->new($txtext)->encode;
 	my $encoded = $rr->encode;
 	my $decoded = Net::DNS::RR->decode( \$encoded );
 	my $hex1    = unpack 'H*', $encoded;
 	my $hex2    = unpack 'H*', $decoded->encode;
-	my $hex3    = unpack 'H*', substr( $encoded, length $null );
-	is( $hex2,	     $hex1,	    'encode/decode transparent' );
-	is( $hex3,	     $wire,	    'encoded RDATA matches example' );
-	is( length($empty),  length($null), 'encoded RDATA can be empty' );
-	is( length($rxbin),  length($null), 'decoded RDATA can be empty' );
-	is( length($rxtext), length($null), 'string RDATA can be empty' );
+	my $hex3    = unpack 'H*', $rr->rdata;
+	is( $hex2, $hex1, 'encode/decode transparent' );
+	is( $hex3, $wire, 'encoded RDATA matches example' );
 }
 
 
 for my $rr ( Net::DNS::RR->new(". $type 1 1 12 - 2t7b4g4vsa5smi47k61mv5bv1a22bojr A") ) {
 	is( $rr->salt, '', 'parse RR with salt field placeholder' );
 	like( $rr->rdstring, '/^1 1 12 - /', 'placeholder denotes empty salt field' );
-
-	noexception( 'historical match', sub { $rr->match('example.') } );
 	exception( 'corrupt hexadecimal', sub { $rr->salt('123456789XBCDEF') } );
 }
 

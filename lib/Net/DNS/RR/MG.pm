@@ -29,16 +29,14 @@ sub _decode_rdata {			## decode rdata from wire-format octet string
 sub _encode_rdata {			## encode rdata as wire-format octet string
 	my ( $self, @argument ) = @_;
 
-	my $mgmname = $self->{mgmname} || return '';
-	return $mgmname->encode(@argument);
+	return $self->{mgmname}->encode(@argument);
 }
 
 
 sub _format_rdata {			## format rdata portion of RR string.
 	my $self = shift;
 
-	my $mgmname = $self->{mgmname} || return '';
-	return $mgmname->string;
+	return $self->{mgmname}->string;
 }
 
 

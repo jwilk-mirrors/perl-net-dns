@@ -289,7 +289,7 @@ sub reply {
 
 	my $edns = $reply->edns();
 	CORE::push( @{$reply->{additional}}, $edns );
-	$edns->size($UDPmax);
+	$edns->udpsize($UDPmax);
 	return $reply;
 }
 
@@ -727,8 +727,9 @@ sub sigrr {
 
 	my ($sig) = reverse $self->additional;
 	return unless $sig;
-	return $sig if $sig->type eq 'TSIG';
-	return $sig if $sig->type eq 'SIG';
+	for ( $sig->type ) {
+		return $sig if /TSIG|SIG/;
+	}
 	return;
 }
 

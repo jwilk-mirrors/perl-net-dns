@@ -3,6 +3,10 @@ $Id$                       -*-text-*-
 
 **** 1.38 [unreleased]
 
+	Mailbox.pm: Improve robustness of address parsing.
+	Deprecate packet->edns->size() method.
+	Deprecate rdatastr() historical RR subtype method.
+	Major overhaul of pre-installation test scripts.
 	Add new t/TestToolkit.pm
 
 

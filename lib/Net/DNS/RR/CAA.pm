@@ -71,13 +71,13 @@ sub flags {
 
 sub critical {
 	my ( $self, @value ) = @_;
-	if ( scalar @value ) {
-		for ( $self->{flags} ) {
-			$_ = 0x0080 | ( $_ || 0 );
+	for ( $self->{flags} |= 0 ) {
+		if ( scalar @value ) {
+			$_ |= 0x0080;
 			$_ ^= 0x0080 unless shift @value;
 		}
 	}
-	return 0x0080 & ( $self->{flags} || 0 );
+	return $self->{flags} & 0x0080;
 }
 
 

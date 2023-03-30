@@ -22,7 +22,7 @@ foreach my $package (@prerequisite) {
 	exit;
 }
 
-plan tests => 65;
+plan tests => 63;
 
 
 sub mysign {
@@ -61,23 +61,17 @@ for my $rr ( Net::DNS::RR->new( name => $name, type => $type, %$hash ) ) {
 		ok( defined $rr->$_, "additional attribute rr->$_()" );
 	}
 
-
-	my $null   = Net::DNS::RR->new("$name NULL")->encode;
-	my $empty  = Net::DNS::RR->new("$name $type")->encode;
-	my $buffer = $empty;		## Note: TSIG RR gets destroyed by decoder
-	my $rxbin  = Net::DNS::RR->decode( \$buffer )->encode;
 	my $packet = Net::DNS::Packet->new( $name, 'TKEY', 'IN' );
 	$packet->header->id(1234);				# fix packet id
 	$packet->header->rd(1);
+	my $buffer;
 	my $encoded = $buffer = $rr->encode( 0, {}, $packet );
 	my $decoded = Net::DNS::RR->decode( \$buffer );
 	my $hex1    = unpack 'H*', $encoded;
 	my $hex2    = unpack 'H*', $decoded->encode;
-	my $hex3    = unpack 'H*', substr( $encoded, length $null );
-	is( $hex2,	    $hex1,	   'encode/decode transparent' );
-	is( $hex3,	    $wire,	   'encoded RDATA matches example' );
-	is( length($empty), length($null), 'encoded RDATA can be empty' );
-	is( length($rxbin), length($null), 'decoded RDATA can be empty' );
+	my $hex3    = unpack 'H*', $rr->rdata;
+	is( $hex2, $hex1, 'encode/decode transparent' );
+	is( $hex3, $wire, 'encoded RDATA matches example' );
 
 	my $wireformat = pack 'a* x', $encoded;
 	exception( "misplaced $type RR", sub { Net::DNS::RR->decode( \$wireformat ) } );

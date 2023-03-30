@@ -57,7 +57,7 @@ sub _parse_rdata {			## populate RR from rdata in argument list
 	$self->flags( shift @argument );
 	$self->protocol( shift @argument );
 	my $algorithm = shift @argument;
-	$self->key(@argument);
+	$self->key(@argument) if $algorithm;
 	$self->algorithm($algorithm);
 	return;
 }
@@ -83,7 +83,7 @@ sub flags {
 
 sub zone {
 	my ( $self, @value ) = @_;
-	for ( $self->{flags} ) {
+	for ( $self->{flags} |= 0 ) {
 		if ( scalar @value ) {
 			$_ |= 0x0100;
 			$_ ^= 0x0100 unless shift @value;
@@ -95,7 +95,7 @@ sub zone {
 
 sub revoke {
 	my ( $self, @value ) = @_;
-	for ( $self->{flags} ) {
+	for ( $self->{flags} |= 0 ) {
 		if ( scalar @value ) {
 			$_ |= 0x0080;
 			$_ ^= 0x0080 unless shift @value;
@@ -107,7 +107,7 @@ sub revoke {
 
 sub sep {
 	my ( $self, @value ) = @_;
-	for ( $self->{flags} ) {
+	for ( $self->{flags} |= 0 ) {
 		if ( scalar @value ) {
 			$_ |= 0x0001;
 			$_ ^= 0x0001 unless shift @value;

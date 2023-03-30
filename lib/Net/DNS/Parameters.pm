@@ -3,7 +3,7 @@ package Net::DNS::Parameters;
 ################################################
 ##
 ##	Domain Name System (DNS) Parameters
-##	(last updated 2023-03-01)
+##	(last updated 2023-03-29)
 ##
 ################################################
 
@@ -282,6 +282,7 @@ my @dnserrorbyval = (
 	26 => 'Too Early',					# RFC9250
 	27 => 'Unsupported NSEC3 Iterations Value',		# RFC9276
 	28 => 'Unable to conform to policy',			# draft-homburg-dnsop-codcp-00
+	29 => 'Synthesized',					# https://github.com/PowerDNS/pdns/pull/12334
 	);
 our %dnserrorbyval = @dnserrorbyval;
 

@@ -70,25 +70,25 @@ sub flags {
 
 sub immediate {
 	my ( $self, @value ) = @_;
-	if ( scalar @value ) {
-		for ( $self->{flags} ) {
-			$_ = 0x0001 | ( $_ || 0 );
+	for ( $self->{flags} |= 0 ) {
+		if ( scalar @value ) {
+			$_ |= 0x0001;
 			$_ ^= 0x0001 unless shift @value;
 		}
 	}
-	return 0x0001 & ( $self->{flags} || 0 );
+	return $self->{flags} & 0x0001;
 }
 
 
 sub soaminimum {
 	my ( $self, @value ) = @_;
-	if ( scalar @value ) {
-		for ( $self->{flags} ) {
-			$_ = 0x0002 | ( $_ || 0 );
+	for ( $self->{flags} |= 0 ) {
+		if ( scalar @value ) {
+			$_ |= 0x0002;
 			$_ ^= 0x0002 unless shift @value;
 		}
 	}
-	return 0x0002 & ( $self->{flags} || 0 );
+	return $self->{flags} & 0x0002;
 }
 
 

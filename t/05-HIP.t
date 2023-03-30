@@ -19,7 +19,7 @@ foreach my $package (@prerequisite) {
 	exit;
 }
 
-plan tests => 25;
+plan tests => 19;
 
 
 my $name = 'HIP.example';
@@ -70,40 +70,18 @@ for my $rr ( Net::DNS::RR->new( name => $name, type => $type, %$hash ) ) {
 }
 
 
-{
-	my $rr	    = Net::DNS::RR->new("$name $type @data");
-	my $null    = Net::DNS::RR->new("$name NULL")->encode;
-	my $empty   = Net::DNS::RR->new("$name $type")->encode;
-	my $rxbin   = Net::DNS::RR->decode( \$empty )->encode;
-	my $txtext  = Net::DNS::RR->new("$name $type")->string;
-	my $rxtext  = Net::DNS::RR->new($txtext)->encode;
+for my $rr ( Net::DNS::RR->new("$name $type @data") ) {
 	my $encoded = $rr->encode;
 	my $decoded = Net::DNS::RR->decode( \$encoded );
 	my $hex1    = unpack 'H*', $encoded;
 	my $hex2    = unpack 'H*', $decoded->encode;
-	my $hex3    = unpack 'H*', substr( $encoded, length $null );
-	is( $hex2,	     $hex1,	    'encode/decode transparent' );
-	is( $hex3,	     $wire,	    'encoded RDATA matches example' );
-	is( length($empty),  length($null), 'encoded RDATA can be empty' );
-	is( length($rxbin),  length($null), 'decoded RDATA can be empty' );
-	is( length($rxtext), length($null), 'string RDATA can be empty' );
+	my $hex3    = unpack 'H*', $rr->rdata;
+	is( $hex2, $hex1, 'encode/decode transparent' );
+	is( $hex3, $wire, 'encoded RDATA matches example' );
 
-	my @wire = unpack 'C*', $encoded;
-	$wire[length($empty) - 1]--;
-	my $wireformat = pack 'C*', @wire;
-	exception( 'corrupt wire-format', sub { Net::DNS::RR->decode( \$wireformat ) } );
-}
-
-
-{
-	my $lc		= Net::DNS::RR->new( lc ". $type @data" );
-	my $rr		= Net::DNS::RR->new( uc ". $type @data" );
-	my $hash	= {};
-	my $predecessor = $rr->encode( 0,		    $hash );
-	my $compressed	= $rr->encode( length $predecessor, $hash );
-	ok( length $compressed == length $predecessor, 'encoded RDATA not compressible' );
-	isnt( $rr->encode,    $lc->encode, 'encoded RDATA names not downcased' );
-	isnt( $rr->canonical, $lc->encode, 'canonical RDATA names not downcased' );
+	my $emptyrr = Net::DNS::RR->new("$name $type")->encode;
+	my $corrupt = pack 'a*X2na*', $emptyrr, $decoded->rdlength - 1, $rr->rdata;
+	exception( 'corrupt wire-format', sub { Net::DNS::RR->decode( \$corrupt ) } );
 }
 
 

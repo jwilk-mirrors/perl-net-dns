@@ -41,6 +41,7 @@ my $nextcloser;
 my $wildcard;
 foreach my $nsec3 (@nsec3) {
 	for ( $nsec3->encloser('a.c.x.w.example') ) {
+		next unless $nsec3->match($_);
 		next if $encloser && length($encloser) > length;
 		$encloser   = $_;
 		$nextcloser = $nsec3->nextcloser;

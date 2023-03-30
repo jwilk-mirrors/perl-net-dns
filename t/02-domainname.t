@@ -11,8 +11,7 @@ use TestToolkit;
 use_ok('Net::DNS::DomainName');
 
 
-{
-	my $domain = Net::DNS::DomainName->new('');
+for my $domain ( Net::DNS::DomainName->new('') ) {
 	is( $domain->name, '.', 'DNS root represented as single dot' );
 
 	my @label = $domain->_wire;
@@ -24,10 +23,8 @@ use_ok('Net::DNS::DomainName');
 }
 
 
-{
-	my $ldh	      = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-0123456789';
-	my $domain    = Net::DNS::DomainName->new($ldh);
-	my $subdomain = Net::DNS::DomainName->new("sub.$ldh");
+my $ldh = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-0123456789';
+for my $domain ( Net::DNS::DomainName->new($ldh) ) {
 	is( $domain->name, $ldh, '63 octet LDH character label' );
 
 	my @label = $domain->_wire;
@@ -43,6 +40,7 @@ use_ok('Net::DNS::DomainName');
 	my ( $decoded, $offset ) = Net::DNS::DomainName->decode( \$buffer );
 	is( $decoded->name, $domain->name, 'simple wire-format decoding' );
 
+	my $subdomain = Net::DNS::DomainName->new("sub.$ldh");
 	is( Net::DNS::DomainName->decode( \$subdomain->encode )->name, $subdomain->name,
 		'simple wire-format decoding' );
 
@@ -61,8 +59,7 @@ use_ok('Net::DNS::DomainName');
 }
 
 
-{
-	my $domain    = Net::DNS::DomainName->new( uc 'EXAMPLE.COM' );
+for my $domain ( Net::DNS::DomainName->new( uc 'EXAMPLE.COM' ) ) {
 	my $hash      = {};
 	my $data      = $domain->encode( 0,	       $hash );
 	my $compress  = $domain->encode( length $data, $hash );
@@ -78,8 +75,7 @@ use_ok('Net::DNS::DomainName');
 }
 
 
-{
-	my $domain    = Net::DNS::DomainName1035->new( uc 'EXAMPLE.COM' );
+for my $domain ( Net::DNS::DomainName1035->new( uc 'EXAMPLE.COM' ) ) {
 	my $hash      = {};
 	my $data      = $domain->encode( 0,	       $hash );
 	my $compress  = $domain->encode( length $data, $hash );
@@ -95,8 +91,7 @@ use_ok('Net::DNS::DomainName');
 }
 
 
-{
-	my $domain    = Net::DNS::DomainName2535->new( uc 'EXAMPLE.COM' );
+for my $domain ( Net::DNS::DomainName2535->new( uc 'EXAMPLE.COM' ) ) {
 	my $hash      = {};
 	my $data      = $domain->encode( 0,	       $hash );
 	my $compress  = $domain->encode( length $data, $hash );

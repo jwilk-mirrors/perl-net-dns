@@ -80,6 +80,12 @@ sub class {				## override RR method
 	return $self->udpsize(@value);
 }
 
+sub size {
+	my ( $self, @value ) = @_;				# uncoverable pod
+	$self->_deprecate(qq[size() is an alias of "UDPsize()"]);
+	return $self->udpsize(@value);
+}
+
 sub ttl {				## override RR method
 	my ( $self, @value ) = @_;
 	$self->_deprecate(qq[please use "flags()" or "rcode()"]);
@@ -145,8 +151,6 @@ sub udpsize {
 	for (@value) { $self->{udpsize} = 0 + $_ }
 	return ( $self->{udpsize} || 0 ) > 512 ? $self->{udpsize} : 0;
 }
-
-sub size { return &udpsize; }					# uncoverable pod
 
 
 sub rcode {

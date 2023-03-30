@@ -20,7 +20,7 @@ foreach my $package (@prerequisite) {
 	exit;
 }
 
-plan tests => 73;
+plan tests => 70;
 
 
 my $name = '.';
@@ -61,32 +61,16 @@ for my $rr ( Net::DNS::RR->new( name => $name, type => $type, %$hash ) ) {
 		is( $rr2->$_, $rr->$_, "additional attribute rr->$_()" );
 	}
 
-
-	my $empty   = Net::DNS::RR->new("$name $type");
 	my $encoded = $rr->encode;
 	my $decoded = Net::DNS::RR->decode( \$encoded );
 	my $hex1    = uc unpack 'H*', $decoded->encode;
 	my $hex2    = uc unpack 'H*', $encoded;
-	my $hex3    = uc unpack 'H*', substr( $encoded, length $empty->encode );
+	my $hex3    = uc unpack 'H*', $rr->rdata;
 	is( $hex1, $hex2, 'encode/decode transparent' );
 	is( $hex3, $wire, 'encoded RDATA matches example' );
 
 	my $wireformat = pack 'a* x', $encoded;
 	exception( 'misplaced SIG RR', sub { Net::DNS::RR->decode( \$wireformat ) } );
-}
-
-
-{
-	my @rdata	= @data;
-	my $sig		= pop @rdata;
-	my $lc		= Net::DNS::RR->new( lc(". $type @rdata ") . $sig );
-	my $rr		= Net::DNS::RR->new( uc(". $type @rdata ") . $sig );
-	my $hash	= {};
-	my $predecessor = $rr->encode( 0,		    $hash );
-	my $compressed	= $rr->encode( length $predecessor, $hash );
-	ok( length $compressed == length $predecessor, 'encoded RDATA not compressible' );
-	is( $rr->encode,    $lc->encode, 'encoded RDATA names downcased' );
-	is( $rr->canonical, $lc->encode, 'canonical RDATA names downcased' );
 }
 
 

@@ -5,6 +5,7 @@
 use strict;
 use warnings;
 use Test::More;
+use TestToolkit;
 
 ## vvv	verbatim from Domain.pm
 use constant ASCII => ref eval {
@@ -80,10 +81,7 @@ is( Net::DNS::Domain->new($u_label)->xname, $u_label, 'IDN cached domain->xname'
 is( Net::DNS::Domain->new('xn--')->xname, 'xn--', 'IDN bogus domain->xname' );
 
 
-eval { Net::DNS::Domain->new( pack 'U*', 65533, 92, 48, 65533 ); };
-my ($exception) = split /\n/, "$@\n";
-ok( $exception, "invalid name\t[$exception]" );
-
+exception( 'new(invalid name)', sub { Net::DNS::Domain->new( pack 'U*', 65533, 92, 48, 65533 ) } );
 
 exit;
 

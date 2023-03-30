@@ -41,13 +41,11 @@ for my $rr ( Net::DNS::RR->new( name => $name, type => $type, %$hash ) ) {
 		is( $rr2->$_, $rr->$_, "additional attribute rr->$_()" );
 	}
 
-
-	my $empty   = Net::DNS::RR->new("$name $type");
 	my $encoded = $rr->encode;
 	my $decoded = Net::DNS::RR->decode( \$encoded );
 	my $hex1    = uc unpack 'H*', $decoded->encode;
 	my $hex2    = uc unpack 'H*', $encoded;
-	my $hex3    = uc unpack 'H*', substr( $encoded, length $empty->encode );
+	my $hex3    = uc unpack 'H*', $rr->rdata;
 	is( $hex1, $hex2, 'encode/decode transparent' );
 	is( $hex3, $wire, 'encoded RDATA matches example' );
 

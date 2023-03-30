@@ -349,7 +349,7 @@ The return value is undefined if an error is encountered by the parser.
 
 sub parse {
 	my ($arg1) = @_;
-	shift if !ref($arg1) && $arg1 eq __PACKAGE__;
+	shift if $arg1 eq __PACKAGE__;
 	my $string  = shift;
 	my @include = grep {defined} shift;
 	return &readfh( Net::DNS::ZoneFile::Text->new($string), @include );

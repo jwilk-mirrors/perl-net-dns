@@ -51,8 +51,7 @@ plan tests => 10;
 NonFatalBegin();
 
 
-{
-	my $res = Net::DNS::Resolver::Recurse->new( debug => 0 );
+for my $res ( Net::DNS::Resolver::Recurse->new( debug => 0 ) ) {
 
 	ok( $res->isa('Net::DNS::Resolver::Recurse'), 'new() created object' );
 
@@ -61,9 +60,7 @@ NonFatalBegin();
 }
 
 
-{
-	# test the callback
-	my $res = Net::DNS::Resolver::Recurse->new( debug => 0 );
+for my $res ( Net::DNS::Resolver::Recurse->new( debug => 0 ) ) {	# test the callback
 
 	my $count = 0;
 
@@ -75,8 +72,7 @@ NonFatalBegin();
 }
 
 
-{
-	my $res = Net::DNS::Resolver::Recurse->new( debug => 0 );
+for my $res ( Net::DNS::Resolver::Recurse->new( debug => 0 ) ) {
 
 	my $count = 0;
 

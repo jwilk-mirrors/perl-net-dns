@@ -19,7 +19,7 @@ foreach my $package (@prerequisite) {
 	exit;
 }
 
-plan tests => 24;
+plan tests => 21;
 
 
 my $name = 'CERT.example';
@@ -54,30 +54,13 @@ for my $rr ( Net::DNS::RR->new( name => $name, type => $type, %$hash ) ) {
 		is( $rr2->$_, $rr->$_, "additional attribute rr->$_()" );
 	}
 
-
-	my $null    = Net::DNS::RR->new("$name NULL")->encode;
-	my $empty   = Net::DNS::RR->new("$name $type")->encode;
-	my $rxbin   = Net::DNS::RR->decode( \$empty )->encode;
-	my $txtext  = Net::DNS::RR->new("$name $type")->string;
-	my $rxtext  = Net::DNS::RR->new($txtext)->encode;
 	my $encoded = $rr->encode;
 	my $decoded = Net::DNS::RR->decode( \$encoded );
 	my $hex1    = unpack 'H*', $encoded;
 	my $hex2    = unpack 'H*', $decoded->encode;
-	my $hex3    = unpack 'H*', substr( $encoded, length $null );
-	is( $hex2,	     $hex1,	    'encode/decode transparent' );
-	is( $hex3,	     $wire,	    'encoded RDATA matches example' );
-	is( length($empty),  length($null), 'encoded RDATA can be empty' );
-	is( length($rxbin),  length($null), 'decoded RDATA can be empty' );
-	is( length($rxtext), length($null), 'string RDATA can be empty' );
-}
-
-
-{
-	is( Net::DNS::RR->new('foo IN CERT 0 2 3 foo=')->certtype,  0,	'certtype may be zero' );
-	is( Net::DNS::RR->new('foo IN CERT 1 0 3 foo=')->keytag,    0,	'keytag may be zero' );
-	is( Net::DNS::RR->new('foo IN CERT 1 2 0 foo=')->algorithm, 0,	'algorithm may be zero' );
-	is( Net::DNS::RR->new('foo IN CERT 1 2 3 ""  ')->cert,	    "", 'cert may be empty' );
+	my $hex3    = unpack 'H*', $rr->rdata;
+	is( $hex2, $hex1, 'encode/decode transparent' );
+	is( $hex3, $wire, 'encoded RDATA matches example' );
 }
 
 
@@ -90,6 +73,12 @@ for my $rr ( Net::DNS::RR->new('foo IN CERT 1 2 3 foo=') ) {
 	noexception( 'valid certtype mnemonic', sub { $rr->certtype('PKIX') } );
 	exception( 'unknown certtype mnemonic', sub { $rr->certtype('X') } );
 }
+
+
+is( Net::DNS::RR->new('foo IN CERT 0 2 3 foo=')->certtype,  0,	'certtype may be zero' );
+is( Net::DNS::RR->new('foo IN CERT 1 0 3 foo=')->keytag,    0,	'keytag may be zero' );
+is( Net::DNS::RR->new('foo IN CERT 1 2 0 foo=')->algorithm, 0,	'algorithm may be zero' );
+is( Net::DNS::RR->new('foo IN CERT 1 2 3 ""  ')->cert,	    "", 'cert may be empty' );
 
 
 exit;
