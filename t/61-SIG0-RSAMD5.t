@@ -6,6 +6,7 @@ use strict;
 use warnings;
 use IO::File;
 use Test::More;
+use TestToolkit;
 
 my %prerequisite = (
 	'MIME::Base64'	=> 2.13,
@@ -15,7 +16,7 @@ my %prerequisite = (
 
 foreach my $package ( sort keys %prerequisite ) {
 	my @revision = grep {$_} $prerequisite{$package};
-	next if eval "use $package @revision; 1;";		## no critic
+	next if eval "use $package @revision; 1;";	## no critic
 	plan skip_all => "$package not installed";
 	exit;
 }
@@ -72,8 +73,7 @@ RSASHA1.example.	IN	KEY	( 512 3 5
 END
 
 
-{
-	my $packet = Net::DNS::Packet->new('example');
+for my $packet ( Net::DNS::Packet->new('example') ) {
 	$packet->sign_sig0($keyfile);
 	$packet->data;
 	ok( $packet->sigrr->sigbin, 'sign packet using private key' );
@@ -84,8 +84,7 @@ END
 }
 
 
-{
-	my $packet = Net::DNS::Packet->new('example');
+for my $packet ( Net::DNS::Packet->new('example') ) {
 	$packet->sign_sig0($keyfile);
 	my $buffer = $packet->data;
 
@@ -96,8 +95,7 @@ END
 }
 
 
-{
-	my $packet = Net::DNS::Packet->new('example');
+for my $packet ( Net::DNS::Packet->new('example') ) {
 	$packet->sign_sig0($keyfile);
 	$packet->data;
 
@@ -107,8 +105,7 @@ END
 }
 
 
-{
-	my $packet = Net::DNS::Packet->new('example');
+for my $packet ( Net::DNS::Packet->new('example') ) {
 	$packet->sign_sig0($keyfile);
 	$packet->data;
 
@@ -118,8 +115,7 @@ END
 }
 
 
-{
-	my $packet = Net::DNS::Packet->new('example');
+for my $packet ( Net::DNS::Packet->new('example') ) {
 	$packet->sign_sig0($keyfile);
 	$packet->data;
 
@@ -130,8 +126,7 @@ END
 }
 
 
-{
-	my $packet = Net::DNS::Packet->new('example');
+for my $packet ( Net::DNS::Packet->new('example') ) {
 	$packet->sign_sig0($keyfile);
 	$packet->data;
 
@@ -141,8 +136,7 @@ END
 }
 
 
-{
-	my $packet = Net::DNS::Packet->new('example');
+for my $packet ( Net::DNS::Packet->new('example') ) {
 	$packet->sign_sig0($keyfile);
 	$packet->data;
 
@@ -153,8 +147,8 @@ END
 }
 
 
-{
-	my $data = Net::DNS::Packet->new('example')->data;
+for my $packet ( Net::DNS::Packet->new('example') ) {
+	my $data = $packet->data;
 	my $sig	 = create Net::DNS::RR::SIG( $data, $keyfile );
 	ok( $sig->sigbin, 'create SIG over data using private key' );
 
@@ -164,8 +158,8 @@ END
 }
 
 
-{
-	my $data = Net::DNS::Packet->new('example')->data;
+for my $packet ( Net::DNS::Packet->new('example') ) {
+	my $data = $packet->data;
 	my $time = time() + 3;
 	my %args = (
 		siginception  => $time,
@@ -181,8 +175,15 @@ END
 }
 
 
-{
-	my $object   = Net::DNS::RR->new( type => 'SIG' );
+for my $packet ( Net::DNS::Packet->new('example') ) {
+	$packet->sign_sig0($keyfile);
+	my $signed = $packet->data;				# signing occurs in SIG->encode
+	$packet->sigrr->sigbin('');				# signature destroyed
+	exception( "unable to regenerate SIG0", sub { $packet->data } );
+}
+
+
+for my $object ( Net::DNS::RR->new( type => 'SIG' ) ) {
 	my $keyrec   = Net::DNS::RR->new( type => 'KEY' );
 	my $nonkey   = Net::DNS::RR->new( type => 'DS' );
 	my $packet   = Net::DNS::Packet->new();
@@ -197,25 +198,10 @@ END
 	foreach my $arglist (@testcase) {
 		my @argtype = map { ref($_) } @$arglist;
 		$object->typecovered('A');			# induce failure
-		eval { $object->verify(@$arglist); };
-		my ($exception) = split /\n/, "$@\n";
-		ok( $exception, "verify(@argtype)\t[$exception]" );
+		exception( "verify(@argtype)", sub { $object->verify(@$arglist) } );
 	}
 }
 
 
-{
-	my $packet = Net::DNS::Packet->new('query.example');
-	$packet->sign_sig0($keyfile);
-	my $signed = $packet->data;				# signing occurs in SIG->encode
-	$packet->sigrr->sigbin('');				# signature destroyed
-	my $unsigned	= eval { $packet->data };		# unable to regenerate SIG0
-	my ($exception) = split /\n/, "$@\n";
-	ok( $exception, "missing key\t[$exception]" );
-}
-
-
 exit;
-
-__END__
 

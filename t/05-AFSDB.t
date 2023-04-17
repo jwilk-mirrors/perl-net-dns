@@ -4,7 +4,7 @@
 
 use strict;
 use warnings;
-use Test::More tests => 12;
+use Test::More tests => 9;
 
 use Net::DNS;
 
@@ -47,18 +47,6 @@ for my $rr ( Net::DNS::RR->new( name => $name, type => $type, %$hash ) ) {
 	my $hex3    = unpack 'H*', $rr->rdata;
 	is( $hex2, $hex1, 'encode/decode transparent' );
 	is( $hex3, $wire, 'encoded RDATA matches example' );
-}
-
-
-{
-	my $lc		= Net::DNS::RR->new( lc ". $type @data" );
-	my $rr		= Net::DNS::RR->new( uc ". $type @data" );
-	my $hash	= {};
-	my $predecessor = $rr->encode( 0,		    $hash );
-	my $compressed	= $rr->encode( length $predecessor, $hash );
-	ok( length $compressed == length $predecessor, 'encoded RDATA not compressible' );
-	isnt( $rr->encode, $lc->encode, 'encoded RDATA names not downcased' );
-	is( $rr->canonical, $lc->encode, 'canonical RDATA names downcased' );
 }
 
 

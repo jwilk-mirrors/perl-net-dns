@@ -9,6 +9,9 @@ $Id$                       -*-text-*-
 	Major overhaul of pre-installation test scripts.
 	Add new t/TestToolkit.pm
 
+Fix rt.cpan.org #147507
+	Nameserver.pm: peerhost undefined after $sock->accept
+
 
 **** 1.37 Mar 13, 2023
 

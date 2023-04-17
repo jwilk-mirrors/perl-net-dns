@@ -6,6 +6,7 @@ use strict;
 use warnings;
 use IO::File;
 use Test::More;
+use TestToolkit;
 
 my %prerequisite = (
 	'MIME::Base64'	=> 2.13,
@@ -15,7 +16,7 @@ my %prerequisite = (
 
 foreach my $package ( sort keys %prerequisite ) {
 	my @revision = grep {$_} $prerequisite{$package};
-	next if eval "use $package @revision; 1;";		## no critic
+	next if eval "use $package @revision; 1;";	## no critic
 	plan skip_all => "$package not installed";
 	exit;
 }
@@ -76,56 +77,44 @@ END
 my @rrset    = ( $bad1, $ksk );
 my @badrrset = ($bad1);
 
-{
-	my $object = Net::DNS::RR::RRSIG->create( \@rrset, $keyfile );
+for my $object ( Net::DNS::RR::RRSIG->create( \@rrset, $keyfile ) ) {
 	ok( $object->sig(), 'create RRSIG over rrset using private ksk' );
-
 	my $verified = $object->verify( \@rrset, $ksk );
 	ok( $verified, 'verify using public ksk' );
 	is( $object->vrfyerrstr, '', 'observe no object->vrfyerrstr' );
 }
 
 
-{
-	my $object = Net::DNS::RR::RRSIG->create( \@rrset, $keyfile );
-
+for my $object ( Net::DNS::RR::RRSIG->create( \@rrset, $keyfile ) ) {
 	my $verified = $object->verify( \@badrrset, $bad1 );
 	ok( !$verified,		 'verify fails using wrong key' );
 	ok( $object->vrfyerrstr, 'observe rrsig->vrfyerrstr' );
 }
 
 
-{
-	my $object = Net::DNS::RR::RRSIG->create( \@rrset, $keyfile );
-
+for my $object ( Net::DNS::RR::RRSIG->create( \@rrset, $keyfile ) ) {
 	my $verified = $object->verify( \@badrrset, $bad2 );
 	ok( !$verified,		 'verify fails using key with wrong algorithm' );
 	ok( $object->vrfyerrstr, 'observe rrsig->vrfyerrstr' );
 }
 
 
-{
-	my $object = Net::DNS::RR::RRSIG->create( \@rrset, $keyfile );
-
+for my $object ( Net::DNS::RR::RRSIG->create( \@rrset, $keyfile ) ) {
 	my $verified = $object->verify( \@rrset, [$bad1, $bad2, $ksk] );
 	ok( $verified, 'verify using array of keys' );
 	is( $object->vrfyerrstr, '', 'observe no rrsig->vrfyerrstr' );
 }
 
 
-{
-	my $object = Net::DNS::RR::RRSIG->create( \@rrset, $keyfile );
-
+for my $object ( Net::DNS::RR::RRSIG->create( \@rrset, $keyfile ) ) {
 	my $verified = $object->verify( \@badrrset, [$bad1, $bad2, $ksk] );
 	ok( !$verified,		 'verify fails using wrong rrset' );
 	ok( $object->vrfyerrstr, 'observe rrsig->vrfyerrstr' );
 }
 
 
-{
-	my $wild   = Net::DNS::RR->new('*.example. A 10.1.2.3');
-	my $match  = Net::DNS::RR->new('leaf.twig.example. A 10.1.2.3');
-	my $object = Net::DNS::RR::RRSIG->create( [$wild], $keyfile );
+for my $object ( Net::DNS::RR::RRSIG->create( [Net::DNS::RR->new('*.example. A 10.1.2.3')], $keyfile ) ) {
+	my $match = Net::DNS::RR->new('leaf.twig.example. A 10.1.2.3');
 
 	my $verified = $object->verify( [$match], $ksk );
 	ok( $verified, 'wildcard matches child domain name' );
@@ -133,10 +122,8 @@ my @badrrset = ($bad1);
 }
 
 
-{
-	my $wild   = Net::DNS::RR->new('*.example. A 10.1.2.3');
-	my $bogus  = Net::DNS::RR->new('example. A 10.1.2.3');
-	my $object = Net::DNS::RR::RRSIG->create( [$wild], $keyfile );
+for my $object ( Net::DNS::RR::RRSIG->create( [Net::DNS::RR->new('*.example. A 10.1.2.3')], $keyfile ) ) {
+	my $bogus = Net::DNS::RR->new('example. A 10.1.2.3');
 
 	my $verified = $object->verify( [$bogus], $ksk );
 	ok( !$verified,		 'wildcard does not match parent domain' );
@@ -144,14 +131,10 @@ my @badrrset = ($bad1);
 }
 
 
-{
-	my $time = time() + 3;
-	my %args = (
-		siginception  => $time,
-		sigexpiration => $time,
-		);
-	my $object = Net::DNS::RR::RRSIG->create( \@rrset, $keyfile, %args );
+my $time = time() + 3;
+my %args = ( siginception => $time, sigexpiration => $time );
 
+for my $object ( Net::DNS::RR::RRSIG->create( \@rrset, $keyfile, %args ) ) {
 	ok( !$object->verify( \@rrset, $ksk ), 'verify fails for postdated RRSIG' );
 	ok( $object->vrfyerrstr,	       'observe rrsig->vrfyerrstr' );
 	sleep 1 until $time < time();
@@ -160,21 +143,21 @@ my @badrrset = ($bad1);
 }
 
 
-{
-	my $object   = Net::DNS::RR->new( type => 'RRSIG' );
-	my $class    = ref($object);
-	my $array    = [];
-	my $dnskey   = Net::DNS::RR->new( type => 'DNSKEY' );
-	my $private  = Net::DNS::SEC::Private->new($keyfile);
-	my $packet   = Net::DNS::Packet->new();
-	my $rr1	     = Net::DNS::RR->new( name	=> 'example', type => 'A' );
-	my $rr2	     = Net::DNS::RR->new( name	=> 'differs', type => 'A' );
-	my $rr3	     = Net::DNS::RR->new( type	=> 'A',	      ttl  => 1 );
-	my $rr4	     = Net::DNS::RR->new( type	=> 'A',	      ttl  => 2 );
-	my $rr5	     = Net::DNS::RR->new( class => 'IN',      type => 'A' );
-	my $rr6	     = Net::DNS::RR->new( class => 'ANY',     type => 'A' );
-	my $rr7	     = Net::DNS::RR->new( type	=> 'A' );
-	my $rr8	     = Net::DNS::RR->new( type	=> 'AAAA' );
+for my $object ( Net::DNS::RR->new( type => 'RRSIG' ) ) {
+	my $class   = ref($object);
+	my $array   = [];
+	my $dnskey  = Net::DNS::RR->new( type => 'DNSKEY' );
+	my $private = Net::DNS::SEC::Private->new($keyfile);
+	my $packet  = Net::DNS::Packet->new();
+	my $rr1	    = Net::DNS::RR->new( name  => 'example', type => 'A' );
+	my $rr2	    = Net::DNS::RR->new( name  => 'differs', type => 'A' );
+	my $rr3	    = Net::DNS::RR->new( type  => 'A',	     ttl  => 1 );
+	my $rr4	    = Net::DNS::RR->new( type  => 'A',	     ttl  => 2 );
+	my $rr5	    = Net::DNS::RR->new( class => 'IN',	     type => 'A' );
+	my $rr6	    = Net::DNS::RR->new( class => 'ANY',     type => 'A' );
+	my $rr7	    = Net::DNS::RR->new( type  => 'A' );
+	my $rr8	    = Net::DNS::RR->new( type  => 'AAAA' );
+
 	my @testcase = (		## test create() with invalid arguments
 		[$dnskey,      $dnskey],
 		[$array,       $private],
@@ -186,15 +169,12 @@ my @badrrset = ($bad1);
 
 	foreach my $arglist (@testcase) {
 		my @argtype = map { ref($_) } @$arglist;
-		eval { $class->create(@$arglist); };
-		my ($exception) = split /\n/, "$@\n";
-		ok( $exception, "create(@argtype)\t[$exception]" );
+		exception( "create(@argtype)", sub { $class->create(@$arglist) } );
 	}
 }
 
 
-{
-	my $object   = Net::DNS::RR->new( type => 'RRSIG' );
+for my $object ( Net::DNS::RR->new( type => 'RRSIG' ) ) {
 	my $packet   = Net::DNS::Packet->new();
 	my $dnskey   = Net::DNS::RR->new( type => 'DNSKEY' );
 	my $dsrec    = Net::DNS::RR->new( type => 'DS' );
@@ -207,26 +187,15 @@ my @badrrset = ($bad1);
 
 	foreach my $arglist (@testcase) {
 		my @argtype = map { ref($_) || $_ } @$arglist;
-		eval { $object->verify(@$arglist); };
-		my ($exception) = split /\n/, "$@\n";
-		ok( $exception, "verify(@argtype)\t[$exception]" );
+		exception( "verify(@argtype)", sub { $object->verify(@$arglist) } );
 	}
 }
 
 
-{
-	my $object = Net::DNS::RR->new( type => 'RRSIG', algorithm => 0 );
-
-	foreach my $method (qw(_CreateSig _VerifySig)) {
-		eval { $object->$method(); };
-		my $errorstring = $object->vrfyerrstr() || $@;
-		my ($exception) = split /\n/, "$errorstring\n";
-		ok( $exception, "$method()\t[$exception]" );
-	}
+for my $object ( Net::DNS::RR->new( type => 'RRSIG', algorithm => 0 ) ) {
+	exception( 'unsupported _CreateSig()', sub { $object->_CreateSig() } );
+	noexception( 'silent _VerifySig() failure', sub { $object->_VerifySig() } );
 }
-
 
 exit;
-
-__END__
 

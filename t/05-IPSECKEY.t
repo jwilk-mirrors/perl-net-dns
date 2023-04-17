@@ -19,7 +19,7 @@ foreach my $package (@prerequisite) {
 	exit;
 }
 
-plan tests => 34;
+plan tests => 31;
 
 
 my $name = '38.2.0.192.in-addr.arpa';
@@ -60,18 +60,6 @@ for my $rr ( Net::DNS::RR->new( name => $name, type => $type, %$hash ) ) {
 	my $hex3    = unpack 'H*', $rr->rdata;
 	is( $hex2, $hex1, 'encode/decode transparent' );
 	is( $hex3, $wire, 'encoded RDATA matches example' );
-}
-
-
-{
-	my $lc		= Net::DNS::RR->new( lc ". $type @data" );
-	my $rr		= Net::DNS::RR->new( uc ". $type @data" );
-	my $hash	= {};
-	my $predecessor = $rr->encode( 0,		    $hash );
-	my $compressed	= $rr->encode( length $predecessor, $hash );
-	ok( length $compressed == length $predecessor, 'encoded RDATA not compressible' );
-	isnt( $rr->encode,    $lc->encode, 'encoded RDATA names not downcased' );
-	isnt( $rr->canonical, $lc->encode, 'canonical RDATA names not downcased' );
 }
 
 

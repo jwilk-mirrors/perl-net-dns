@@ -74,7 +74,7 @@ sub txtdata {
 }
 
 
-sub char_str_list { return (&txtdata); }			# uncoverable pod
+sub char_str_list { return my @txt = &txtdata }			# uncoverable pod
 
 
 1;

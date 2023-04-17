@@ -171,17 +171,14 @@ sub name {
 
 =head2 fqdn
 
-    @fqdn = $domain->fqdn;
+    $fqdn = $domain->fqdn;
 
 Returns a character string containing the fully qualified domain
 name, including the trailing dot.
 
 =cut
 
-sub fqdn {
-	my $name = &name;
-	return $name =~ /[.]$/ ? $name : $name . '.';		# append trailing dot
-}
+sub fqdn { return $name =~ /[.]$/ ? $name : "$name." }		# append trailing dot
 
 
 =head2 xname
@@ -244,10 +241,7 @@ represented by the appropriate escape sequence.
 
 =cut
 
-sub string {
-	my $name = &name;
-	return $name =~ /[.]$/ ? $name : $name . '.';		# append trailing dot
-}
+sub string { return &fqdn }
 
 
 =head2 origin
