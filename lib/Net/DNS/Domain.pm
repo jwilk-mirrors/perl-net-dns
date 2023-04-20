@@ -178,7 +178,10 @@ name, including the trailing dot.
 
 =cut
 
-sub fqdn { return $name =~ /[.]$/ ? $name : "$name." }		# append trailing dot
+sub fqdn {
+	my $name = &name;
+	return $name =~ /[.]$/ ? $name : "$name.";		# append trailing dot
+}
 
 
 =head2 xname

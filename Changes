@@ -8,6 +8,9 @@ $Id$                       -*-text-*-
 	Deprecate rdatastr() historical RR subtype method.
 	Major overhaul of pre-installation test scripts.
 	Add new t/TestToolkit.pm
+	Refactor socket code and control structure in
+	Nameserver.pm and improve efficiency of zonefile
+	data storage and retrieval.
 
 Fix rt.cpan.org #147507
 	Nameserver.pm: peerhost undefined after $sock->accept
