@@ -15,7 +15,7 @@ Net::DNS::Nameserver - DNS server class
     use Net::DNS::Nameserver;
 
     my $nameserver = Net::DNS::Nameserver->new(
-	LocalAddr	=> ['::1' , '127.0.0.1'],
+	LocalAddr	=> ['::1', '127.0.0.1'],
 	ZoneFile	=> "filename"
 	);
 
@@ -105,8 +105,8 @@ sub ReadZoneFile {
 		}
 	}
 
-	$self->{namelist}     = [sort { length($b) <=> length($b) } keys %$RRhash];
-	$self->{zonelist}     = [sort { length($b) <=> length($b) } @zonelist];
+	$self->{namelist}     = [sort { length($b) <=> length($a) } keys %$RRhash];
+	$self->{zonelist}     = [sort { length($b) <=> length($a) } @zonelist];
 	$self->{ReplyHandler} = sub { $self->ReplyHandler(@_) };
 	return;
 }
@@ -156,8 +156,7 @@ sub ReplyHandler {
 				last if grep {/(^|\.)$encloser$/i} @namelist;	 # [NODATA]
 
 				my ($q) = $query->question;	# synthesise RR at qname
-				my $RRlist = $RRhash->{$wildcard} || [];
-				foreach my $rr (@$RRlist) {
+				foreach my $rr ( @{$RRhash->{$wildcard}} ) {
 					my $clone = bless( {%$rr}, ref($rr) );
 					$clone->{owner} = $q->{qname};
 					push @match, $clone;
@@ -168,8 +167,7 @@ sub ReplyHandler {
 		push @ans, my @cname = grep { $_->type eq 'CNAME' } @match;
 		$qname = $_->cname for @cname;
 		redo if @cname;
-		push @ans, grep { $_->type eq $qtype } @match;
-		unless (@ans) {
+		unless ( push @ans, grep { $_->type eq $qtype } @match ) {
 			foreach ( @{$self->{zonelist}} ) {
 				s/([.?*+])/\\$1/g;		# escape dots and regex quantifiers
 				next unless $qname =~ /[^.]+[.]$_[.]?$/i;
@@ -295,7 +293,6 @@ sub TCP_connection {
 	my ( $self, $socket ) = @_;
 	my $timeout = $self->{IdleTimeout};
 	my $verbose = $self->{Verbose};
-	local $SIG{ALRM} = sub { die 'TCP idle timeout' };
 
 	while (1) {
 		alarm $timeout;
@@ -381,7 +378,7 @@ sub UDP_connection {
 	my $reply = $self->make_reply( $query, $socket );
 	die 'Failed to create reply' unless defined $reply;
 
-	my $max_len = ( $query && $self->{Truncate} ) ? $query->edns->size : undef;
+	my $max_len = ( $query && $self->{Truncate} ) ? $query->edns->UDPsize : undef;
 	if ($verbose) {
 		my $response = $reply->data($max_len);
 		print 'UDP response (', length($response), ' octets) - ';
@@ -439,21 +436,26 @@ sub start_server {
 }
 
 sub start_noloop {
-	my $self = shift;
+	my ( $self, $timeout ) = ( @_, 600 );
 	my $list = $self->{LocalAddr};
 	my $port = $self->{LocalPort};
 	foreach my $ip (@$list) {
-		spawn( sub { $self->TCP_initialise( $ip, $port ) } );
-		spawn( sub { $self->UDP_initialise( $ip, $port ) } );
+		spawn(	sub {
+				alarm $timeout;
+				$self->TCP_initialise( $ip, $port );
+			} );
+		spawn(	sub {
+				alarm $timeout;
+				$self->UDP_initialise( $ip, $port );
+			} );
 	}
-	logmsg "loop once: type Ctrl-C to exit";
 	return;
 }
 
 
 sub TCP_initialise {
 	my ( $self, $ip, $port ) = @_;
-	my $server = IO::Socket::IP->new(
+	my $socket = IO::Socket::IP->new(
 		LocalAddr => $ip,
 		LocalPort => $port,
 		ReuseAddr => 1,
@@ -467,22 +469,21 @@ sub TCP_initialise {
 	logmsg "TCP server [$ip] port $port started";
 
 	{
-		my $client = $server->accept() || do {
+		my $client = $socket->accept() || do {
 			redo if $!{EINTR};	## retry if aborted by signal
 			die "accept: $!";
 		};
 
 		spawn( sub { $self->TCP_connection($client) } );
 	}
-	return $server;
+	return $socket;
 }
 
 sub TCP_server {
 	my ( $self, $ip, $port ) = @_;
-	my $server = $self->TCP_initialise( $ip, $port );
-
+	my $socket = $self->TCP_initialise( $ip, $port );
 	while (1) {
-		my $client = $server->accept() || do {
+		my $client = $socket->accept() || do {
 			redo if $!{EINTR};	## retry if aborted by signal
 			die "accept: $!";
 		};
@@ -495,7 +496,7 @@ sub TCP_server {
 
 sub UDP_initialise {
 	my ( $self, $ip, $port ) = @_;
-	my $server = IO::Socket::IP->new(
+	my $socket = IO::Socket::IP->new(
 		LocalAddr => $ip,
 		LocalPort => $port,
 		ReuseAddr => 1,
@@ -503,12 +504,11 @@ sub UDP_initialise {
 		Proto	  => "udp",
 		Type	  => SOCK_DGRAM
 		)
-			|| die "can't setup TCP socket";
+			|| die "can't setup UDP socket";
 
 	logmsg "UDP server [$ip] port $port started";
 
-	my $protocol = $server->protocol;
-	my $select   = IO::Select->new($server);
+	my $select = IO::Select->new($socket);
 	{
 		local $! = 0;
 		scalar( my @ready = $select->can_read() ) || do {
@@ -520,15 +520,13 @@ sub UDP_initialise {
 			spawn( sub { $self->UDP_connection($client) } );
 		}
 	}
-	return $server;
+	return $socket;
 }
 
 sub UDP_server {
 	my ( $self, $ip, $port ) = @_;
-	my $server = $self->UDP_initialise( $ip, $port );
-
-	my $protocol = $server->protocol;
-	my $select   = IO::Select->new($server);
+	my $socket = $self->UDP_initialise( $ip, $port );
+	my $select = IO::Select->new($socket);
 	while (1) {
 		local $! = 0;
 		scalar( my @ready = $select->can_read() ) || do {
@@ -551,8 +549,8 @@ sub UDP_server {
 sub main_loop {
 	local $SIG{CHLD} = \&reaper;
 	shift->start_server;
-	while (1) { sleep 10 }		## park main process until
-	return;				## user CTRL_C kills the children
+	1 while waitpid( -1, 0 ) > 0;	## park main process until
+	exit;				## user CTRL_C kills the children
 }
 
 
@@ -561,10 +559,12 @@ sub main_loop {
 #------------------------------------------------------------------------------
 
 sub loop_once {
+	my ( $self, @timeout ) = @_;
+	logmsg "loop once: type Ctrl-C to exit";
 	local $SIG{CHLD} = \&reaper;
-	shift->start_noloop;
-	while (1) { sleep 10 }		## park main process until
-	return;				## user CTRL_C kills remaining children
+	$self->start_noloop(@timeout);
+	1 while waitpid( -1, 0 ) > 0;	## park main process until timeout or
+	exit;				## user CTRL_C kills remaining children
 }
 
 
@@ -577,7 +577,7 @@ __END__
 =head2 new
 
     $nameserver = Net::DNS::Nameserver->new(
-	LocalAddr	=> ['::1' , '127.0.0.1'],
+	LocalAddr	=> ['::1', '127.0.0.1'],
 	ZoneFile	=> "filename"
 	);
 
@@ -589,8 +589,8 @@ __END__
 	Truncate	=> 0
     );
 
-Returns a Net::DNS::Nameserver object, or undef if the object
-could not be created.
+Instantiates a Net::DNS::Nameserver object.
+An exception is raised if the object could not be created.
 
 Each instance is configured using the following optional arguments:
 
@@ -633,10 +633,10 @@ the query unanswered.  Common response codes are:
 For advanced usage it may also contain a headermask containing an
 hashref with the settings for the C<aa>, C<ra>, and C<ad>
 header bits. The argument is of the form:
-	{ ad => 1, aa => 0, ra => 1 }
+	{ad => 1, aa => 0, ra => 1}
 
-EDNS options may be specified in a similar manner using optionmask.
-	{ $optioncode => $value, $optionname => $value }
+EDNS options may be specified in a similar manner using the optionmask:
+	{$optioncode => $value, $optionname => $value}
 
 See RFC1035 and IANA DNS parameters file for more information:
 
@@ -662,10 +662,14 @@ Start accepting queries. Calling main_loop never returns.
 
 =head2 loop_once
 
-    $ns->loop_once;
+    $ns->loop_once( [TIMEOUT_IN_SECONDS] );
 
 Initialises the specified UDP and TCP sockets and starts the server
 which will respond to a single connection on each socket.
+
+The timeout parameter specifies the maximum time to wait for a request.
+If called without parameters a default timeout of 10 minutes is applied.
+If called with a zero parameter, the timeout function is disabled.
 
 
 =head1 EXAMPLE
