@@ -353,14 +353,10 @@ sub TCP_connection {
 sub UDP_connection {
 	my ( $self, $socket ) = @_;
 	my $verbose = $self->{Verbose};
+	alarm 3;
 
 	my $buffer = "";
-	{
-		unless ( defined $socket->recv( $buffer, PACKETSZ ) ) {
-			redo if $!{EINTR};	## retry if aborted by signal
-			die "recv; $!";
-		}
-	}
+	return unless defined $socket->recv( $buffer, PACKETSZ );
 
 	if ($verbose) {
 		my $peer = $socket->peerhost;
@@ -386,6 +382,8 @@ sub UDP_connection {
 	} else {
 		$socket->send( $reply->data($max_len) );
 	}
+	alarm 0;
+	close $socket;
 	return;
 }
 
@@ -550,7 +548,7 @@ sub main_loop {
 	local $SIG{CHLD} = \&reaper;
 	shift->start_server;
 	1 while waitpid( -1, 0 ) > 0;	## park main process until
-	exit;				## user CTRL_C kills the children
+	return;				## user CTRL_C kills the children
 }
 
 
@@ -560,11 +558,10 @@ sub main_loop {
 
 sub loop_once {
 	my ( $self, @timeout ) = @_;
-	logmsg "loop once: type Ctrl-C to exit";
 	local $SIG{CHLD} = \&reaper;
 	$self->start_noloop(@timeout);
 	1 while waitpid( -1, 0 ) > 0;	## park main process until timeout or
-	exit;				## user CTRL_C kills remaining children
+	return;				## user CTRL_C kills remaining children
 }
 
 
