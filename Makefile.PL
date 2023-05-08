@@ -217,12 +217,14 @@ package MY;				## customise generated Makefile
 
 sub test {
 	return join '', shift->SUPER::test(), <<'END' if $^O =~ /MSWin/i;
-FULLPERLRUN = $(FULLPERL) "-I./t"
+TEST_DIR = t
+FULLPERLRUN = $(FULLPERL) "-I$(TEST_DIR)"
 END
 
 	return join '', shift->SUPER::test(), <<'END';
-# suppress parallel test execution	include ./t test directory
-FULLPERLRUN = HARNESS_OPTIONS=j1:c $(FULLPERL) "-I./t"
+# suppress parallel test execution	include test directory
+TEST_DIR = t
+FULLPERLRUN = HARNESS_OPTIONS=j1:c $(FULLPERL) "-I$(TEST_DIR)"
 END
 }
 

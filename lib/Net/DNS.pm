@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 our $VERSION;
-$VERSION = '1.37_04';
+$VERSION = '1.37_05';
 $VERSION = eval {$VERSION};
 our $SVNVERSION = (qw$Id$)[2];
 
@@ -112,7 +112,7 @@ sub rrsort {
 
 
 #
-# Auxilliary functions to support policy-driven zone serial numbering.
+# Auxiliary functions to support policy-driven zone serial numbering.
 #
 #	$successor = $soa->serial(SEQUENTIAL);
 #	$successor = $soa->serial(UNIXTIME);
@@ -130,7 +130,7 @@ sub YYYYMMDDxx {
 
 
 #
-# Auxilliary functions to support dynamic update.
+# Auxiliary functions to support dynamic update.
 #
 
 sub yxrrset {

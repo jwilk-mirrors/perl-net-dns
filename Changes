@@ -12,6 +12,12 @@ $Id$                       -*-text-*-
 	Nameserver.pm and improve efficiency of zonefile
 	data storage and retrieval.
 
+Fix rt.cpan.org #148274
+	Multicast DNS flag breaks Net::DNS::Parameters::classbyval
+
+Fix rt.cpan.org #148273
+	EDNS extended rcode not handled correctly
+
 Fix rt.cpan.org #147507
 	Nameserver.pm: peerhost undefined after $sock->accept
 
