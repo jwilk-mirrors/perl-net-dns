@@ -17,7 +17,7 @@ plan tests => ( 5 + scalar keys %Net::DNS::Parameters::classbyval ) +
 		( 2 + scalar keys %Net::DNS::Parameters::dsotypebyval );
 
 
-foreach ( sort { $a <=> $b } 65535, keys %Net::DNS::Parameters::classbyval ) {
+foreach ( sort { $a <=> $b } 32767, keys %Net::DNS::Parameters::classbyval ) {
 	my $name = classbyval($_);	## check class conversion functions
 	my $code = eval { classbyname($name) };
 	is( $code, $_, "classbyname($name)" );
