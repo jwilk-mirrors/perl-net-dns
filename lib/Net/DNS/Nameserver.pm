@@ -546,6 +546,14 @@ sub UDP_server {
 
 sub main_loop {
 	local $SIG{CHLD} = \&reaper;
+	my $setpgrp_implemented = defined(eval { setpgrp(); 1; });
+	local $SIG{TERM} = sub {
+		if ($setpgrp_implemented) {
+			kill('TERM', -$$);
+			1 while waitpid( -1, 0 ) > 0;
+		}
+		exit;
+	};
 	shift->start_server;
 	1 while waitpid( -1, 0 ) > 0;	## park main process until
 	return;				## user CTRL_C kills the children
