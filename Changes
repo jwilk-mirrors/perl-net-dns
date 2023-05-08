@@ -1,7 +1,7 @@
 $Id$                       -*-text-*-
 
 
-**** 1.38 [unreleased]
+**** 1.38 May 9, 2023
 
 	Mailbox.pm: Improve robustness of address parsing.
 	Deprecate packet->edns->size() method.
