@@ -426,11 +426,12 @@ sub start_server {
 	my $self = shift;
 	my $list = $self->{LocalAddr};
 	my $port = $self->{LocalPort};
+	my @pid;
 	foreach my $ip (@$list) {
-		spawn( sub { $self->TCP_server( $ip, $port ) } );
-		spawn( sub { $self->UDP_server( $ip, $port ) } );
+		push @pid, spawn( sub { $self->TCP_server( $ip, $port ) } );
+		push @pid, spawn( sub { $self->UDP_server( $ip, $port ) } );
 	}
-	return;
+	return @pid;
 }
 
 sub start_noloop {
@@ -546,7 +547,8 @@ sub UDP_server {
 
 sub main_loop {
 	local $SIG{CHLD} = \&reaper;
-	shift->start_server;
+	my @pid = shift->start_server;
+	local $SIG{TERM} = sub { kill( 'TERM', @pid ) };
 	1 while waitpid( -1, 0 ) > 0;	## park main process until
 	return;				## user CTRL_C kills the children
 }
