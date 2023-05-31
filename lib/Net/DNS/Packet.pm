@@ -267,8 +267,7 @@ response to an EDNS query.
 =cut
 
 sub reply {
-	my $query  = shift;
-	my $UDPmax = shift;
+	my ( $query, @UDPmax ) = @_;
 	my $qheadr = $query->header;
 	croak 'erroneous qr flag in query packet' if $qheadr->qr;
 
@@ -289,7 +288,7 @@ sub reply {
 
 	my $edns = $reply->edns();
 	CORE::push( @{$reply->{additional}}, $edns );
-	$edns->udpsize($UDPmax);
+	$edns->udpsize(@UDPmax);
 	return $reply;
 }
 
