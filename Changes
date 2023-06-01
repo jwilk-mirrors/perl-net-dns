@@ -1,7 +1,7 @@
 $Id$                       -*-text-*-
 
 
-**** 1.39 [unreleased]
+**** 1.39 Jun 1, 2023
 
 Fix rt.cpan.org #148340
 	udpsize uninitialized value
