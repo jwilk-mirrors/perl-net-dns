@@ -10,7 +10,7 @@ use TestToolkit;
 use Net::DNS;
 use Net::DNS::Parameters;
 
-use constant UTIL => scalar eval { require Scalar::Util; Scalar::Util->can('isdual') };	## no critic
+use constant UTIL => scalar eval { require Scalar::Util; Scalar::Util->can('isdual') };	   ## no critic
 
 
 my $code = 41;

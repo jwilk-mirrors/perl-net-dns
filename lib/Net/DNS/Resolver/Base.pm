@@ -257,8 +257,7 @@ END
 
 
 sub print {
-	print shift->string;
-	return;
+	return print shift->string;
 }
 
 
@@ -624,9 +623,9 @@ sub bgbusy {				## no critic		# overwrites user UDP handle
 
 	return time() <= $expire unless IO::Select->new($handle)->can_read(0);
 
+	return unless $query;					# SpamAssassin 3.4.1 workaround
 	return if $self->{igntc};
 	return unless $handle->socktype() == SOCK_DGRAM;
-	return unless $query;					# SpamAssassin 3.4.1 workaround
 
 	my $ans = $self->_bgread($handle);
 	$$appendix[2] = [$ans];

@@ -1,6 +1,15 @@
 $Id$                       -*-text-*-
 
 
+**** 1.40 [unreleased]
+
+	Add support for SVCB dohpath and ohttp parameters.
+	More robust test of bgbusy() SpamAssassin workaround.
+
+Fix rt.cpan.org #149280
+	Deep recursion on subroutine "Net::DNS::Resolver::Recurse::_recurse"
+
+
 **** 1.39 Jun 1, 2023
 
 Fix rt.cpan.org #148340

@@ -79,12 +79,6 @@ sub class {				## override RR method
 	return $self->udpsize(@value);
 }
 
-sub size {
-	my ( $self, @value ) = @_;				# uncoverable pod
-	$self->_deprecate(qq[size() is an alias of "UDPsize()"]);
-	return $self->udpsize(@value);
-}
-
 sub ttl {				## override RR method
 	my ( $self, @value ) = @_;
 	$self->_deprecate(qq[please use "flags()", "rcode()" or "version()"]);
@@ -155,6 +149,12 @@ sub udpsize {
 	my ( $self, @value ) = @_;				# uncoverable pod
 	for (@value) { $self->{udpsize} = ( $_ > 512 ) ? $_ : 0 }
 	return $self->{udpsize} || 0;
+}
+
+sub size {
+	my ( $self, @value ) = @_;				# uncoverable pod
+	$self->_deprecate(qq[size() is an alias of "UDPsize()"]);
+	return $self->udpsize(@value);
 }
 
 
@@ -442,14 +442,15 @@ sub _decompose {
 	my $error = $Net::DNS::Parameters::dnserrorbyval{$code};
 	my @error = defined($error) ? ( 'ERROR' => $error ) : ();
 	my $extra = Net::DNS::Text->decode( \$text, 0, length $text );
-	my $REGEX = q/("[^"]*")|([\[\]{}:,])|\s+/;
 	for ( $extra->value ) {
 		last unless /^[\[\{]/;
-		s/([\@\$])/\\$1/g;
-		my $info = eval join( ' ', map { s/^:$/=>/; $_ } grep {defined} split /$REGEX/o );
-		return {'INFO-CODE' => $code, @error, 'EXTRA-TEXT' => $info || last};
+		s/([\$\@])/\\$1/g;	## Here be dragons!
+		my $REGEX = q/("[^"]*"|[\[\]{}:,]|[-0-9.Ee+]+)|\s+|(.)/;
+		my @split = grep { defined && length } split /$REGEX/o;
+		my $value = eval join( ' ', 'no integer;', map { s/^:$/=>/; $_ } @split );
+		return {'INFO-CODE' => $code, @error, 'EXTRA-TEXT' => $value} if ref($value);
 	}
-	return {'INFO-CODE' => $code, @error, 'EXTRA-TEXT' => $extra->string};
+	return {'INFO-CODE' => $code, @error, 'EXTRA-TEXT' => $extra->value};
 }
 
 

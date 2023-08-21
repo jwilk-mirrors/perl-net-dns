@@ -4,11 +4,18 @@
 
 use strict;
 use warnings;
-use Test::More tests => 34;
+use Test::More tests => 35;
 use TestToolkit;
 
 use Net::DNS::Resolver;
 use Net::DNS::Resolver::Recurse;
+
+{					## off-line dry tests
+
+	package Net::DNS::Resolver;
+	sub _create_tcp_socket {return}	## stub
+	sub _create_udp_socket {return}	## stub
+}
 
 
 my @NOIP = qw(:: 0.0.0.0);
@@ -103,12 +110,12 @@ my $deprecated = sub { $resolver->make_query_packet('example.com') };
 exception( 'deprecated make_query_packet()', $deprecated );
 noexception( 'no repeated deprecation warning', $deprecated );
 
+
+my $handle = \*DATA;			## exercise SpamAssassin's use of plain sockets
+ok( !$resolver->bgbusy($handle), 'bgbusy():	SpamAssassin workaround' );
+
 exit;
 
-
-package Net::DNS::Resolver;		## off-line dry test
-sub _create_tcp_socket {return}		## stub
-sub _create_udp_socket {return}		## stub
-
-__END__
+__DATA__
+arbitrary
 
