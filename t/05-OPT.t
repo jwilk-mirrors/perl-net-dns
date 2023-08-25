@@ -9,6 +9,7 @@ use TestToolkit;
 
 use Net::DNS;
 use Net::DNS::Parameters;
+local $Net::DNS::Parameters::ednsoptionbyval{65023} = 'REPORT-CHANNEL';	   ## experimental/private use
 
 use constant UTIL => scalar eval { require Scalar::Util; Scalar::Util->can('isdual') };	   ## no critic
 

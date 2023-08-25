@@ -5,7 +5,7 @@
 use strict;
 use warnings;
 use integer;
-use Test::More tests => 35;
+use Test::More tests => 43;
 
 use Net::DNS;
 
@@ -69,6 +69,10 @@ for my $rr ( Net::DNS::RR->new("name SOA mname rname 0") ) {
 			sprintf( '%u', $serial ),
 			"rr->serial($serial) steps from $initial to $serial"
 			);
+		is(	sprintf( '%u', $rr->serial($serial) ),
+			sprintf( '%u', $serial + 1 ),
+			"rr->serial($serial) increments existing serial number"
+			);
 		$initial = $serial;
 	}
 }
@@ -109,14 +113,19 @@ for my $rr ( Net::DNS::RR->new('name SOA mname rname') ) {
 	my $posttime = UNIXTIME;
 	my $pretime  = $posttime - 10;
 	$rr->serial($pretime);
-	is( $rr->serial($posttime), $posttime, "rr->serial(UNIXTIME) steps from $pretime to $posttime" );
+	is(	sprintf( '%u', $rr->serial($posttime) ),
+		sprintf( '%u', $posttime ),
+		"rr->serial(UNIXTIME) steps from $pretime to $posttime"
+		);
 }
 
 
 for my $rr ( Net::DNS::RR->new('name SOA mname rname') ) {
 	my $jan2038 = 0x80007B40;
-	$rr->serial(0x7F000000);
-	is( $rr->serial($jan2038), $jan2038, "rr->serial(UNIXTIME) will still work after 19 Jan 2038" );
+	is(	sprintf( '%x', $rr->serial($jan2038) ),
+		sprintf( '%x', $jan2038 ),
+		"rr->serial(UNIXTIME) will still work after 19 Jan 2038"
+		);
 }
 
 

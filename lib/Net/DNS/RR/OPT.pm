@@ -455,7 +455,6 @@ sub _decompose {
 
 
 package Net::DNS::RR::OPT::REPORT_CHANNEL;			# draft-ietf-dnsop-dns-error-reporting
-$Net::DNS::Parameters::ednsoptionbyval{65023} = 'REPORT-CHANNEL';	## experimental/private use
 
 sub _compose {
 	my ( undef, @argument ) = map { ref($_) ? %$_ : $_ } @_;

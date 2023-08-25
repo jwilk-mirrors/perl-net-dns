@@ -111,8 +111,11 @@ exception( 'deprecated make_query_packet()', $deprecated );
 noexception( 'no repeated deprecation warning', $deprecated );
 
 
-my $handle = \*DATA;			## exercise SpamAssassin's use of plain sockets
-ok( !$resolver->bgbusy($handle), 'bgbusy():	SpamAssassin workaround' );
+SKIP: {
+	skip( 'Unable to emulate SpamAssassin socket usage', 1 ) if $^O eq 'MSWin32';
+	my $handle = \*DATA;		## exercise SpamAssassin's use of plain sockets
+	ok( !$resolver->bgbusy($handle), 'bgbusy():	SpamAssassin workaround' );
+}
 
 exit;
 
