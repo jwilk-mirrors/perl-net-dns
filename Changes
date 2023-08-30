@@ -1,7 +1,7 @@
 $Id$                       -*-text-*-
 
 
-**** 1.40 [unreleased]
+**** 1.40 Aug 30, 2023
 
 	Add support for SVCB dohpath and ohttp parameters.
 	More robust test of bgbusy() SpamAssassin workaround.
