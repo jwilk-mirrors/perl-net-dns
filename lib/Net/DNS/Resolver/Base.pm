@@ -511,7 +511,7 @@ NAMESERVER: foreach my $ns (@ns) {
 			while ( my ($socket) = $select->can_read($timeout) ) {
 				my $peer = $self->{replyfrom} = $socket->peerhost;
 
-				my $buffer = _read_udp( $socket, $self->_packetsz );
+				my $buffer = _read_udp($socket);
 				$self->_diag( "reply from [$peer]", length($buffer), 'bytes' );
 
 				my $packet = Net::DNS::Packet->decode( \$buffer, $self->{debug} );
@@ -670,7 +670,7 @@ sub _bgread {
 	my $peer = $self->{replyfrom} = $handle->peerhost;
 
 	my $dgram  = $handle->socktype() == SOCK_DGRAM;
-	my $buffer = $dgram ? _read_udp( $handle, $self->_packetsz ) : _read_tcp($handle);
+	my $buffer = $dgram ? _read_udp($handle) : _read_tcp($handle);
 	$self->_diag( "reply from [$peer]", length($buffer), 'bytes' );
 
 	my $reply = Net::DNS::Packet->decode( \$buffer, $self->{debug} );
@@ -746,7 +746,7 @@ sub axfr_start {			## historical
 	my ( $self, @argument ) = @_;				# uncoverable pod
 	$self->_deprecate('prefer  $iterator = $self->axfr(...)');
 	my $iterator = $self->axfr(@argument);
-	( $self->{axfr_iter} ) = grep {defined} ( $iterator, sub {} );
+	( $self->{axfr_iter} ) = grep {defined} ( $iterator, sub { } );
 	return defined($iterator);
 }
 
@@ -838,12 +838,12 @@ sub _read_tcp {
 
 
 #
-# Usage:  $data = _read_udp($socket, $length);
+# Usage:  $data = _read_udp($socket);
 #
 sub _read_udp {
 	my $socket = shift;
 	my $buffer = '';
-	$socket->recv( $buffer, shift );
+	$socket->recv( $buffer, 9000 );	## payload limit for Ethernet "Jumbo" packet
 	return $buffer;
 }
 

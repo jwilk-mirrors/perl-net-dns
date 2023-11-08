@@ -255,7 +255,7 @@ sub _string {
 	s/\\,/\\044/g;						# disguise (RFC1035) escaped comma
 	die <<"QQ" if /\\092,|\\092\\092/;
 SVCB:	Please use standard RFC1035 escapes
-	draft-ietf-dnsop-svcb-https double-escape nonsense not implemented
+	RFC9460 double-escape nonsense not implemented
 QQ
 	return _presentation( map { Net::DNS::Text->new($_)->encode() } split /,/ );
 }
@@ -350,7 +350,7 @@ owner name of this record must be used as the effective TargetName.
     $string = $rr->port();	# \004\210
     $rr->key3($string);
 
-Constructor methods for mnemonic SvcParams defined in draft-ietf-dnsop-svcb-https.
+Constructor methods for mnemonic SvcParams prescribed by RFC9460.
 When invoked without arguments, the methods return the presentation format
 value for the underlying key.
 The behaviour with undefined arguments is not specified.
@@ -399,7 +399,7 @@ DEALINGS IN THE SOFTWARE.
 =head1 SEE ALSO
 
 L<perl> L<Net::DNS> L<Net::DNS::RR>
-draft-ietf-dnsop-svcb-https,
+L<RFC9460|https://tools.ietf.org/html/rfc9460>
 L<RFC1035|https://tools.ietf.org/html/rfc1035>
 
 L<Service Parameter Keys|https://www.iana.org/assignments/dns-svcb>

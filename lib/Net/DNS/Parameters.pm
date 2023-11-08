@@ -3,7 +3,7 @@ package Net::DNS::Parameters;
 ################################################
 ##
 ##	Domain Name System (DNS) Parameters
-##	(last updated 2023-04-28)
+##	(last updated 2023-11-02)
 ##
 ################################################
 
@@ -137,6 +137,7 @@ my @typebyname = (
 	AVC	   => 258,					#
 	DOA	   => 259,					# draft-durand-doa-over-dns
 	AMTRELAY   => 260,					# RFC8777
+	RESINFO	   => 261,					# draft-ietf-add-resolver-info-06
 	TA	   => 32768,					# http://cameo.library.cmu.edu/ http://www.watson.org/~weiler/INI1999-19.pdf
 	DLV	   => 32769,					# RFC8749 RFC4431
 	);
