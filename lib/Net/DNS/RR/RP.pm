@@ -20,10 +20,10 @@ use Net::DNS::Mailbox;
 
 
 sub _decode_rdata {			## decode rdata from wire-format octet string
-	my ( $self, $data, $offset ) = @_;
+	my ( $self, $data, $offset, @opaque ) = @_;
 
-	( $self->{mbox}, $offset ) = Net::DNS::Mailbox2535->decode( $data, $offset );
-	$self->{txtdname} = Net::DNS::DomainName2535->decode( $data, $offset );
+	( $self->{mbox}, $offset ) = Net::DNS::Mailbox2535->decode( $data, $offset, @opaque );
+	$self->{txtdname} = Net::DNS::DomainName2535->decode( $data, $offset, @opaque );
 	return;
 }
 

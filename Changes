@@ -4,7 +4,8 @@ $Id$                       -*-text-*-
 **** 1.41 [unreleased]
 
 	Accept inbound Ethernet "Jumbo" UDP packet.
-	Tolerate printer mDNS/SD response with compressed SRV RDATA.
+	Facilitate decoding of mDNS/SD packets with compressed RDATA.
+	Update Parameters.pm to resync with IANA registry.
 
 
 **** 1.40 Aug 30, 2023

@@ -20,10 +20,10 @@ use Net::DNS::Parameters qw(:type);
 
 
 sub _decode_rdata {			## decode rdata from wire-format octet string
-	my ( $self, $data, $offset ) = @_;
+	my ( $self, $data, $offset, @opaque ) = @_;
 
 	my $limit = $offset + $self->{rdlength};
-	( $self->{nxtdname}, $offset ) = Net::DNS::DomainName->decode( $data, $offset );
+	( $self->{nxtdname}, $offset ) = Net::DNS::DomainName->decode( $data, $offset, @opaque );
 	$self->{typebm} = substr $$data, $offset, $limit - $offset;
 	return;
 }

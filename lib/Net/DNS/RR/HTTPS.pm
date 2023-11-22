@@ -76,4 +76,6 @@ DEALINGS IN THE SOFTWARE.
 L<perl> L<Net::DNS> L<Net::DNS::RR>
 L<Net::DNS::RR::SVCB>
 
+L<RFC9460|https://tools.ietf.org/html/rfc9460>
+
 =cut

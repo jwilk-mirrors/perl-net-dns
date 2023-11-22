@@ -621,15 +621,16 @@ sub bgbusy {				## no critic		# overwrites user UDP handle
 	my ( $expire, $query, $read ) = @$appendix;
 	return if ref($read);
 
-	return time() <= $expire unless IO::Select->new($handle)->can_read(0);
+	return time() < $expire unless IO::Select->new($handle)->can_read(0);
 
 	return unless $query;					# SpamAssassin 3.4.1 workaround
-	return if $self->{igntc};
 	return unless $handle->socktype() == SOCK_DGRAM;
 
 	my $ans = $self->_bgread($handle);
+	$$appendix[0] = time();
 	$$appendix[2] = [$ans];
 	return unless $ans;
+	return if $self->{igntc};
 	return unless $ans->header->tc;
 
 	$self->_diag('packet truncated: retrying using TCP');
@@ -667,16 +668,15 @@ sub _bgread {
 		return;
 	}
 
-	my $peer = $self->{replyfrom} = $handle->peerhost;
-
 	my $dgram  = $handle->socktype() == SOCK_DGRAM;
 	my $buffer = $dgram ? _read_udp($handle) : _read_tcp($handle);
-	$self->_diag( "reply from [$peer]", length($buffer), 'bytes' );
+	$self->_diag( 'read', length($buffer), 'bytes' );
 
 	my $reply = Net::DNS::Packet->decode( \$buffer, $self->{debug} );
 	$self->errorstring($@);
+
 	return unless $self->_accept_reply( $reply, $query );
-	$reply->from($peer);
+	$reply->from( $handle->peerhost );
 
 	return $reply unless $self->{tsig_rr} && !$reply->verify($query);
 	$self->errorstring( $reply->verifyerr );
@@ -692,7 +692,7 @@ sub _accept_reply {
 	my $header = $reply->header;
 	return unless $header->qr;
 
-	return if $query && $header->id != $query->header->id;
+	return if $query && ( $header->id != $query->header->id );
 
 	return $self->errorstring( $header->rcode );		# historical quirk
 }
@@ -849,7 +849,7 @@ sub _read_udp {
 
 
 sub _create_tcp_socket {
-	my ( $self, $ip ) = @_;
+	my ( $self, $ip, @sockopt ) = @_;
 
 	my $socket;
 	my $sock_key = "TCP[$ip]";
@@ -867,6 +867,7 @@ sub _create_tcp_socket {
 		PeerPort  => $self->{port},
 		Proto	  => 'tcp',
 		Timeout	  => $self->{tcp_timeout},
+		@sockopt
 		)
 			if USE_SOCKET_IP;
 
@@ -878,6 +879,7 @@ sub _create_tcp_socket {
 			PeerPort  => $self->{port},
 			Proto	  => 'tcp',
 			Timeout	  => $self->{tcp_timeout},
+			@sockopt
 			)
 				unless $ip6_addr;
 	}
@@ -888,7 +890,7 @@ sub _create_tcp_socket {
 
 
 sub _create_udp_socket {
-	my ( $self, $ip ) = @_;
+	my ( $self, $ip, @sockopt ) = @_;
 
 	my $socket;
 	my $sock_key = "UDP[$ip]";
@@ -899,7 +901,8 @@ sub _create_udp_socket {
 		LocalAddr => $ip6_addr ? $self->{srcaddr6} : $self->{srcaddr4},
 		LocalPort => $self->{srcport},
 		Proto	  => 'udp',
-		Type	  => SOCK_DGRAM
+		Type	  => SOCK_DGRAM,
+		@sockopt
 		)
 			if USE_SOCKET_IP;
 
@@ -908,7 +911,8 @@ sub _create_udp_socket {
 			LocalAddr => $self->{srcaddr4},
 			LocalPort => $self->{srcport} || undef,
 			Proto	  => 'udp',
-			Type	  => SOCK_DGRAM
+			Type	  => SOCK_DGRAM,
+			@sockopt
 			)
 				unless $ip6_addr;
 	}

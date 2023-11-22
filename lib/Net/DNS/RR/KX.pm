@@ -19,10 +19,10 @@ use Net::DNS::DomainName;
 
 
 sub _decode_rdata {			## decode rdata from wire-format octet string
-	my ( $self, $data, $offset ) = @_;
+	my ( $self, $data, $offset, @opaque ) = @_;
 
 	$self->{preference} = unpack( "\@$offset n", $$data );
-	$self->{exchange}   = Net::DNS::DomainName2535->decode( $data, $offset + 2 );
+	$self->{exchange}   = Net::DNS::DomainName2535->decode( $data, $offset + 2, @opaque );
 	return;
 }
 

@@ -35,22 +35,19 @@ my %keybyname = (
 
 
 sub _decode_rdata {			## decode rdata from wire-format octet string
-	my ( $self, $data, $offset ) = @_;
+	my ( $self, $data, $offset, @opaque ) = @_;
 
-	my $rdata = substr $$data, $offset, $self->{rdlength};
-	$self->{SvcPriority} = unpack( 'n', $rdata );
-
-	my $index;
-	( $self->{TargetName}, $index ) = Net::DNS::DomainName->decode( \$rdata, 2 );
+	my $limit = $offset + $self->{rdlength};
+	$self->{SvcPriority} = unpack( "\@$offset n", $$data );
+	( $self->{TargetName}, $offset ) = Net::DNS::DomainName->decode( $data, $offset + 2, @opaque );
 
 	my $params = $self->{SvcParams} = [];
-	my $limit  = length($rdata) - 3;
-	while ( $index < $limit ) {
-		my ( $key, $size ) = unpack( "\@$index n2", $rdata );
-		push @$params, ( $key, substr $rdata, $index + 4, $size );
-		$index += ( $size + 4 );
+	while ( $offset < $limit ) {
+		my ( $key, $size ) = unpack( "\@$offset n2", $$data );
+		push @$params, ( $key, substr $$data, $offset + 4, $size );
+		$offset += ( $size + 4 );
 	}
-	die $self->type . ': corrupt RDATA' unless $index == length($rdata);
+	die $self->type . ': corrupt RDATA' unless $offset == $limit;
 	return;
 }
 
@@ -400,7 +397,6 @@ DEALINGS IN THE SOFTWARE.
 
 L<perl> L<Net::DNS> L<Net::DNS::RR>
 L<RFC9460|https://tools.ietf.org/html/rfc9460>
-L<RFC1035|https://tools.ietf.org/html/rfc1035>
 
 L<Service Parameter Keys|https://www.iana.org/assignments/dns-svcb>
 
