@@ -443,13 +443,13 @@ sub _send_tcp {
 		$self->errorstring($!);
 
 		my $buffer = _read_tcp($socket);
-		$self->{replyfrom} = $ip;
-		$self->_diag( 'reply from', "[$ip]", length($buffer), 'bytes' );
+		my $peer   = $self->{replyfrom} = $socket->peerhost;
+		$self->_diag( 'packet from', "[$peer]", length($buffer), 'octets' );
 
 		my $reply = Net::DNS::Packet->decode( \$buffer, $self->{debug} );
 		$self->errorstring($@);
 		next unless $self->_accept_reply( $reply, $query );
-		$reply->from($ip);
+		$reply->from($peer);
 
 		if ( $self->{tsig_rr} && !$reply->verify($query) ) {
 			$self->errorstring( $reply->verifyerr );
@@ -509,10 +509,10 @@ NAMESERVER: foreach my $ns (@ns) {
 
 			my $reply;
 			while ( my ($socket) = $select->can_read($timeout) ) {
-				my $peer = $self->{replyfrom} = $socket->peerhost;
-
 				my $buffer = _read_udp($socket);
-				$self->_diag( "reply from [$peer]", length($buffer), 'bytes' );
+
+				my $peer = $self->{replyfrom} = $socket->peerhost;
+				$self->_diag( "packet from [$peer]", length($buffer), 'octets' );
 
 				my $packet = Net::DNS::Packet->decode( \$buffer, $self->{debug} );
 				$self->errorstring($@);
@@ -662,21 +662,19 @@ sub _bgread {
 	my ( $expire, $query, $read ) = @$appendix;
 	return shift(@$read) if ref($read);
 
-	my $select = IO::Select->new($handle);
-	unless ( $select->can_read(0) ) {
-		$self->errorstring('timed out');
-		return;
-	}
+	return unless IO::Select->new($handle)->can_read(0);
 
 	my $dgram  = $handle->socktype() == SOCK_DGRAM;
 	my $buffer = $dgram ? _read_udp($handle) : _read_tcp($handle);
-	$self->_diag( 'read', length($buffer), 'bytes' );
+
+	my $peer = $self->{replyfrom} = $handle->peerhost;
+	$self->_diag( "packet from [$peer]", length($buffer), 'octets' );
 
 	my $reply = Net::DNS::Packet->decode( \$buffer, $self->{debug} );
 	$self->errorstring($@);
 
 	return unless $self->_accept_reply( $reply, $query );
-	$reply->from( $handle->peerhost );
+	$reply->from($peer);
 
 	return $reply unless $self->{tsig_rr} && !$reply->verify($query);
 	$self->errorstring( $reply->verifyerr );

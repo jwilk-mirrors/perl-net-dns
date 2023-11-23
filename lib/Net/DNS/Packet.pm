@@ -398,9 +398,10 @@ sub string {
 
 	my $header = $self->header;
 	my $opcode = $header->opcode;
+	my $packet = $header->qr ? 'Response' : 'Query';
 	my $server = $self->{replyfrom};
 	my $length = $self->{replysize};
-	my $origin = $server ? ";; Response received from $server ($length octets)\n" : "";
+	my $origin = $server ? ";; $packet received from [$server] $length octets\n" : "";
 	my @record = ( "$origin;; HEADER SECTION", $header->string );
 
 	if ( $opcode eq 'DSO' ) {
