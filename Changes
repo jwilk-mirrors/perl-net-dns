@@ -7,6 +7,9 @@ $Id$                       -*-text-*-
 	Facilitate decoding of mDNS/SD packets with compressed RDATA.
 	Update Parameters.pm to resync with IANA registry.
 
+Fix rt.cpan.org #150550
+	Error trying to use Socket macro SO_REUSEPORT in Windows
+
 
 **** 1.40 Aug 30, 2023
 
