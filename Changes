@@ -1,7 +1,7 @@
 $Id$                       -*-text-*-
 
 
-**** 1.42 [unreleased]
+**** 1.42 Dec 24, 2023
 
 Fix rt.cpan.org #150695
 	Hang in Net::DNS::Nameserver on Windows
