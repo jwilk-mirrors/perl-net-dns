@@ -27,7 +27,7 @@ sub toggle {
 }
 
 
-my $newid = Net::DNS::Packet->new()->header->id(0);
+my $newid = Net::DNS::Packet->new()->header->id(undef);
 ok( $newid, 'expected non-zero packet ID' );
 
 toggle( $header, 'opcode', qw(QUERY UPDATE DSO) );

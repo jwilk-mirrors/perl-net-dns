@@ -1,6 +1,12 @@
 $Id$                       -*-text-*-
 
 
+**** 1.42 [unreleased]
+
+Fix rt.cpan.org #150695
+	Hang in Net::DNS::Nameserver on Windows
+
+
 **** 1.41 Nov 28, 2023
 
 	Accept inbound Ethernet "Jumbo" UDP packet.
@@ -16,7 +22,7 @@ Fix rt.cpan.org #150550
 	Add support for SVCB dohpath and ohttp parameters.
 	More robust test of bgbusy() SpamAssassin workaround.
 
-Fix rt.cpan.org #149456 
+Fix rt.cpan.org #149456
 	t/05-SOA.t test fails in 2038
 
 Fix rt.cpan.org #149280
