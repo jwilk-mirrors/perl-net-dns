@@ -16,18 +16,14 @@ Net::DNS::Nameserver - DNS server class
 
     my $nameserver = Net::DNS::Nameserver->new(
 	LocalAddr	=> ['::1', '127.0.0.1'],
-	LocalPort	=> 15353,
-	ZoneFile	=> 'filename'
+	ZoneFile	=> "filename"
 	);
 
     my $nameserver = Net::DNS::Nameserver->new(
 	LocalAddr	=> '10.1.2.3',
-	LocalPort	=> 15353,
+	LocalPort	=> 5353,
 	ReplyHandler	=> \&reply_handler
     );
-
-    $nameserver->start_server($timeout);
-    $nameserver->stop_server;
 
 
 =head1 DESCRIPTION
@@ -53,11 +49,10 @@ use IO::Socket::IP 0.38;
 use IO::Socket;
 use Socket;
 
-use constant POSIX => defined eval 'use POSIX ":sys_wait_h"; 1';	## no critic
-use constant MSWin => scalar eval { $^O =~ /MSWin/i };
+use constant USE_POSIX => defined eval 'use POSIX ":sys_wait_h"; 1';	## no critic
 
 use constant DEFAULT_ADDR => qw(::1 127.0.0.1);
-use constant DEFAULT_PORT => 15353;
+use constant DEFAULT_PORT => 5353;
 
 use constant PACKETSZ => 512;
 
@@ -66,10 +61,10 @@ use constant SOCKOPT => eval {
 	push @sockopt, eval '[SOL_SOCKET, SO_REUSEADDR]';	## no critic
 	push @sockopt, eval '[SOL_SOCKET, SO_REUSEPORT]';	## no critic
 
-	my $filter = sub {					# check that options safe to use
+	my $pretest = sub {					# check that options safe to use
 		return eval { IO::Socket::IP->new( Proto => "udp", Sockopts => [shift], Type => SOCK_DGRAM ) }
 	};
-	return grep { &$filter($_) } @sockopt;			# without any guarantee that they work!
+	return grep { &$pretest($_) } @sockopt;			# without any guarantee that they work!
 };
 
 
@@ -93,8 +88,8 @@ sub new {
 	$self{LocalAddr} = [$resolver->nameservers];
 	$self{LocalPort} ||= DEFAULT_PORT;
 
-	$self{Truncate}	   = 1 unless defined( $self{Truncate} );
-	$self{IdleTimeout} = 5 unless defined( $self{IdleTimeout} );
+	$self{Truncate}	   = 1	 unless defined( $self{Truncate} );
+	$self{IdleTimeout} = 120 unless defined( $self{IdleTimeout} );
 
 	return $self;
 }
@@ -314,15 +309,33 @@ sub TCP_connection {
 	my $timeout = $self->{IdleTimeout};
 	my $verbose = $self->{Verbose};
 
-	my $expired;
-	local $SIG{ALRM} = sub { $expired++ };
-	until ($expired) {
-		my $buffer = read_tcp( $socket, $verbose ) or do {
-			sleep 1;
-			next;
-		};
-
+	while (1) {
 		alarm $timeout;
+		my $l = '';
+		my $n = sysread( $socket, $l, 2 );
+		unless ( defined $n ) {
+			redo if $!{EINTR};	## retry if aborted by signal
+			die "sysread: $!";
+		}
+		last if $n == 0;
+		my $msglen = unpack 'n', $l;
+
+		my $buffer = '';
+		while ( $msglen > ( my $l = length $buffer ) ) {
+			my $n = sysread( $socket, $buffer, ( $msglen - $l ), $l );
+			unless ( defined $n ) {
+				redo if $!{EINTR};	## retry if aborted by signal
+				die "sysread: $!";
+			}
+		}
+
+		if ($verbose) {
+			my $peer = $socket->peerhost;
+			my $port = $socket->peerport;
+			my $size = length $buffer;
+			print "Received $size octets from [$peer] port $port\n";
+		}
+
 		my $query = Net::DNS::Packet->new( \$buffer );
 		if ($@) {
 			print "Error decoding query packet: $@\n" if $verbose;
@@ -342,39 +355,9 @@ sub TCP_connection {
 			$socket->send( pack 'na*', $length, $segment );
 		}
 	}
+	alarm 0;
+	close $socket;
 	return;
-}
-
-sub read_tcp {
-	my ( $socket, $verbose ) = @_;
-
-	my $l = '';
-	local $! = 0;
-	my $n = sysread( $socket, $l, 2 );
-	unless ( defined $n ) {
-		redo if $!{EINTR};	## retry if aborted by signal
-		die "sysread: $!";
-	}
-	return if $n == 0;
-	my $msglen = unpack 'n', $l;
-
-	my $buffer = '';
-	while ( $msglen > ( my $l = length $buffer ) ) {
-		local $! = 0;
-		my $n = sysread( $socket, $buffer, ( $msglen - $l ), $l );
-		unless ( defined $n ) {
-			redo if $!{EINTR};	## retry if aborted by signal
-			die "sysread: $!";
-		}
-	}
-
-	if ($verbose) {
-		my $peer = $socket->peerhost;
-		my $port = $socket->peerport;
-		my $size = length $buffer;
-		print "Received $size octets from [$peer] port $port\n";
-	}
-	return $buffer;
 }
 
 
@@ -383,8 +366,19 @@ sub read_tcp {
 #------------------------------------------------------------------------------
 
 sub UDP_connection {
-	my ( $self, $socket, $buffer ) = @_;
+	my ( $self, $socket ) = @_;
 	my $verbose = $self->{Verbose};
+	alarm 3;
+
+	my $buffer = "";
+	return unless defined $socket->recv( $buffer, PACKETSZ );
+
+	if ($verbose) {
+		my $peer = $socket->peerhost;
+		my $port = $socket->peerport;
+		my $size = length $buffer;
+		print "Received $size octets from [$peer] port $port\n";
+	}
 
 	my $query = Net::DNS::Packet->new( \$buffer );
 	if ($@) {
@@ -403,20 +397,9 @@ sub UDP_connection {
 	} else {
 		$socket->send( $reply->data(@UDPsize) );
 	}
+	alarm 0;
+	close $socket;
 	return;
-}
-
-sub read_udp {
-	my ( $socket, $verbose ) = @_;
-	my $buffer = '';
-	$socket->recv( $buffer, 9000 );	## payload limit for Ethernet "Jumbo" packet
-	if ($verbose) {
-		my $peer = $socket->peerhost;
-		my $port = $socket->peerport;
-		my $size = length $buffer;
-		print "Received $size octets from [$peer] port $port\n";
-	}
-	return $buffer;
 }
 
 
@@ -426,149 +409,12 @@ sub read_udp {
 
 use constant DEBUG => 0;
 
-sub logmsg { return warn join '', "$0 $$: @_ at ", scalar localtime(), "\n" }
-
-sub TCP_socket {
-	my ( $ip, $port ) = @_;
-	my $socket = IO::Socket::IP->new(
-		LocalAddr => $ip,
-		LocalPort => $port,
-		Sockopt	  => [SOCKOPT],
-		Proto	  => "tcp",
-		Listen	  => SOMAXCONN,
-		Type	  => SOCK_STREAM
-		)
-			or die "can't setup TCP socket: $!";
-
-	logmsg "TCP server [$ip] port $port" if DEBUG;
-	return $socket;
-}
-
-sub TCP_noloop {
-	my ( $self, $ip, $port, $timeout ) = @_;
-	my $socket = TCP_socket( $ip, $port );
-	my $select = IO::Select->new($socket);
-
-	my $expired;
-	local $SIG{ALRM} = sub { $expired++ };
-	local $SIG{TERM} = sub { $expired++ };
-	alarm $timeout;
-	until ($expired) {
-		local $! = 0;
-		scalar( $select->can_read(1) ) or do {
-			redo	 if $!{EINTR};	## retry if aborted by signal
-			last	 if $!;
-			sleep(0) if MSWin;
-			next;
-		};
-
-		if ( my $client = $socket->accept() ) {
-			spawn( sub { $self->TCP_connection($client) } );
-			last;
-		}
-	}
-	return;
-}
-
-sub TCP_server {
-	my ( $self, $ip, $port, $timeout ) = @_;
-	my $socket = TCP_socket( $ip, $port );
-	my $select = IO::Select->new($socket);
-
-	my $expired;
-	local $SIG{ALRM} = sub { $expired++ };
-	local $SIG{TERM} = sub { $expired++ };
-	alarm $timeout;
-	until ($expired) {
-		local $! = 0;
-		scalar( $select->can_read(1) ) or do {
-			redo	 if $!{EINTR};	## retry if aborted by signal
-			last	 if $!;
-			sleep(0) if MSWin;
-			next;
-		};
-
-		if ( my $client = $socket->accept() ) {
-			spawn( sub { $self->TCP_connection($client) } );
-		}
-	}
-	return;
-}
-
-
-sub UDP_socket {
-	my ( $ip, $port ) = @_;
-	my $socket = IO::Socket::IP->new(
-		LocalAddr => $ip,
-		LocalPort => $port,
-		Sockopt	  => [SOCKOPT],
-		Proto	  => "udp",
-		Type	  => SOCK_DGRAM
-		)
-			or die "can't setup UDP socket: $!";
-
-	logmsg "UDP server [$ip] port $port" if DEBUG;
-	return $socket;
-}
-
-sub UDP_noloop {
-	my ( $self, $ip, $port, $timeout ) = @_;
-	my $socket = UDP_socket( $ip, $port );
-	my $select = IO::Select->new($socket);
-
-	my $expired;
-	local $SIG{ALRM} = sub { $expired++ };
-	local $SIG{TERM} = sub { $expired++ };
-	alarm $timeout;
-	until ($expired) {
-		local $! = 0;
-		my ($client) = $select->can_read(1) or do {
-			redo	 if $!{EINTR};	## retry if aborted by signal
-			last	 if $!;
-			sleep(0) if MSWin;
-		};
-
-		if ($client) {
-			my $buffer = read_udp( $client, $self->{Verbose} );
-			spawn( sub { $self->UDP_connection( $client, $buffer ) } );
-			last;
-		}
-	}
-	return;
-}
-
-sub UDP_server {
-	my ( $self, $ip, $port, $timeout ) = @_;
-	my $socket = UDP_socket( $ip, $port );
-	my $select = IO::Select->new($socket);
-
-	my $expired;
-	local $SIG{ALRM} = sub { $expired++ };
-	local $SIG{TERM} = sub { $expired++ };
-	alarm $timeout;
-	until ($expired) {
-		local $! = 0;
-		my ($client) = $select->can_read(1) or do {
-			redo	 if $!{EINTR};	## retry if aborted by signal
-			last	 if $!;
-			sleep(0) if MSWin;
-		};
-
-		if ($client) {
-			my $buffer = read_udp( $client, $self->{Verbose} );
-			spawn( sub { $self->UDP_connection( $client, $buffer ) } );
-		}
-	}
-	return;
-}
-
-
-#------------------------------------------------------------------------------
-# Process mechanics.
-#------------------------------------------------------------------------------
+sub logmsg { return print "$0 $$: @_ at ", scalar localtime(), "\n" }
 
 sub spawn {
 	my $coderef = shift;
+	confess "usage: spawn CODEREF" unless ref($coderef) eq 'CODE';
+
 	unless ( defined( my $pid = fork() ) ) {
 		die "cannot fork: $!";
 	} elsif ($pid) {
@@ -577,62 +423,134 @@ sub spawn {
 	}
 
 	# else ...
-	local $SIG{TERM} = sub { };
-	local $SIG{CHLD} = \&reaper;
 	$coderef->();			## child
 	exit;
 }
 
 sub reaper {
-	local ( $!, $? );		## protect error and exit status
+	local $!;			## protect current error
 	$SIG{CHLD} = \&reaper;		## no critic	sysV semantics
-	while ( abs( my $pid = waitpid( -1, POSIX ? WNOHANG : 0 ) ) > 1 ) {
+	while ( ( my $pid = waitpid( -1, USE_POSIX ? WNOHANG : 0 ) ) > 0 ) {
 		logmsg "reaped $pid" if DEBUG;
 	}
 	return;
 }
 
-
-our @pid;
 
 sub start_server {
-	my ( $self, $timeout ) = @_;
-	$timeout ||= 600;
-	my $addr = $self->{LocalAddr};
+	my $self = shift;
+	my $list = $self->{LocalAddr};
 	my $port = $self->{LocalPort};
-
-	foreach my $ip (@$addr) {
-		push @pid, spawn sub { $self->TCP_server( $ip, $port, $timeout ) };
-		push @pid, spawn sub { $self->UDP_server( $ip, $port, $timeout ) };
+	my @pid;
+	foreach my $ip (@$list) {
+		push @pid, spawn( sub { $self->TCP_server( $ip, $port ) } );
+		push @pid, spawn( sub { $self->UDP_server( $ip, $port ) } );
 	}
-	return;
+	return @pid;
 }
 
-sub single_shot {
-	my ( $self, $timeout ) = @_;
-	$timeout ||= 600;
-	my $addr = $self->{LocalAddr};
+sub start_noloop {
+	my ( $self, $timeout ) = ( @_, 600 );
+	my $list = $self->{LocalAddr};
 	my $port = $self->{LocalPort};
-
-	foreach my $ip (@$addr) {
-		push @pid, spawn sub { $self->TCP_noloop( $ip, $port, $timeout ) };
-		push @pid, spawn sub { $self->UDP_noloop( $ip, $port, $timeout ) };
+	foreach my $ip (@$list) {
+		spawn(	sub {
+				alarm $timeout;
+				$self->TCP_initialise( $ip, $port );
+			} );
+		spawn(	sub {
+				alarm $timeout;
+				$self->UDP_initialise( $ip, $port );
+			} );
 	}
 	return;
 }
 
-sub stop_server {
-	logmsg "killing @pid" if DEBUG;
-	kill( 'TERM', $_ ) foreach @pid;
-	return;
+
+sub TCP_initialise {
+	my ( $self, $ip, $port ) = @_;
+	my $socket = IO::Socket::IP->new(
+		LocalAddr => $ip,
+		LocalPort => $port,
+		Sockopt	  => [SOCKOPT],
+		Proto	  => "tcp",
+		Listen	  => SOMAXCONN,
+		Type	  => SOCK_STREAM
+		)
+			|| die "can't setup TCP socket";
+
+	logmsg "TCP server [$ip] port $port started";
+
+	{
+		my $client = $socket->accept() || do {
+			redo if $!{EINTR};	## retry if aborted by signal
+			die "accept: $!";
+		};
+
+		spawn( sub { $self->TCP_connection($client) } );
+	}
+	return $socket;
 }
 
-END {
-	local ( $!, $? );		## protect error and exit status
-	while ( abs( my $pid = waitpid( -1, 0 ) ) > 1 ) {
-		logmsg "reaped $pid" if DEBUG;
+sub TCP_server {
+	my ( $self, $ip, $port ) = @_;
+	my $socket = $self->TCP_initialise( $ip, $port );
+	while (1) {
+		my $client = $socket->accept() || do {
+			redo if $!{EINTR};	## retry if aborted by signal
+			die "accept: $!";
+		};
+
+		spawn( sub { $self->TCP_connection($client) } );
 	}
-	logmsg "terminated" if DEBUG;
+	exit;
+}
+
+
+sub UDP_initialise {
+	my ( $self, $ip, $port ) = @_;
+	my $socket = IO::Socket::IP->new(
+		LocalAddr => $ip,
+		LocalPort => $port,
+		Sockopt	  => [SOCKOPT],
+		Proto	  => "udp",
+		Type	  => SOCK_DGRAM
+		)
+			|| die "can't setup UDP socket";
+
+	logmsg "UDP server [$ip] port $port started";
+
+	my $select = IO::Select->new($socket);
+	{
+		local $! = 0;
+		scalar( my @ready = $select->can_read() ) || do {
+			redo if $!{EINTR};	## retry if aborted by signal
+			die "select->can_read(): $!";
+		};
+
+		foreach my $client (@ready) {
+			spawn( sub { $self->UDP_connection($client) } );
+		}
+	}
+	return $socket;
+}
+
+sub UDP_server {
+	my ( $self, $ip, $port ) = @_;
+	my $socket = $self->UDP_initialise( $ip, $port );
+	my $select = IO::Select->new($socket);
+	while (1) {
+		local $! = 0;
+		scalar( my @ready = $select->can_read() ) || do {
+			redo if $!{EINTR};	## retry if aborted by signal
+			die "select->can_read(): $!";
+		};
+
+		foreach my $client (@ready) {
+			spawn( sub { $self->UDP_connection($client) } );
+		}
+	}
+	exit;
 }
 
 
@@ -640,14 +558,27 @@ END {
 # main_loop - Start nameserver loop.
 #------------------------------------------------------------------------------
 
-sub main_loop { return &start_server }	## historical
+sub main_loop {
+	local $SIG{CHLD} = \&reaper;
+	my @pid = shift->start_server;
+	local $SIG{TERM} = sub { kill( 'TERM', @pid ) };
+	1 while waitpid( -1, 0 ) > 0;
+	logmsg "@pid terminated";
+	return;
+}
 
 
 #------------------------------------------------------------------------------
 # loop_once - Start single-transaction nameserver
 #------------------------------------------------------------------------------
 
-sub loop_once { return &single_shot }	## historical
+sub loop_once {
+	my ( $self, @timeout ) = @_;
+	local $SIG{CHLD} = \&reaper;
+	$self->start_noloop(@timeout);
+	1 while waitpid( -1, 0 ) > 0;	## park main process until timeout or
+	return;				## user CTRL_C kills remaining children
+}
 
 
 1;
@@ -660,13 +591,12 @@ __END__
 
     $nameserver = Net::DNS::Nameserver->new(
 	LocalAddr	=> ['::1', '127.0.0.1'],
-	LocalPort	=> 15353,
 	ZoneFile	=> "filename"
 	);
 
     $nameserver = Net::DNS::Nameserver->new(
 	LocalAddr	=> '10.1.2.3',
-	LocalPort	=> 15353,
+	LocalPort	=> 5353,
 	ReplyHandler	=> \&reply_handler,
 	Verbose		=> 1,
 	Truncate	=> 0
@@ -678,7 +608,7 @@ An exception is raised if the object could not be created.
 Each instance is configured using the following optional arguments:
 
     LocalAddr		IP address on which to listen	Defaults to loopback address
-    LocalPort		Port on which to listen
+    LocalPort		Port on which to listen		Defaults to 5353
     ZoneFile		Name of file containing RRs
 			accessed using the internal
 			reply-handling subroutine
@@ -736,38 +666,28 @@ to 0 and truncate the reply packet in the code of the ReplyHandler.
 See L</EXAMPLE> for an example.
 
 
-=head2 start_server
+=head2 main_loop
 
-    $ns->start_server( <TIMEOUT_IN_SECONDS> );
+    $ns->main_loop;
 
-Initialises the specified UDP and TCP sockets and starts the server
-which will continuously accept connections on each socket.
-
-The timeout parameter specifies the time the server is to remain active.
-If called with no parameter a default timeout of 10 minutes is applied.
+Start accepting queries. Calling main_loop never returns.
 
 
-=head2 stop_server
+=head2 loop_once
 
-    $ns->stop_server();
-
-Terminates all server processes in an orderly fashion.
-
-
-=head2 single_shot
-
-    $ns->single_shot( <TIMEOUT_IN_SECONDS> );
+    $ns->loop_once( [TIMEOUT_IN_SECONDS] );
 
 Initialises the specified UDP and TCP sockets and starts the server
 which will respond to a single connection on each socket.
 
-The timeout serves to terminate server processes which receive no test
-traffic or are otherwise abandoned.
+The timeout parameter specifies the maximum time to wait for a request.
+If called without parameters a default timeout of 10 minutes is applied.
+If called with a zero parameter, the timeout function is disabled.
 
 
 =head1 EXAMPLE
 
-The following example will listen on port 15353 and respond to all queries
+The following example will listen on port 5353 and respond to all queries
 for A records with the IP address 10.1.2.3.  All other queries will be
 answered with NXDOMAIN.	 Authority and additional sections are left empty.
 The $peerhost variable catches the IP address of the peer host, so that
@@ -807,13 +727,15 @@ additional filtering on a per-host basis may be applied.
 	return ( $rcode, \@ans, \@auth, \@add, $headermask, $optionmask );
     }
 
+
     my $ns = Net::DNS::Nameserver->new(
-	LocalPort    => 15353,
+	LocalPort    => 5353,
 	ReplyHandler => \&reply_handler,
 	Verbose	     => 1
-	) or die "couldn't create nameserver object";
+	) || die "couldn't create nameserver object\n";
 
-    $ns->start_server(20);
+
+    $ns->main_loop;
 
     exit;
 
