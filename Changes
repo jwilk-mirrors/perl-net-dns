@@ -1,6 +1,11 @@
 $Id$                       -*-text-*-
 
 
+**** 1.42_02 Jan 8, 2024
+
+	Redo rt.cpan.org #150695 fix
+
+
 **** 1.42_01 Jan 4, 2024
 
 	Revert rt.cpan.org #150695 fix
