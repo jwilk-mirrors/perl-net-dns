@@ -1,6 +1,15 @@
 $Id$                       -*-text-*-
 
 
+**** 1.43 [unreleased]
+
+	Update b.root-servers.net addresses in resolver hints.
+	Improve accuracy and completeness of dependency metadata.
+	Nameserver: hangs on persistent TCP connection (Windows).
+	IPSECKEY: leave gateway undefined for gatetype 0.
+	Remove remaining support for GOST.
+
+
 **** 1.42 Dec 24, 2023
 
 Fix rt.cpan.org #150695

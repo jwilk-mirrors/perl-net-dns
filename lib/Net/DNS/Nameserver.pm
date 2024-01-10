@@ -39,7 +39,7 @@ queries emanating from a client resolver.
 It is not, nor will it ever be, a general-purpose DNS nameserver
 implementation.
 
-See L</EXAMPLE> for an example.
+See L</EXAMPLES> below for further details.
 
 =cut
 
@@ -53,14 +53,6 @@ use IO::Socket::IP 0.38;
 use IO::Socket;
 use Socket;
 
-use constant POSIX => defined eval 'use POSIX ":sys_wait_h"; 1';	## no critic
-use constant MSWin => scalar eval { $^O =~ /MSWin/i };
-
-use constant DEFAULT_ADDR => qw(::1 127.0.0.1);
-use constant DEFAULT_PORT => 15353;
-
-use constant PACKETSZ => 512;
-
 use constant SOCKOPT => eval {
 	my @sockopt;
 	push @sockopt, eval '[SOL_SOCKET, SO_REUSEADDR]';	## no critic
@@ -71,6 +63,12 @@ use constant SOCKOPT => eval {
 	};
 	return grep { &$filter($_) } @sockopt;			# without any guarantee that they work!
 };
+
+use constant DEFAULT_ADDR => qw(::1 127.0.0.1);
+use constant DEFAULT_PORT => 15353;
+
+use constant POSIX => defined eval 'use POSIX ":sys_wait_h"; 1';	## no critic
+use constant MSWin => scalar( $^O =~ /MSWin/i );
 
 
 #------------------------------------------------------------------------------
@@ -92,10 +90,7 @@ sub new {
 	$resolver->force_v6(1) if $self{Force_IPv6};
 	$self{LocalAddr} = [$resolver->nameservers];
 	$self{LocalPort} ||= DEFAULT_PORT;
-
-	$self{Truncate}	   = 1 unless defined( $self{Truncate} );
-	$self{IdleTimeout} = 5 unless defined( $self{IdleTimeout} );
-
+	$self{Truncate} = 1 unless defined( $self{Truncate} );
 	return $self;
 }
 
@@ -310,37 +305,25 @@ sub make_reply {
 #------------------------------------------------------------------------------
 
 sub TCP_connection {
-	my ( $self, $socket ) = @_;
-	my $timeout = $self->{IdleTimeout};
+	my ( $self, $socket, $buffer ) = @_;
 	my $verbose = $self->{Verbose};
 
-	my $expired;
-	local $SIG{ALRM} = sub { $expired++ };
-	until ($expired) {
-		my $buffer = read_tcp( $socket, $verbose ) or do {
-			sleep 1;
-			next;
-		};
+	my $query = Net::DNS::Packet->new( \$buffer );
+	if ($@) {
+		print "Error decoding query packet: $@\n" if $verbose;
+		undef $query;		## force FORMERR reply
+	}
 
-		alarm $timeout;
-		my $query = Net::DNS::Packet->new( \$buffer );
-		if ($@) {
-			print "Error decoding query packet: $@\n" if $verbose;
-			undef $query;	## force FORMERR reply
-		}
+	my $reply = $self->make_reply( $query, $socket );
+	die 'Failed to create reply' unless defined $reply;
 
-		my $reply = $self->make_reply( $query, $socket );
-		die 'Failed to create reply' unless defined $reply;
-
-		my $segment = $reply->data(65500);		# limit to one TCP envelope
-		my $length  = length $segment;
-		warn "Multi-packet TCP response not implemented" if $reply->header->tc;
-		if ($verbose) {
-			print "TCP response (2 + $length octets) - ";
-			print $socket->send( pack 'na*', $length, $segment ) ? "sent" : "failed: $!", "\n";
-		} else {
-			$socket->send( pack 'na*', $length, $segment );
-		}
+	my $segment = $reply->data;
+	my $length  = length $segment;
+	if ($verbose) {
+		print "TCP response (2 + $length octets) - ";
+		print $socket->send( pack 'na*', $length, $segment ) ? "sent" : "failed: $!", "\n";
+	} else {
+		$socket->send( pack 'na*', $length, $segment );
 	}
 	return;
 }
@@ -395,7 +378,7 @@ sub UDP_connection {
 	my $reply = $self->make_reply( $query, $socket );
 	die 'Failed to create reply' unless defined $reply;
 
-	my @UDPsize = ( $query && $self->{Truncate} ) ? $query->edns->UDPsize : ();
+	my @UDPsize = ( $query && $self->{Truncate} ) ? $query->edns->UDPsize || 512 : ();
 	if ($verbose) {
 		my $response = $reply->data(@UDPsize);
 		print 'UDP response (', length($response), ' octets) - ';
@@ -444,36 +427,10 @@ sub TCP_socket {
 	return $socket;
 }
 
-sub TCP_noloop {
-	my ( $self, $ip, $port, $timeout ) = @_;
-	my $socket = TCP_socket( $ip, $port );
-	my $select = IO::Select->new($socket);
-
-	my $expired;
-	local $SIG{ALRM} = sub { $expired++ };
-	local $SIG{TERM} = sub { $expired++ };
-	alarm $timeout;
-	until ($expired) {
-		local $! = 0;
-		scalar( $select->can_read(1) ) or do {
-			redo	 if $!{EINTR};	## retry if aborted by signal
-			last	 if $!;
-			sleep(0) if MSWin;
-			next;
-		};
-
-		if ( my $client = $socket->accept() ) {
-			spawn( sub { $self->TCP_connection($client) } );
-			last;
-		}
-	}
-	return;
-}
-
 sub TCP_server {
 	my ( $self, $ip, $port, $timeout ) = @_;
-	my $socket = TCP_socket( $ip, $port );
-	my $select = IO::Select->new($socket);
+	my $listen = TCP_socket( $ip, $port );
+	my $select = IO::Select->new($listen);
 
 	my $expired;
 	local $SIG{ALRM} = sub { $expired++ };
@@ -481,16 +438,24 @@ sub TCP_server {
 	alarm $timeout;
 	until ($expired) {
 		local $! = 0;
-		scalar( $select->can_read(1) ) or do {
-			redo	 if $!{EINTR};	## retry if aborted by signal
-			last	 if $!;
-			sleep(0) if MSWin;
-			next;
+		scalar( my @ready = $select->can_read(2) ) or do {
+			redo if $!{EINTR};	## retry if aborted by signal
+			last if $!;
 		};
 
-		if ( my $client = $socket->accept() ) {
-			spawn( sub { $self->TCP_connection($client) } );
+		foreach my $socket (@ready) {
+			if ( $socket == $listen ) {
+				$select->add( $listen->accept );
+				next;
+			}
+			if ( my $buffer = read_tcp( $socket, $self->{Verbose} ) ) {
+				spawn( sub { $self->TCP_connection( $socket, $buffer ) } );
+			} else {
+				close($socket);
+				$select->remove($socket);
+			}
 		}
+		sleep(0) if MSWin;
 	}
 	return;
 }
@@ -511,32 +476,6 @@ sub UDP_socket {
 	return $socket;
 }
 
-sub UDP_noloop {
-	my ( $self, $ip, $port, $timeout ) = @_;
-	my $socket = UDP_socket( $ip, $port );
-	my $select = IO::Select->new($socket);
-
-	my $expired;
-	local $SIG{ALRM} = sub { $expired++ };
-	local $SIG{TERM} = sub { $expired++ };
-	alarm $timeout;
-	until ($expired) {
-		local $! = 0;
-		my ($client) = $select->can_read(1) or do {
-			redo	 if $!{EINTR};	## retry if aborted by signal
-			last	 if $!;
-			sleep(0) if MSWin;
-		};
-
-		if ($client) {
-			my $buffer = read_udp( $client, $self->{Verbose} );
-			spawn( sub { $self->UDP_connection( $client, $buffer ) } );
-			last;
-		}
-	}
-	return;
-}
-
 sub UDP_server {
 	my ( $self, $ip, $port, $timeout ) = @_;
 	my $socket = UDP_socket( $ip, $port );
@@ -548,16 +487,16 @@ sub UDP_server {
 	alarm $timeout;
 	until ($expired) {
 		local $! = 0;
-		my ($client) = $select->can_read(1) or do {
-			redo	 if $!{EINTR};	## retry if aborted by signal
-			last	 if $!;
-			sleep(0) if MSWin;
+		scalar( my @ready = $select->can_read(2) ) or do {
+			redo if $!{EINTR};	## retry if aborted by signal
+			last if $!;
 		};
 
-		if ($client) {
+		foreach my $client (@ready) {
 			my $buffer = read_udp( $client, $self->{Verbose} );
 			spawn( sub { $self->UDP_connection( $client, $buffer ) } );
 		}
+		sleep(0) if MSWin;
 	}
 	return;
 }
@@ -594,36 +533,24 @@ sub reaper {
 
 
 our @pid;
+my $pid = $$;
 
 sub start_server {
 	my ( $self, $timeout ) = @_;
 	$timeout ||= 600;
-	my $addr = $self->{LocalAddr};
-	my $port = $self->{LocalPort};
+	croak 'Attempt to start ', ref($self), ' in a subprocess' unless $$ == $pid;
 
-	foreach my $ip (@$addr) {
+	foreach my $ip ( @{$self->{LocalAddr}} ) {
+		my $port = $self->{LocalPort};
 		push @pid, spawn sub { $self->TCP_server( $ip, $port, $timeout ) };
 		push @pid, spawn sub { $self->UDP_server( $ip, $port, $timeout ) };
 	}
 	return;
 }
 
-sub single_shot {
-	my ( $self, $timeout ) = @_;
-	$timeout ||= 600;
-	my $addr = $self->{LocalAddr};
-	my $port = $self->{LocalPort};
-
-	foreach my $ip (@$addr) {
-		push @pid, spawn sub { $self->TCP_noloop( $ip, $port, $timeout ) };
-		push @pid, spawn sub { $self->UDP_noloop( $ip, $port, $timeout ) };
-	}
-	return;
-}
-
 sub stop_server {
 	logmsg "killing @pid" if DEBUG;
-	kill( 'TERM', $_ ) foreach @pid;
+	kill 'TERM', @pid;
 	return;
 }
 
@@ -640,14 +567,47 @@ END {
 # main_loop - Start nameserver loop.
 #------------------------------------------------------------------------------
 
-sub main_loop { return &start_server }	## historical
+sub main_loop {				## historical
+	carp 'deprecated method; prefer start_server()';
+	&start_server;
+	exit;
+}
 
 
 #------------------------------------------------------------------------------
-# loop_once - Start single-transaction nameserver
+# loop_once - Single-transaction nameserver
 #------------------------------------------------------------------------------
 
-sub loop_once { return &single_shot }	## historical
+my ( @TCP, @UDP );
+
+sub loop_once {				## historical
+	my ( $self, @timeout ) = @_;
+	unless (@UDP) {
+		foreach my $ip ( @{$self->{LocalAddr}} ) {
+			push @TCP, TCP_socket( $ip, $self->{LocalPort} );
+			push @UDP, UDP_socket( $ip, $self->{LocalPort} );
+		}
+	}
+	my $select = IO::Select->new( @TCP, @UDP );
+	my %listen = map { ( $_, 1 ) } @TCP;
+	while ( scalar( my @ready = $select->can_read(@timeout) ) ) {
+		my ($socket) = @ready;
+		if ( $socket->socktype() == SOCK_DGRAM ) {
+			my $buffer = read_udp( $socket, $self->{Verbose} );
+			$self->UDP_connection( $socket, $buffer );
+			last;
+		} else {
+			if ( $listen{$socket} ) {
+				$select->add( $socket->accept );
+				next;
+			}
+			my $buffer = read_tcp( $socket, $self->{Verbose} );
+			$self->TCP_connection( $socket, $buffer ) if $buffer;
+			close($socket);
+			last;
+		}
+	}
+}
 
 
 1;
@@ -693,9 +653,6 @@ Each instance is configured using the following optional arguments:
     Verbose		Report internal activity	Defaults to 0 (off)
     Truncate		Truncates UDP packets that
 			are too big for the reply	Defaults to 1 (on)
-    IdleTimeout		TCP clients are disconnected
-			if they are idle longer than
-			this duration			Defaults to 120 (secs)
 
 The LocalAddr attribute may alternatively be specified as an array
 of IP addresses to listen to.
@@ -724,24 +681,23 @@ EDNS options may be specified in a similar manner using the optionmask:
 See RFC1035 and IANA DNS parameters file for more information:
 
 
-The nameserver will listen for both UDP and TCP connections.
-On Unix-like systems, unprivileged users are denied access to ports below 1024.
+The nameserver will listen for both UDP and TCP connections.  On linux
+and other Unix-like systems, unprivileged users are denied access to
+ports below 1024.
 
-UDP reply truncation functionality was introduced in VERSION 830.
+UDP reply truncation functionality was introduced in Net::DNS 0.66.
 The size limit is determined by the EDNS0 size advertised in the query,
 otherwise 512 is used.
-If you want to do packet truncation yourself you should set C<Truncate>
-to 0 and truncate the reply packet in the code of the ReplyHandler.
-
-See L</EXAMPLE> for an example.
+If you want to do packet truncation yourself you should set Truncate=>0
+and truncate the reply packet in the code of the ReplyHandler.
 
 
 =head2 start_server
 
     $ns->start_server( <TIMEOUT_IN_SECONDS> );
 
-Initialises the specified UDP and TCP sockets and starts the server
-which will continuously accept connections on each socket.
+Starts a server process for each of the specified UDP and TCP sockets
+which continuously responds to user connections.
 
 The timeout parameter specifies the time the server is to remain active.
 If called with no parameter a default timeout of 10 minutes is applied.
@@ -754,26 +710,59 @@ If called with no parameter a default timeout of 10 minutes is applied.
 Terminates all server processes in an orderly fashion.
 
 
-=head2 single_shot
+=head1 EXAMPLES
 
-    $ns->single_shot( <TIMEOUT_IN_SECONDS> );
+=head2 Example 1: Test script with embedded nameserver
 
-Initialises the specified UDP and TCP sockets and starts the server
-which will respond to a single connection on each socket.
+The following example is a self-contained test script which queries DNS
+zonefile data served by an embedded Net::DNS::Nameserver instance.
 
-The timeout serves to terminate server processes which receive no test
-traffic or are otherwise abandoned.
+    use strict;
+    use warnings;
+    use Test::More;
+    use Net::DNS::Nameserver;
+
+    plan skip_all => 'Net::DNS::Nameserver not available'
+		unless Net::DNS::Nameserver->can('start_server');
+    plan tests => 2;
+
+    my $resolver = Net::DNS::Resolver->new(
+	nameserver => ['::1', '127.0.0.1'],
+	port	   => 15353
+	);
+ 
+    my $ns = Net::DNS::Nameserver->new(
+	LocalAddr => [$resolver->nameserver],
+	LocalPort => $resolver->port,
+	Verbose	  => 0,
+	ZoneFile  => \*DATA
+	)
+		|| die "couldn't create nameserver object";
+
+    $ns->start_server(10);
+
+    my $reply = $resolver->send(qw(example.com SOA));
+    is( ref($reply), 'Net::DNS::Packet', 'received reply packet' );
+    my ($rr) = $reply->answer;
+    is( $rr->type, 'SOA', 'answer contains SOA record' );
+
+    $ns->stop_server();
+
+    exit;
+
+    __DATA__
+    $ORIGIN example.com.
+    @	IN SOA	mname rname 2023 2h 1h 2w 1h
+    www	IN A	93.184.216.34
 
 
-=head1 EXAMPLE
+=head2 Example 2: Free-standing customised DNS nameserver
 
 The following example will listen on port 15353 and respond to all queries
 for A records with the IP address 10.1.2.3.  All other queries will be
 answered with NXDOMAIN.	 Authority and additional sections are left empty.
 The $peerhost variable catches the IP address of the peer host, so that
 additional filtering on a per-host basis may be applied.
-
-    #!/usr/bin/perl -T
 
     use strict;
     use warnings;
@@ -813,27 +802,19 @@ additional filtering on a per-host basis may be applied.
 	Verbose	     => 1
 	) or die "couldn't create nameserver object";
 
-    $ns->start_server(20);
+    $ns->start_server(60);
 
-    exit;
+    exit;	# leaving nameserver processes running
 
 
 =head1 BUGS
 
-Limitations in perl make it impossible to guarantee that replies to
-UDP queries from Net::DNS::Nameserver are sent from the IP-address
-to which the query was directed.  This is a problem for machines with
-multiple IP-addresses and causes violation of RFC2181 section 4.
-Thus a UDP socket created listening to INADDR_ANY (all available
-IP-addresses) will reply not necessarily with the source address being
-the one to which the request was sent, but rather with the address that
-the operating system chooses. This is also often called "the closest
-address". This should really only be a problem on a server which has
-more than one IP-address (besides localhost - any experience with IPv6
-complications here, would be nice). If this is a problem for you, a
-work-around would be to not listen to INADDR_ANY but to specify each
-address that you want this module to listen on. A separate set of
-sockets will then be created for each IP-address.
+Limitations in perl make it impossible to guarantee that replies to UDP
+queries from Net::DNS::Nameserver are sent from the IP-address to which
+the query was directed, the source address being chosen by the operating
+system based upon its notion of "closest address". This limitation is
+mitigated by creating a separate set of sockets and server subprocesses
+bound to each IP address.
 
 
 =head1 COPYRIGHT
@@ -846,7 +827,7 @@ Portions Copyright (c)2005 Robert Martin-Legene.
 
 Portions Copyright (c)2005-2009 O.M.Kolkman, RIPE NCC.
 
-Portions Copyright (c)2017,2023 R.W.Franks.
+Portions Copyright (c)2017-2024 R.W.Franks.
 
 All rights reserved.
 
