@@ -9,6 +9,12 @@ $Id$                       -*-text-*-
 	IPSECKEY: leave gateway undefined for gatetype 0.
 	Remove remaining support for GOST.
 
+Fix rt.cpan.org #151075
+	Bug in Net::DNS::Resolver::Recurse::_referral
+
+Fix rt.cpan.org #151074
+	Deep recursion in Net::DNS::Resolver::Recurse
+
 
 **** 1.42 Dec 24, 2023
 

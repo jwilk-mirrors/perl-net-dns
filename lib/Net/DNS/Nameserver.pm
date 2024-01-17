@@ -720,10 +720,10 @@ zonefile data served by an embedded Net::DNS::Nameserver instance.
     use strict;
     use warnings;
     use Test::More;
-    use Net::DNS::Nameserver;
 
     plan skip_all => 'Net::DNS::Nameserver not available'
-		unless Net::DNS::Nameserver->can('start_server');
+		unless eval { require Net::DNS::Nameserver }
+		and Net::DNS::Nameserver->can('start_server');
     plan tests => 2;
 
     my $resolver = Net::DNS::Resolver->new(

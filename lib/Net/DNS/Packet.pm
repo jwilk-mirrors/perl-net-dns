@@ -435,7 +435,7 @@ sub string {
 	my @additional = $self->additional;
 	my $arcount    = scalar @additional;
 	my $ars	       = $arcount != 1 ? 's' : '';
-	my $EDNSmarker = join ' ', qq[;; {\t"EDNS-VERSION":], $edns->version, qq[}\n];
+	my $EDNSmarker = join ' ', qq[;; {\t"EDNS-VERSION":], $edns->version, qq[}];
 	CORE::push( @record, "\n;; ADDITIONAL SECTION ($arcount record$ars)" );
 	CORE::push( @record, map { ( $_ eq $edns ) ? $EDNSmarker : $_->string } @additional );
 
