@@ -38,7 +38,7 @@ sub _init {
 
 
 	my @nameservers = map { $_->{IpAddress} } @{$FIXED_INFO->{DnsServersList}};
-	$defaults->nameservers(@nameservers);
+	$defaults->nameservers( grep {$_} @nameservers );
 
 	my $devolution = 0;
 	my $domainname = $FIXED_INFO->{DomainName} || '';
