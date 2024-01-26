@@ -349,6 +349,7 @@ sub read_tcp {
 			redo if $!{EINTR};	## retry if aborted by signal
 			die "sysread: $!";
 		}
+		last if $n == 0;	## client closed (or lied)	per RT#151240
 	}
 
 	if ($verbose) {

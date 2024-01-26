@@ -9,6 +9,9 @@ $Id$                       -*-text-*-
 	IPSECKEY: leave gateway undefined for gatetype 0.
 	Remove remaining support for GOST.
 
+Fix rt.cpan.org #151240
+	Nameserver.pm: DoS vulnerability in TCP handling
+
 Fix rt.cpan.org #151232
 	Net::DNS::Resolver::new hangs for 150s on Win32 with no active DNS
 
