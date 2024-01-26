@@ -1,7 +1,7 @@
 $Id$                       -*-text-*-
 
 
-**** 1.43 [unreleased]
+**** 1.43 Jan 26, 2024
 
 	Update b.root-servers.net addresses in resolver hints.
 	Improve accuracy and completeness of dependency metadata.
