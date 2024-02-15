@@ -51,7 +51,7 @@ sub _decode_rdata {			## decode rdata from wire-format octet string
 		$offset = $next;
 	}
 	unless ( $offset == $limit ) {
-		$self->{unparsed} = substr $rdata, $offset;
+		$self->{corrupt} = substr $rdata, $offset;
 		die $self->type . ': corrupt RDATA';
 	}
 	return;
@@ -69,7 +69,7 @@ sub _encode_rdata {			## encode rdata as wire-format octet string
 		my $val = shift @params;
 		push @packed, pack( 'n2a*', $key, length($val), $val );
 	}
-	return join '', @packed;
+	return join '', @packed, grep {defined} $self->{corrupt};
 }
 
 
@@ -100,9 +100,10 @@ sub _format_rdata {			## format rdata portion of RR string.
 		push @rdata, split /(\S{32})/, unpack 'H*', $val;
 		$length += 4 + length $val;
 	}
-	if ( $self->{unparsed} ) {
-		my @hex = split /(\S{32})/, unpack 'H*', $self->{unparsed};
+	if ( $self->{corrupt} ) {
+		my @hex = split /(\S{32})/, unpack 'H*', $self->{corrupt};
 		push @rdata, "\n", shift(@hex), "\t; corrupt RDATA\n", @hex;
+		$length += length $self->{corrupt};
 	}
 	return ( "\\# $length", @rdata );
 }
