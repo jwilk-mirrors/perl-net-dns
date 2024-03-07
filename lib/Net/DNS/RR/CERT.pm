@@ -141,6 +141,8 @@ sub tag { return &keytag; }					# uncoverable pod
 		'ECDSAP384SHA384'    => 14,			# [RFC6605]
 		'ED25519'	     => 15,			# [RFC8080]
 		'ED448'		     => 16,			# [RFC8080]
+		'SM2SM3'	     => 17,			# [RFC-cuiling-dnsop-sm2-alg-15]
+		'ECC-GOST12'	     => 23,			# [RFC-makarenko-gost2012-dnssec-05]
 
 		'INDIRECT'   => 252,				# [RFC4034]
 		'PRIVATEDNS' => 253,				# [RFC4034]

@@ -26,14 +26,13 @@ use constant UTIL => defined eval { require Scalar::Util; };
 
 eval { require MIME::Base64 };
 
-# IMPORTANT: Downstream distros MUST NOT create dependencies on Net::DNS::SEC	(strong crypto prohibited in many territories)
-use constant USESEC => defined $INC{'Net/DNS/SEC.pm'};		# Discover how we got here, without exposing any crypto
-use constant DNSSEC => USESEC && defined eval join '', qw(r e q u i r e), ' Net::DNS::SEC::Private';	## no critic
+## IMPORTANT: MUST NOT include crypto packages in metadata (strong crypto prohibited in many territories)
+use constant DNSSEC => defined $INC{'Net/DNS/SEC.pm'};	## Discover how we got here, without exposing any crypto
 
 my @index;
 if (DNSSEC) {
-	foreach my $class ( map {"Net::DNS::SEC::$_"} qw(RSA DSA ECDSA EdDSA) ) {
-		my @algorithms = eval join '', qw(r e q u i r e), " $class; $class->_index";	## no critic
+	foreach my $class ( map {"Net::DNS::SEC::$_"} qw(Private RSA DSA ECDSA EdDSA Digest SM2) ) {
+		my @algorithms = eval join '', qw(r e q u i r e), " $class; ${class}::_index()";	## no critic
 		push @index, map { ( $_ => $class ) } @algorithms;
 	}
 	croak 'Net::DNS::SEC version not supported' unless scalar(@index);
@@ -350,6 +349,8 @@ sub vrfyerrstr {
 		'ECDSAP384SHA384'    => 14,			# [RFC6605]
 		'ED25519'	     => 15,			# [RFC8080]
 		'ED448'		     => 16,			# [RFC8080]
+		'SM2SM3'	     => 17,			# [RFC-cuiling-dnsop-sm2-alg-15]
+		'ECC-GOST12'	     => 23,			# [RFC-makarenko-gost2012-dnssec-05]
 
 		'INDIRECT'   => 252,				# [RFC4034]
 		'PRIVATEDNS' => 253,				# [RFC4034]
@@ -675,8 +676,8 @@ that comes with the ISC BIND distribution.
 The optional remaining arguments consist of ( name => value ) pairs
 as follows:
 
-	sigin  => 20231201010101,	# signature inception
-	sigex  => 20231201011101,	# signature expiration
+	sigin  => 20241201010101,	# signature inception
+	sigex  => 20241201011101,	# signature expiration
 	sigval => 10,			# validity window (minutes)
 
 The sigin and sigex values may be specified as Perl time values or as

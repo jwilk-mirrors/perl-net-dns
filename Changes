@@ -1,6 +1,13 @@
 $Id$                       -*-text-*-
 
 
+**** 1.45 [unreleased]
+
+	Resync with IANA DNS Parameters registry.
+	Resync with IANA DNSSEC Algorithm Numbers registry.
+	Resync with IANA DS Digest Algorithms registry.
+
+
 **** 1.44 Feb 15, 2024
 
 	Simplify testing of resolver error paths.

@@ -24,15 +24,14 @@ use Net::DNS::Text;
 sub _decode_rdata {			## decode rdata from wire-format octet string
 	my ( $self, $data, $offset ) = @_;
 
-	my $limit = $offset + $self->{rdlength};
-	my $text;
-	my $txtdata = $self->{txtdata} = [];
-	while ( $offset < $limit ) {
-		( $text, $offset ) = Net::DNS::Text->decode( $data, $offset );
-		push @$txtdata, $text;
+	my $limit = $self->{rdlength};
+	my $rdata = substr $$data, $offset, $limit;
+	my $array = $self->{txtdata} = [];
+	my $index = 0;
+	while ( $index < $limit ) {
+		( my $text, $index ) = Net::DNS::Text->decode( \$rdata, $index );
+		push @$array, $text;
 	}
-
-	croak('corrupt TXT data') unless $offset == $limit;	# more or less FUBAR
 	return;
 }
 

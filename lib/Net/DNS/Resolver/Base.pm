@@ -45,7 +45,13 @@ use Carp;
 use IO::File;
 use IO::Select;
 use IO::Socket;
-use Socket qw( AI_NUMERICHOST IPPROTO_UDP );
+
+use Socket;
+{
+	no strict 'subs';		## no critic ProhibitNoStrict
+	use constant AI_NUMERICHOST => Socket::AI_NUMERICHOST;
+	use constant IPPROTO_UDP    => Socket::IPPROTO_UDP;
+}
 
 use Net::DNS::RR;
 use Net::DNS::Packet;
