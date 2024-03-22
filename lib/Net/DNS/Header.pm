@@ -84,12 +84,13 @@ QQ
 	my $ad = $self->ad;
 	my $cd = $self->cd;
 	my $do = $self->do;
+	my $co = $self->co;
 	return <<"QQ";
 ;;	id = $id
 ;;	qr = $qr	aa = $aa	tc = $tc	rd = $rd	opcode = $opcode
 ;;	ra = $ra	z  = $zz	ad = $ad	cd = $cd	rcode  = $rcode
 ;;	qdcount = $qd	ancount = $an	nscount = $ns	arcount = $ar
-;;	do = $do
+;;	do = $do	co = $co
 QQ
 }
 
@@ -382,19 +383,23 @@ sub adcount { return &arcount; }
 
 =head1 EDNS Protocol Extensions
 
-
-=head2 do
+=head2 do, co
 
     print "DNSSEC_OK flag was ", $packet->header->do ? "not" : "", "set\n";
     $packet->header->do(1);
 
-Gets or sets the EDNS DNSSEC OK flag.
+Gets or sets the named EDNS flag.
 
 =cut
 
 sub do {
 	my ( $self, @value ) = @_;
 	return $self->_ednsflag( 0x8000, @value );
+}
+
+sub co {
+	my ( $self, @value ) = @_;
+	return $self->_ednsflag( 0x4000, @value );
 }
 
 

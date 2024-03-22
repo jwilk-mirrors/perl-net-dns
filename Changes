@@ -6,6 +6,7 @@ $Id$                       -*-text-*-
 	Resync with IANA DNS Parameters registry.
 	Resync with IANA DNSSEC Algorithm Numbers registry.
 	Resync with IANA DS Digest Algorithms registry.
+	Add support for EDNS CO flag.
 
 
 **** 1.44 Feb 15, 2024

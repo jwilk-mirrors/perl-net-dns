@@ -92,15 +92,14 @@ sub _format_rdata {			## format rdata portion of RR string.
 	while (@params) {
 		my $key = shift @params;
 		my $val = shift @params;
-		push @rdata, "\n";
-		push @rdata, "; key$key=...\n" if $key > 25;
-		push @rdata, unpack 'H4H4',    pack( 'n2', $key, length $val );
-		push @rdata, split /(\S{32})/, unpack 'H*', $val;
+		push @rdata, "\n", unpack 'H4H4', pack( 'n2', $key, length $val );
+		my ( $hex, @hex ) = grep {length} split /(\S{32})/, unpack 'H*', $val;
+		push @rdata, $hex, $key < 16 ? () : "\t; key$key\n", @hex;
 		$length += 4 + length $val;
 	}
 	if ( $self->{rdata} ) {
 		if ( my $corrupt = substr $self->{rdata}, $length ) {
-			my ( $hex, @hex ) = split /(\S{32})/, unpack 'H*', $corrupt;
+			my ( $hex, @hex ) = grep {length} split /(\S{32})/, unpack 'H*', $corrupt;
 			push @rdata, "\n", $hex, "\t; corrupt RDATA\n", @hex;
 			$length += length $corrupt;
 		}
@@ -408,7 +407,7 @@ DEALINGS IN THE SOFTWARE.
 =head1 SEE ALSO
 
 L<perl> L<Net::DNS> L<Net::DNS::RR>
-L<RFC9460|https://tools.ietf.org/html/rfc9460>
+L<RFC9460|https://www.iana.org/go/rfc9460>
 
 L<Service Parameter Keys|https://www.iana.org/assignments/dns-svcb>
 
