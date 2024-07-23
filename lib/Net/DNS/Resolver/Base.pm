@@ -25,8 +25,8 @@ our $VERSION = (qw$Id$)[2];
 # [Revised March 2016, June 2018]
 
 
-use constant OS_TYPE => defined eval "require Net::DNS::Resolver::$^O";	## no critic
-use constant OS_CONF => join '::', 'Net::DNS::Resolver', OS_TYPE ? $^O : 'UNIX';
+use constant OS_SPEC => defined eval "require Net::DNS::Resolver::$^O";	## no critic
+use constant OS_CONF => join '::', 'Net::DNS::Resolver', OS_SPEC ? $^O : 'UNIX';
 use base OS_CONF;
 
 
@@ -979,10 +979,7 @@ sub _make_query_packet {
 	my ( $self, @argument ) = @_;
 
 	my ($packet) = @argument;
-	if ( ref($packet) ) {
-		my $edns = $packet->edns;			# advertise UDPsize for local stack
-		$edns->udpsize( $self->{udppacketsize} ) unless defined $edns->{udpsize};
-	} else {
+	unless ( ref($packet) ) {
 		$packet = Net::DNS::Packet->new(@argument);
 		$packet->edns->udpsize( $self->{udppacketsize} );
 

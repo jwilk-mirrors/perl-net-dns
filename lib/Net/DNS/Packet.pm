@@ -895,6 +895,7 @@ L<perl> L<Net::DNS> L<Net::DNS::Header>
 L<Net::DNS::Question> L<Net::DNS::RR> L<Net::DNS::RR::TSIG>
 L<RFC1035(4.1)|https://iana.org/go/rfc1035#section-4.1>
 L<RFC2136|https://iana.org/go/rfc2136#section-2>
+L<RFC8490|https://iana.org/go/rfc8490>
 L<RFC8945|https://iana.org/go/rfc8945>
 
 =cut

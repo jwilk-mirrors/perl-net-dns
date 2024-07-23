@@ -68,14 +68,14 @@ sub string {
 	my $ar	   = $self->arcount;
 	my $dispid = defined $id ? $id : 'undef';
 	return <<"QQ" if $opcode eq 'DSO';
-;;	id = $dispid
-;;	qr = $qr		opcode = $opcode	rcode = $rcode
-;;	qdcount = $qd	ancount = $an	nscount = $ns	arcount = $ar
+;;	id = $dispid	qr = $qr
+;;	opcode = $opcode	rcode = $rcode
 QQ
 	return <<"QQ" if $opcode eq 'UPDATE';
-;;	id = $dispid
-;;	qr = $qr		opcode = $opcode	rcode = $rcode
-;;	zocount = $qd	prcount = $an	upcount = $ns	adcount = $ar
+;;	id = $dispid	qr = $qr
+;;	opcode = $opcode	rcode = $rcode
+;;	zocount = $qd	prcount = $an
+;;	upcount = $ns	adcount = $ar
 QQ
 	my $aa = $self->aa;
 	my $tc = $self->tc;
@@ -90,8 +90,9 @@ QQ
 ;;	id = $dispid
 ;;	qr = $qr	aa = $aa	tc = $tc	rd = $rd	opcode = $opcode
 ;;	ra = $ra	z  = $zz	ad = $ad	cd = $cd	rcode  = $rcode
-;;	qdcount = $qd	ancount = $an	nscount = $ns	arcount = $ar
 ;;	do = $do	co = $co
+;;	qdcount = $qd	ancount = $an
+;;	nscount = $ns	arcount = $ar
 QQ
 }
 

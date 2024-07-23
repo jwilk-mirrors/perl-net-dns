@@ -3,7 +3,7 @@ package Net::DNS::Parameters;
 ################################################
 ##
 ##	Domain Name System (DNS) Parameters
-##	(last updated 2024-04-26)
+##	(last updated 2024-07-22)
 ##
 ################################################
 
@@ -125,6 +125,7 @@ my @typebyname = (
 	LP	   => 107,					# RFC6742
 	EUI48	   => 108,					# RFC7043
 	EUI64	   => 109,					# RFC7043
+	NXNAME	   => 128,					# draft-ietf-dnsop-compact-denial-of-existence-04
 	TKEY	   => 249,					# RFC2930
 	TSIG	   => 250,					# RFC8945
 	IXFR	   => 251,					# RFC1995
@@ -137,8 +138,9 @@ my @typebyname = (
 	AVC	   => 258,					#
 	DOA	   => 259,					# draft-durand-doa-over-dns
 	AMTRELAY   => 260,					# RFC8777
-	RESINFO	   => 261,					# draft-ietf-add-resolver-info-06
-	TA	   => 32768,					# http://cameo.library.cmu.edu/ http://www.watson.org/~weiler/INI1999-19.pdf
+	RESINFO	   => 261,					# RFC9606
+	WALLET	   => 262,					#
+	TA	   => 32768,					# http://www.watson.org/~weiler/INI1999-19.pdf
 	DLV	   => 32769,					# RFC8749 RFC4431
 	);
 our %typebyval = reverse( TYPE0 => 0, @typebyname );
@@ -285,6 +287,7 @@ my @dnserrorbyval = (
 	27 => 'Unsupported NSEC3 Iterations Value',		# RFC9276
 	28 => 'Unable to conform to policy',			# draft-homburg-dnsop-codcp-00
 	29 => 'Synthesized',					# https://github.com/PowerDNS/pdns/pull/12334
+	30 => 'Invalid Query Type',				# draft-ietf-dnsop-compact-denial-of-existence-04
 	);
 our %dnserrorbyval = @dnserrorbyval;
 
