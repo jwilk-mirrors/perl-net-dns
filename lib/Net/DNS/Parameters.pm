@@ -3,7 +3,7 @@ package Net::DNS::Parameters;
 ################################################
 ##
 ##	Domain Name System (DNS) Parameters
-##	(last updated 2024-07-22)
+##	(last updated 2024-08-09)
 ##
 ################################################
 
@@ -140,6 +140,8 @@ my @typebyname = (
 	AMTRELAY   => 260,					# RFC8777
 	RESINFO	   => 261,					# RFC9606
 	WALLET	   => 262,					#
+	CLA	   => 263,					# draft-johnson-dns-ipn-cla-07
+	IPN	   => 264,					# draft-johnson-dns-ipn-cla-07
 	TA	   => 32768,					# http://www.watson.org/~weiler/INI1999-19.pdf
 	DLV	   => 32769,					# RFC8749 RFC4431
 	);
@@ -211,6 +213,7 @@ my @ednsoptionbyname = (
 	'CLIENT-TAG'	 => 16,					# draft-bellis-dnsop-edns-tags
 	'SERVER-TAG'	 => 17,					# draft-bellis-dnsop-edns-tags
 	'REPORT-CHANNEL' => 18,					# RFC9567
+	ZONEVERSION	 => 19,					# RFC-ietf-dnsop-zoneversion-11
 	'UMBRELLA-IDENT' => 20292,				# https://developer.cisco.com/docs/cloud-security/#!integrating-network-devic
 	DEVICEID	 => 26946,				# https://developer.cisco.com/docs/cloud-security/#!network-devices-getting-s
 	);

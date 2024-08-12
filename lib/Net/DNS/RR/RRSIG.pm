@@ -72,6 +72,7 @@ sub _format_rdata {			## format rdata portion of RR string.
 	my $signame = $self->{signame};
 	my @sig64   = split /\s+/, MIME::Base64::encode( $self->sigbin );
 	my @rdata   = ( map( { $self->$_ } @field ), $signame->string, @sig64 );
+	$rdata[3] .= "\n";
 	return @rdata;
 }
 
