@@ -1,7 +1,7 @@
 $Id$                       -*-text-*-
 
 
-**** 1.46 [unreleased]
+**** 1.46 Aug 19, 2024
 
 	Resync with IANA DNS Parameters registry.
 	Revise documentation for Packet.pm and Header.pm.
