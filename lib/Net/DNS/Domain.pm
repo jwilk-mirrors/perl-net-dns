@@ -392,9 +392,9 @@ DEALINGS IN THE SOFTWARE.
 =head1 SEE ALSO
 
 L<perl> L<Net::DNS> L<Net::LibIDN2>
-L<RFC1034|https://tools.ietf.org/html/rfc1034>
-L<RFC1035|https://tools.ietf.org/html/rfc1035>
-L<RFC5891|https://tools.ietf.org/html/rfc5891>
+L<RFC1034|https://iana.org/go/rfc1034>
+L<RFC1035|https://iana.org/go/rfc1035>
+L<RFC5891|https://iana.org/go/rfc5891>
 
 =cut
 

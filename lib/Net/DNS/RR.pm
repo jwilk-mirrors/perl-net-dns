@@ -843,8 +843,8 @@ DEALINGS IN THE SOFTWARE.
 
 L<perl> L<Net::DNS>
 L<Net::DNS::Question> L<Net::DNS::Packet> L<Net::DNS::Update>
-L<RFC1035(4.1.3)|https://tools.ietf.org/html/rfc1035>
-L<RFC3597|https://tools.ietf.org/html/rfc3597>
+L<RFC1035(4.1.3)|https://iana.org/go/rfc1035#section-4.1.3>
+L<RFC3597|https://iana.org/go/rfc3597>
 
 =cut
 

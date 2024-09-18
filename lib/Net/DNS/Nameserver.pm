@@ -858,10 +858,6 @@ L<perl> L<Net::DNS> L<Net::DNS::Resolver> L<Net::DNS::Packet>
 L<Net::DNS::Update> L<Net::DNS::Header> L<Net::DNS::Question>
 L<Net::DNS::RR>
 
-L<RFC1035|https://tools.ietf.org/html/rfc1035>
-
-L<IANA DNS parameters|http://www.iana.org/assignments/dns-parameters>
-
 =cut
 
 __END__

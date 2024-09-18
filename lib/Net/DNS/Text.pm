@@ -323,8 +323,8 @@ DEALINGS IN THE SOFTWARE.
 =head1 SEE ALSO
 
 L<perl> L<Net::DNS>
-L<RFC1035|https://tools.ietf.org/html/rfc1035>
-L<RFC3629|https://tools.ietf.org/html/rfc3629>
+L<RFC1035|https://iana.org/go/rfc1035>
+L<RFC3629|https://iana.org/go/rfc3629>
 
 =cut
 

@@ -842,6 +842,6 @@ L<RFC4034(3)|https://iana.org/go/rfc4034#section-3>
 
 L<Algorithm Numbers|https://iana.org/assignments/dns-sec-alg-numbers>
 
-L<BIND Administrator Reference Manual|https://bind.isc.org/>
+L<BIND Administrator Reference Manual|https://bind9.readthedocs.io/en/latest/>
 
 =cut

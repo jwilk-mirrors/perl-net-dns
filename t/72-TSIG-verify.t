@@ -30,7 +30,7 @@ my $tsig  = Net::DNS::RR->new( type => 'TSIG' );
 my $class = ref($tsig);
 
 
-my $tsigkey = 'tsigkey.txt';
+my $tsigkey = 'tsigkey72.txt';
 END { unlink($tsigkey) if defined $tsigkey; }
 
 my $fh_tsigkey = IO::File->new( $tsigkey, '>' ) || die "$tsigkey $!";
