@@ -78,9 +78,11 @@ for my $corruption ( pack 'H*', '00004000010000000000070001000bad0001' ) {
 Net::DNS::RR->new( <<'END' )->print;
 example.com.	SVCB	16 foo.example.org.	( mandatory=alpn alpn=h2,h3-19
 			no-default-alpn port=1234 ipv4hint=192.0.2.1
-			ech=Li4u ipv6hint=2001:db8::1
+			ech=AEP+DQA/BAAgACCW2/dfOBZAtQU55/py/BlhdRdaauPAkrERAUwppoeSEgAEAAEAAQAQY2QxLnRlc3QuZGVmby5pZQAA
+			ipv6hint=2001:db8::1
 			dohpath=/dns-query{?dns}
 			ohttp
+			tls-supported-groups=29,23
 			)
 END
 
