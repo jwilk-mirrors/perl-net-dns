@@ -4,7 +4,7 @@
 
 use strict;
 use warnings;
-use Test::More tests => 82;
+use Test::More tests => 89;
 use TestToolkit;
 
 use Net::DNS;
@@ -105,6 +105,8 @@ my @testcase = (
 	["EXTENDED-ERROR" => ( "INFO-CODE"    => 0, "EXTRA-TEXT" => '{JSON: unparsable}' )],
 	["EXTENDED-ERROR" => ( "INFO-CODE"    => 123 )],
 	["REPORT-CHANNEL" => ( "AGENT-DOMAIN" => "example." )],
+	[["ZONEVERSION" => ""], ["ZONEVERSION" => {"OPTION-DATA" => ""}], ["ZONEVERSION" => []]],
+	["ZONEVERSION" => [2, 0, "12345678"]],
 	);
 
 foreach (@testcase) {
@@ -114,10 +116,10 @@ foreach (@testcase) {
 	$edns->option( $option => @value );
 	my $result = $edns->option($option);
 	ok( defined($result), qq[compose( "$option" => @presentable )] );
-	my $expect	   = defined($result) ? unpack( 'H*', $result ) : $result;
-	my @interpretation = $edns->option($option);		# check option interpretation
+	my $expect = defined($result) ? unpack( 'H*', $result ) : $result;
+	my ($interpretation) = $edns->option($option);		# check option interpretation
 
-	foreach ( [$option => @interpretation], @alternative ) {
+	foreach ( [%$interpretation], @alternative ) {
 		my ( $option, @value ) = @$_;
 		my @presentable = _presentable(@value);
 		$edns->option( $option, @value );
@@ -147,6 +149,16 @@ my $encoded = $edns->encode;
 my $decoded = Net::DNS::RR->decode( \$encoded );
 my @result  = $decoded->options;
 is( scalar(@result), $options, "expected number of options ($options)" );
+
+
+my $multiple = '. 0 CLASS0 TYPE41 \# 30 00130006010012345678 00130006020012345678 00130006030012345678';
+for my $edns ( Net::DNS::RR->new($multiple) ) {
+	my $encoded = $edns->encode;
+	my $decoded = Net::DNS::RR->decode( \$encoded );
+	my @value   = $decoded->option('ZONEVERSION');
+	is( scalar(@value), 3, 'EDNS multi-instance ZONEVERSION option' );
+	$edns->print;
+}
 
 exit;
 
