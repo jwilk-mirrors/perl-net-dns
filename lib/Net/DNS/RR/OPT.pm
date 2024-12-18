@@ -41,7 +41,7 @@ sub _decode_rdata {			## decode rdata from wire-format octet string
 	while ( $offset <= $limit ) {
 		my ( $code, $length ) = unpack "\@$offset nn", $$data;
 		my $value = unpack "\@$offset x4 a$length", $$data;
-		my @value = map { ref($_) ? @$_ : defined ? $_ : () } $self->{option}{$code}, $value;
+		my @value = map { ref($_) ? @$_ : defined($_) ? $_ : () } $self->{option}{$code}, $value;
 		$self->{option}{$code} = ( scalar(@value) == 1 ) ? $value : \@value;
 		$offset += $length + 4;
 	}
