@@ -103,8 +103,8 @@ __END__
 
 =head1 SYNOPSIS
 
-    use Net::DNS;
-    $rr = Net::DNS::RR->new('name CSYNC SOAserial flags typelist');
+	use Net::DNS;
+	$rr = Net::DNS::RR->new('name CSYNC SOAserial flags typelist');
 
 =head1 DESCRIPTION
 
@@ -124,16 +124,16 @@ other unpredictable behaviour.
 
 =head2 soaserial
 
-    $soaserial = $rr->soaserial;
-    $rr->soaserial( $soaserial );
+	$soaserial = $rr->soaserial;
+	$rr->soaserial( $soaserial );
 
 The SOA Serial field contains a copy of the 32-bit SOA serial number from
 the child zone.
 
 =head2 flags
 
-    $flags = $rr->flags;
-    $rr->flags( $flags );
+	$flags = $rr->flags;
+	$rr->flags( $flags );
 
 The flags field contains 16 bits of boolean flags that define operations
 which affect the processing of the CSYNC record.
@@ -142,11 +142,11 @@ which affect the processing of the CSYNC record.
 
 =item immediate
 
- $rr->immediate(1);
+	$rr->immediate(1);
 
- if ( $rr->immediate ) {
+	if ( $rr->immediate ) {
 	...
- }
+	}
 
 If not set, a parental agent must not process the CSYNC record until
 the zone administrator approves the operation through an out-of-band
@@ -158,11 +158,11 @@ mechanism.
 
 =item soaminimum
 
- $rr->soaminimum(1);
+	$rr->soaminimum(1);
 
- if ( $rr->soaminimum ) {
+	if ( $rr->soaminimum ) {
 	...
- }
+	}
 
 If set, a parental agent querying child authoritative servers must not
 act on data from zones advertising an SOA serial number less than the
@@ -172,8 +172,8 @@ SOAserial value.
 
 =head2 typelist
 
-    @typelist = $rr->typelist;
-    $typelist = $rr->typelist;
+	@typelist = $rr->typelist;
+	$typelist = $rr->typelist;
 
 The type list indicates the record types to be processed by the parental
 agent. When called in scalar context, the list is interpolated into a

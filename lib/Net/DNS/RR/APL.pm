@@ -159,8 +159,8 @@ __END__
 
 =head1 SYNOPSIS
 
-    use Net::DNS;
-    $rr = Net::DNS::RR->new('name IN APL aplist');
+	use Net::DNS;
+	$rr = Net::DNS::RR->new('name IN APL aplist');
 
 =head1 DESCRIPTION
 
@@ -178,13 +178,13 @@ other unpredictable behaviour.
 
 =head2 aplist
 
-    @aplist = $rr->aplist;
-  
-    @aplist = $rr->aplist( '1:192.168.32.0/21', '!1:192.168.38.0/28' );
-  
-    @aplist = $rr->aplist( '1:224.0.0.0/4', '2:FF00:0:0:0:0:0:0:0/8' );
-  
-    @aplist = $rr->aplist( negate  => 1,
+	@aplist = $rr->aplist;
+	
+	@aplist = $rr->aplist( '1:192.168.32.0/21', '!1:192.168.38.0/28' );
+	
+	@aplist = $rr->aplist( '1:224.0.0.0/4', '2:FF00:0:0:0:0:0:0:0/8' );
+	
+	@aplist = $rr->aplist( negate  => 1,
 			   family  => 1,
 			   address => '192.168.38.0',
 			   prefix  => 28,
@@ -203,38 +203,38 @@ created it.
 
 =head2 negate
 
-    $rr->negate(1);
+	$rr->negate(1);
 
-    if ( $rr->negate ) {
+	if ( $rr->negate ) {
 	...
-    }
+	}
 
 Boolean attribute indicating the prefix to be an address range exclusion.
 
 =head2 family
 
-    $family = $rr->family;
-    $rr->family( $family );
+	$family = $rr->family;
+	$rr->family( $family );
 
 Address family discriminant.
 
 =head2 prefix
 
-    $prefix = $rr->prefix;
-    $rr->prefix( $prefix );
+	$prefix = $rr->prefix;
+	$rr->prefix( $prefix );
 
 Number of bits comprising the address prefix.
 
 
 =head2 address
 
-    $address = $object->address;
+	$address = $object->address;
 
 Address portion of the prefix list item.
 
 =head2 string
 
-    $string = $object->string;
+	$string = $object->string;
 
 Returns the prefix list item in the form required in zone files.
 

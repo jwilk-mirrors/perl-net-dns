@@ -22,35 +22,35 @@ __END__
 
 =head1 SYNOPSIS
 
- use Net::DNS;
- my $target = 'resolver.example.net';
+	use Net::DNS;
+	my $target = 'resolver.example.net';
 
- my $resolver = Net::DNS::Resolver->new(
+	my $resolver = Net::DNS::Resolver->new(
 		nameserver => $target,
 		recurse	   => 0
 		);
 
- $resolver->send( $target, 'RESINFO' )->print;
+	$resolver->send( $target, 'RESINFO' )->print;
 
- ;; HEADER SECTION
- ;;	id = 46638
- ;;	qr = 1	aa = 1	tc = 0	rd = 0	opcode = QUERY
- ;;	ra = 0	z  = 0	ad = 0	cd = 0	rcode  = NOERROR
- ;;	do = 0	co = 0
- ;;	qdcount = 1	ancount = 1
- ;;	nscount = 0	arcount = 0
+	;; HEADER SECTION
+	;;	id = 46638
+	;;	qr = 1	aa = 1	tc = 0	rd = 0	opcode = QUERY
+	;;	ra = 0	z  = 0	ad = 0	cd = 0	rcode  = NOERROR
+	;;	do = 0	co = 0
+	;;	qdcount = 1	ancount = 1
+	;;	nscount = 0	arcount = 0
 
- ;; QUESTION SECTION (1 record)
- ;; resolver.example.net.	IN	RESINFO
+	;; QUESTION SECTION (1 record)
+	;; resolver.example.net.	IN	RESINFO
 
- ;; ANSWER SECTION (1 record)
- resolver.example.net.	7200	IN	RESINFO	(
+	;; ANSWER SECTION (1 record)
+	resolver.example.net.	7200	IN	RESINFO	(
 		qnamemin exterr=15-17
 		infourl=https://resolver.example.com/guide )
 
- ;; AUTHORITY SECTION (0 records)
+	;; AUTHORITY SECTION (0 records)
 
- ;; ADDITIONAL SECTION (0 records)
+	;; ADDITIONAL SECTION (0 records)
 
 =head1 DESCRIPTION
 
@@ -70,8 +70,8 @@ other unpredictable behaviour.
 
 =head2 txtdata
 
- $string = $rr->txtdata;
- @list	 = $rr->txtdata;
+	$string = $rr->txtdata;
+	@list	 = $rr->txtdata;
 
 When invoked in scalar context, $rr->txtdata() returns the resolver
 properties as a single string, with elements separated by a single space.

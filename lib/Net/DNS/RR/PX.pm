@@ -91,8 +91,8 @@ __END__
 
 =head1 SYNOPSIS
 
-    use Net::DNS;
-    $rr = Net::DNS::RR->new('name PX preference map822 mapx400');
+	use Net::DNS;
+	$rr = Net::DNS::RR->new('name PX preference map822 mapx400');
 
 =head1 DESCRIPTION
 
@@ -110,8 +110,8 @@ other unpredictable behaviour.
 
 =head2 preference
 
-    $preference = $rr->preference;
-    $rr->preference( $preference );
+	$preference = $rr->preference;
+	$rr->preference( $preference );
 
 A 16 bit integer which specifies the preference
 given to this RR among others at the same owner.
@@ -119,16 +119,16 @@ Lower values are preferred.
 
 =head2 map822
 
-    $map822 = $rr->map822;
-    $rr->map822( $map822 );
+	$map822 = $rr->map822;
+	$rr->map822( $map822 );
 
 A domain name element containing <rfc822-domain>, the
 RFC822 part of the MIXER Conformant Global Address Mapping.
 
 =head2 mapx400
 
-    $mapx400 = $rr->mapx400;
-    $rr->mapx400( $mapx400 );
+	$mapx400 = $rr->mapx400;
+	$rr->mapx400( $mapx400 );
 
 A <domain-name> element containing the value of
 <x400-in-domain-syntax> derived from the X.400 part of

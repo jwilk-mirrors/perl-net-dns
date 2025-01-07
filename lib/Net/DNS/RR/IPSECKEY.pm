@@ -189,8 +189,8 @@ __END__
 
 =head1 SYNOPSIS
 
-    use Net::DNS;
-    $rr = Net::DNS::RR->new('name IPSECKEY precedence gatetype algorithm gateway key');
+	use Net::DNS;
+	$rr = Net::DNS::RR->new('name IPSECKEY precedence gatetype algorithm gateway key');
 
 =head1 DESCRIPTION
 
@@ -208,31 +208,31 @@ other unpredictable behaviour.
 
 =head2 precedence
 
-    $precedence = $rr->precedence;
-    $rr->precedence( $precedence );
+	$precedence = $rr->precedence;
+	$rr->precedence( $precedence );
 
 This is an 8-bit precedence for this record.  Gateways listed in
 IPSECKEY records with lower precedence are to be attempted first.
 
 =head2 gatetype
 
-    $gatetype = $rr->gatetype;
+	$gatetype = $rr->gatetype;
 
 The gateway type field indicates the format of the information that is
 stored in the gateway field.
 
 =head2 algorithm
 
-    $algorithm = $rr->algorithm;
-    $rr->algorithm( $algorithm );
+	$algorithm = $rr->algorithm;
+	$rr->algorithm( $algorithm );
 
 The algorithm type field identifies the public keys cryptographic
 algorithm and determines the format of the public key field.
 
 =head2 gateway
 
-    $gateway = $rr->gateway;
-    $rr->gateway( $gateway );
+	$gateway = $rr->gateway;
+	$rr->gateway( $gateway );
 
 The gateway field indicates a gateway to which an IPsec tunnel may be
 created in order to reach the entity named by this resource record.
@@ -241,15 +241,15 @@ created in order to reach the entity named by this resource record.
 
 =head2 key
 
-    $key = $rr->key;
-    $rr->key( $key );
+	$key = $rr->key;
+	$rr->key( $key );
 
 Base64 representation of the optional public key block for the resource record.
 
 =head2 keybin
 
-    $keybin = $rr->keybin;
-    $rr->keybin( $keybin );
+	$keybin = $rr->keybin;
+	$rr->keybin( $keybin );
 
 Binary representation of the public key block for the resource record.
 

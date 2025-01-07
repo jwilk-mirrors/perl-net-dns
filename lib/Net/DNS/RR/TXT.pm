@@ -82,21 +82,21 @@ __END__
 
 =head1 SYNOPSIS
 
-    use Net::DNS;
-    $rr = Net::DNS::RR->new( 'name TXT	txtdata ...' );
+	use Net::DNS;
+	$rr = Net::DNS::RR->new( 'name TXT	txtdata ...' );
 
-    $rr = Net::DNS::RR->new( name    => 'name',
+	$rr = Net::DNS::RR->new( name    => 'name',
 			     type    => 'TXT',
 			     txtdata => 'single text string'
 			     );
 
-    $rr = Net::DNS::RR->new( name    => 'name',
+	$rr = Net::DNS::RR->new( name    => 'name',
 			     type    => 'TXT',
 			     txtdata => [ 'multiple', 'strings', ... ]
 			     );
 
-    use utf8;
-    $rr = Net::DNS::RR->new( 'jp TXT	古池や　蛙飛込む　水の音' );
+	use utf8;
+	$rr = Net::DNS::RR->new( 'jp TXT	古池や　蛙飛込む　水の音' );
 
 =head1 DESCRIPTION
 
@@ -114,10 +114,10 @@ other unpredictable behaviour.
 
 =head2 txtdata
 
-    $string = $rr->txtdata;
-    @list   = $rr->txtdata;
+	$string = $rr->txtdata;
+	@list   = $rr->txtdata;
 
-    $rr->txtdata( @list );
+	$rr->txtdata( @list );
 
 When invoked in scalar context, txtdata() returns a concatenation
 of the descriptive text elements each separated by a single space

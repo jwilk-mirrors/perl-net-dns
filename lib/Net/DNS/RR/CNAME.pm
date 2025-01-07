@@ -63,10 +63,10 @@ __END__
 
 =head1 SYNOPSIS
 
-    use Net::DNS;
-    $rr = Net::DNS::RR->new('name CNAME cname');
+	use Net::DNS;
+	$rr = Net::DNS::RR->new('name CNAME cname');
 
-    $rr = Net::DNS::RR->new(
+	$rr = Net::DNS::RR->new(
 	name  => 'alias.example.com',
 	type  => 'CNAME',
 	cname => 'example.com',
@@ -88,8 +88,8 @@ other unpredictable behaviour.
 
 =head2 cname
 
-    $cname = $rr->cname;
-    $rr->cname( $cname );
+	$cname = $rr->cname;
+	$rr->cname( $cname );
 
 A domain name which specifies the canonical or primary name for
 the owner.  The owner name is an alias.

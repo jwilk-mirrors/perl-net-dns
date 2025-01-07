@@ -102,8 +102,8 @@ __END__
 
 =head1 SYNOPSIS
 
-    use Net::DNS;
-    $rr = Net::DNS::RR->new("example.com. ZONEMD 2018031500 1 1
+	use Net::DNS;
+	$rr = Net::DNS::RR->new("example.com. ZONEMD 2018031500 1 1
 	FEBE3D4CE2EC2FFA4BA99D46CD69D6D29711E55217057BEE
 	7EB1A7B641A47BA7FED2DD5B97AE499FAFA4F22C6BD647DE");
 
@@ -123,15 +123,15 @@ other unpredictable behaviour.
 
 =head2 serial
 
-    $serial = $rr->serial;
-    $rr->serial( $serial );
+	$serial = $rr->serial;
+	$rr->serial( $serial );
 
 Unsigned 32-bit integer zone serial number.
 
 =head2 scheme
 
-    $scheme = $rr->scheme;
-    $rr->scheme( $scheme );
+	$scheme = $rr->scheme;
+	$rr->scheme( $scheme );
 
 The scheme field is an 8-bit unsigned integer that identifies the
 methods by which data is collated and presented as input to the
@@ -139,23 +139,23 @@ hashing function.
 
 =head2 algorithm
 
-    $algorithm = $rr->algorithm;
-    $rr->algorithm( $algorithm );
+	$algorithm = $rr->algorithm;
+	$rr->algorithm( $algorithm );
 
 The algorithm field is an 8-bit unsigned integer that identifies
 the cryptographic hash algorithm used to construct the digest.
 
 =head2 digest
 
-    $digest = $rr->digest;
-    $rr->digest( $digest );
+	$digest = $rr->digest;
+	$rr->digest( $digest );
 
 Hexadecimal representation of the digest over the zone content.
 
 =head2 digestbin
 
-    $digestbin = $rr->digestbin;
-    $rr->digestbin( $digestbin );
+	$digestbin = $rr->digestbin;
+	$rr->digestbin( $digestbin );
 
 Binary representation of the digest over the zone content.
 

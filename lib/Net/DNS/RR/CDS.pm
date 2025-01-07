@@ -38,8 +38,8 @@ __END__
 
 =head1 SYNOPSIS
 
-    use Net::DNS;
-    $rr = Net::DNS::RR->new('name CDS keytag algorithm digtype digest');
+	use Net::DNS;
+	$rr = Net::DNS::RR->new('name CDS keytag algorithm digtype digest');
 
 =head1 DESCRIPTION
 

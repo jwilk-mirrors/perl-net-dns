@@ -12,22 +12,22 @@ Net::DNS::Nameserver - DNS server class
 
 =head1 SYNOPSIS
 
- use Net::DNS::Nameserver;
+	use Net::DNS::Nameserver;
 
- my $nameserver = Net::DNS::Nameserver->new(
+	my $nameserver = Net::DNS::Nameserver->new(
 			LocalAddr	=> ['::1', '127.0.0.1'],
 			LocalPort	=> 15353,
 			ZoneFile	=> 'filename'
 			);
 
- my $nameserver = Net::DNS::Nameserver->new(
+	my $nameserver = Net::DNS::Nameserver->new(
 			LocalAddr	=> '10.1.2.3',
 			LocalPort	=> 15353,
 			ReplyHandler	=> \&reply_handler
 			);
 
- $nameserver->start_server($timeout);
- $nameserver->stop_server;
+	$nameserver->start_server($timeout);
+	$nameserver->stop_server;
 
 
 =head1 DESCRIPTION
@@ -584,13 +584,13 @@ __END__
 
 =head2 new
 
- $nameserver = Net::DNS::Nameserver->new(
+	$nameserver = Net::DNS::Nameserver->new(
 			LocalAddr	=> ['::1', '127.0.0.1'],
 			LocalPort	=> 15353,
 			ZoneFile	=> "filename"
 			);
 
- $nameserver = Net::DNS::Nameserver->new(
+	$nameserver = Net::DNS::Nameserver->new(
 			LocalAddr	=> '10.1.2.3',
 			LocalPort	=> 15353,
 			ReplyHandler	=> \&reply_handler,
@@ -705,7 +705,7 @@ and truncate the reply packet in the code of the ReplyHandler.
 
 =head2 start_server
 
- $ns->start_server( <TIMEOUT_IN_SECONDS> );
+	$ns->start_server( <TIMEOUT_IN_SECONDS> );
 
 Starts a server process for each of the specified UDP and TCP sockets
 which continuously responds to user connections.
@@ -716,7 +716,7 @@ If called with no parameter a default timeout of 10 minutes is applied.
 
 =head2 stop_server
 
- $ns->stop_server();
+	$ns->stop_server();
 
 Terminates all server processes in an orderly fashion.
 
@@ -728,42 +728,42 @@ Terminates all server processes in an orderly fashion.
 The following example is a self-contained test script which queries DNS
 zonefile data served by an embedded Net::DNS::Nameserver instance.
 
- use strict;
- use warnings;
- use Test::More;
+	use strict;
+	use warnings;
+	use Test::More;
 
- plan skip_all => 'Net::DNS::Nameserver not available'
+	plan skip_all => 'Net::DNS::Nameserver not available'
 			unless eval { require Net::DNS::Nameserver }
 			and Net::DNS::Nameserver->can('start_server');
- plan tests => 2;
+	plan tests => 2;
 
- my $resolver = Net::DNS::Resolver->new(
+	my $resolver = Net::DNS::Resolver->new(
 			nameserver => ['::1', '127.0.0.1'],
 			port	   => 15353
 			);
- 
- my $ns = Net::DNS::Nameserver->new(
+	
+	my $ns = Net::DNS::Nameserver->new(
 			LocalAddr => [$resolver->nameserver],
 			LocalPort => $resolver->port,
 			Verbose	  => 0,
 			ZoneFile  => \*DATA
 			) or die "couldn't create nameserver object";
 
- $ns->start_server(10);
+	$ns->start_server(10);
 
- my $reply = $resolver->send(qw(example.com SOA));
- is( ref($reply), 'Net::DNS::Packet', 'received reply packet' );
- my ($rr) = $reply->answer;
- is( $rr->type, 'SOA', 'answer contains SOA record' );
+	my $reply = $resolver->send(qw(example.com SOA));
+	is( ref($reply), 'Net::DNS::Packet', 'received reply packet' );
+	my ($rr) = $reply->answer;
+	is( $rr->type, 'SOA', 'answer contains SOA record' );
 
- $ns->stop_server();
+	$ns->stop_server();
 
- exit;
+	exit;
 
- __DATA__
- $ORIGIN example.com.
- @	IN SOA	mname rname 2023 2h 1h 2w 1h
- www	IN A	93.184.216.34
+	__DATA__
+	$ORIGIN example.com.
+	@	IN SOA	mname rname 2023 2h 1h 2w 1h
+	www	IN A	93.184.216.34
 
 
 =head2 Example 2: Free-standing customised DNS nameserver
@@ -774,11 +774,11 @@ answered with NXDOMAIN.	 Authority and additional sections are left empty.
 The $peerhost variable catches the IP address of the peer host, so that
 additional filtering on a per-host basis may be applied.
 
- use strict;
- use warnings;
- use Net::DNS::Nameserver;
+	use strict;
+	use warnings;
+	use Net::DNS::Nameserver;
 
- sub reply_handler {
+	sub reply_handler {
 		my ( $qname, $qclass, $qtype, $peerhost, $query, $conn ) = @_;
 		my ( $rcode, @ans, @auth, @add );
 
@@ -804,17 +804,17 @@ additional filtering on a per-host basis may be applied.
 		my $optionmask = {};
 
 		return ( $rcode, \@ans, \@auth, \@add, $headermask, $optionmask );
- }
+	}
 
- my $ns = Net::DNS::Nameserver->new(
+	my $ns = Net::DNS::Nameserver->new(
 			LocalPort    => 15353,
 			ReplyHandler => \&reply_handler,
 			Verbose	     => 1
 			) or die "couldn't create nameserver object";
 
- $ns->start_server(60);
+	$ns->start_server(60);
 
- exit;	# leaving nameserver processes running for 60 seconds
+	exit;	# leaving nameserver processes running for 60 seconds
 
 
 =head1 BUGS

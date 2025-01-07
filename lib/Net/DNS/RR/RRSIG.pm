@@ -562,18 +562,18 @@ __END__
 
 =head1 SYNOPSIS
 
-    use Net::DNS;
-    $rr = Net::DNS::RR->new('name RRSIG typecovered algorithm labels
+	use Net::DNS;
+	$rr = Net::DNS::RR->new('name RRSIG typecovered algorithm labels
 				orgttl sigexpiration siginception
 				keytag signame signature');
 
-    use Net::DNS::SEC;
-    $sigrr = Net::DNS::RR::RRSIG->create( \@rrset, $keypath,
+	use Net::DNS::SEC;
+	$sigrr = Net::DNS::RR::RRSIG->create( \@rrset, $keypath,
 					sigex => 20241230010101
 					sigin => 20241201010101
 					);
 
-    $sigrr->verify( \@rrset, $keyrr ) || die $sigrr->vrfyerrstr;
+	$sigrr->verify( \@rrset, $keyrr ) || die $sigrr->vrfyerrstr;
 
 =head1 DESCRIPTION
 
@@ -598,14 +598,14 @@ other unpredictable behaviour.
 
 =head2 typecovered
 
-    $typecovered = $rr->typecovered;
+	$typecovered = $rr->typecovered;
 
 The typecovered field identifies the type of the RRset that is
 covered by this RRSIG record.
 
 =head2 algorithm
 
-    $algorithm = $rr->algorithm;
+	$algorithm = $rr->algorithm;
 
 The algorithm number field identifies the cryptographic algorithm
 used to create the signature.
@@ -615,16 +615,16 @@ to perform mnemonic and numeric code translation.
 
 =head2 labels
 
-    $labels = $rr->labels;
-    $rr->labels( $labels );
+	$labels = $rr->labels;
+	$rr->labels( $labels );
 
 The labels field specifies the number of labels in the original RRSIG
 RR owner name.
 
 =head2 orgttl
 
-    $orgttl = $rr->orgttl;
-    $rr->orgttl( $orgttl );
+	$orgttl = $rr->orgttl;
+	$rr->orgttl( $orgttl );
 
 The original TTL field specifies the TTL of the covered RRset as it
 appears in the authoritative zone.
@@ -633,11 +633,11 @@ appears in the authoritative zone.
 
 =head2 sigex sigin sigval
 
-    $expiration = $rr->sigexpiration;
-    $expiration = $rr->sigexpiration( $value );
+	$expiration = $rr->sigexpiration;
+	$expiration = $rr->sigexpiration( $value );
 
-    $inception = $rr->siginception;
-    $inception = $rr->siginception( $value );
+	$inception = $rr->siginception;
+	$inception = $rr->siginception( $value );
 
 The signature expiration and inception fields specify a validity
 time interval for the signature.
@@ -650,16 +650,16 @@ numerical Perl time() value.
 
 =head2 keytag
 
-    $keytag = $rr->keytag;
-    $rr->keytag( $keytag );
+	$keytag = $rr->keytag;
+	$rr->keytag( $keytag );
 
 The keytag field contains the key tag value of the DNSKEY RR that
 validates this signature.
 
 =head2 signame
 
-    $signame = $rr->signame;
-    $rr->signame( $signame );
+	$signame = $rr->signame;
+	$rr->signame( $signame );
 
 The signer name field value identifies the owner name of the DNSKEY
 RR that a validator is supposed to use to validate this signature.
@@ -668,8 +668,8 @@ RR that a validator is supposed to use to validate this signature.
 
 =head2 sig
 
-    $sig = $rr->sig;
-    $rr->sig( $sig );
+	$sig = $rr->sig;
+	$rr->sig( $sig );
 
 The Signature field contains the cryptographic signature that covers
 the RRSIG RDATA (excluding the Signature field) and the RRset
@@ -678,8 +678,8 @@ covered fields.
 
 =head2 sigbin
 
-    $sigbin = $rr->sigbin;
-    $rr->sigbin( $sigbin );
+	$sigbin = $rr->sigbin;
+	$rr->sigbin( $sigbin );
 
 Binary representation of the cryptographic signature.
 
@@ -687,24 +687,24 @@ Binary representation of the cryptographic signature.
 
 Create a signature over a RR set.
 
-    use Net::DNS::SEC;
+	use Net::DNS::SEC;
 
-    $keypath = '/home/olaf/keys/Kbla.foo.+001+60114.private';
+	$keypath = '/home/olaf/keys/Kbla.foo.+001+60114.private';
 
-    $sigrr = Net::DNS::RR::RRSIG->create( \@rrsetref, $keypath );
+	$sigrr = Net::DNS::RR::RRSIG->create( \@rrsetref, $keypath );
 
-    $sigrr = Net::DNS::RR::RRSIG->create( \@rrsetref, $keypath,
+	$sigrr = Net::DNS::RR::RRSIG->create( \@rrsetref, $keypath,
 					sigex => 20241230010101
 					sigin => 20241201010101
 					);
-    $sigrr->print;
+	$sigrr->print;
 
 
-    # Alternatively use Net::DNS::SEC::Private 
+	# Alternatively use Net::DNS::SEC::Private 
 
-    $private = Net::DNS::SEC::Private->new($keypath);
+	$private = Net::DNS::SEC::Private->new($keypath);
 
-    $sigrr= Net::DNS::RR::RRSIG->create( \@rrsetref, $private );
+	$sigrr= Net::DNS::RR::RRSIG->create( \@rrsetref, $private );
 
 
 create() is an alternative constructor for a RRSIG RR object.  
@@ -739,8 +739,8 @@ By default the TTL matches the RRset that is presented for signing.
 
 =head2 verify
 
-    $verify = $sigrr->verify( $rrsetref, $keyrr );
-    $verify = $sigrr->verify( $rrsetref, [$keyrr, $keyrr2, $keyrr3] );
+	$verify = $sigrr->verify( $rrsetref, $keyrr );
+	$verify = $sigrr->verify( $rrsetref, [$keyrr, $keyrr2, $keyrr3] );
 
 $rrsetref contains a reference to an array of RR objects and the
 method verifies the RRset against the signature contained in the
@@ -755,10 +755,10 @@ Returns 0 on error and sets $sig->vrfyerrstr
 
 =head2 vrfyerrstr
 
-    $verify = $sigrr->verify( $rrsetref, $keyrr );
-    print $sigrr->vrfyerrstr unless $verify;
+	$verify = $sigrr->verify( $rrsetref, $keyrr );
+	print $sigrr->vrfyerrstr unless $verify;
 
-    $sigrr->verify( $rrsetref, $keyrr ) || die $sigrr->vrfyerrstr;
+	$sigrr->verify( $rrsetref, $keyrr ) || die $sigrr->vrfyerrstr;
 
 =head1 KEY GENERATION
 
@@ -766,11 +766,11 @@ Private key files and corresponding public DNSKEY records
 are most conveniently generated using dnssec-keygen,
 a program that comes with the ISC BIND distribution.
 
-    dnssec-keygen -a 10 -b 2048 -f ksk	rsa.example.
-    dnssec-keygen -a 10 -b 1024		rsa.example.
+	dnssec-keygen -a 10 -b 2048 -f ksk	rsa.example.
+	dnssec-keygen -a 10 -b 1024		rsa.example.
 
-    dnssec-keygen -a 14	-f ksk	ecdsa.example.
-    dnssec-keygen -a 14		ecdsa.example.
+	dnssec-keygen -a 14	-f ksk	ecdsa.example.
+	dnssec-keygen -a 14		ecdsa.example.
 
 Do not change the name of the private key file.
 The create method uses the filename as generated by dnssec-keygen

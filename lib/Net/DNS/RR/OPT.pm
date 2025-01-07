@@ -504,20 +504,20 @@ __END__
 
 =head1 SYNOPSIS
 
-    use Net::DNS;
-    my $packet = Net::DNS::Packet->new( ... );
+	use Net::DNS;
+	my $packet = Net::DNS::Packet->new( ... );
 
-    $packet->header->do(1);		# extended header flag 
+	$packet->header->do(1);		# extended header flag 
 
-    $packet->edns->UDPsize(1232);	# UDP payload size
+	$packet->edns->UDPsize(1232);	# UDP payload size
 
-    $packet->edns->option( 'NSID'	=> {'OPTION-DATA' => 'rawbytes'} );
-    $packet->edns->option( 'DAU'	=> [8, 10, 13, 14, 15, 16] );
-    $packet->edns->option( 'TCP-KEEPALIVE'  => 200 );
-    $packet->edns->option( 'EXTENDED-ERROR' => {'INFO-CODE' => 123} );
-    $packet->edns->option( '65023'	=> {'BASE16' => '076578616d706c6500'} );
+	$packet->edns->option( 'NSID'	=> {'OPTION-DATA' => 'rawbytes'} );
+	$packet->edns->option( 'DAU'	=> [8, 10, 13, 14, 15, 16] );
+	$packet->edns->option( 'TCP-KEEPALIVE'  => 200 );
+	$packet->edns->option( 'EXTENDED-ERROR' => {'INFO-CODE' => 123} );
+	$packet->edns->option( '65023'	=> {'BASE16' => '076578616d706c6500'} );
 
-    $packet->edns->print;
+	$packet->edns->print;
 
 	;; {	"EDNS-VERSION":	0,
 	;;	"FLAGS":	"8000",

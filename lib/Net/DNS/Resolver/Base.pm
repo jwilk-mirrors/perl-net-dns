@@ -1147,7 +1147,7 @@ Net::DNS::Resolver::Base - DNS resolver base class
 
 =head1 SYNOPSIS
 
-    use base qw(Net::DNS::Resolver::Base);
+	use base qw(Net::DNS::Resolver::Base);
 
 =head1 DESCRIPTION
 

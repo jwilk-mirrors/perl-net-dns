@@ -30,8 +30,8 @@ __END__
 
 =head1 SYNOPSIS
 
-    use Net::DNS;
-    $rr = Net::DNS::RR->new('name KEY flags protocol algorithm publickey');
+	use Net::DNS;
+	$rr = Net::DNS::RR->new('name KEY flags protocol algorithm publickey');
 
 =head1 DESCRIPTION
 

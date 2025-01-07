@@ -88,10 +88,10 @@ __END__
 
 =head1 SYNOPSIS
 
-    use Net::DNS;
-    $rr = Net::DNS::RR->new('name IN AAAA address');
+	use Net::DNS;
+	$rr = Net::DNS::RR->new('name IN AAAA address');
 
-    $rr = Net::DNS::RR->new(
+	$rr = Net::DNS::RR->new(
 	name	=> 'example.com',
 	type	=> 'AAAA',
 	address => '2001:DB8::8:800:200C:417A'
@@ -113,21 +113,21 @@ other unpredictable behaviour.
 
 =head2 address
 
-    $IPv6_address = $rr->address;
+	$IPv6_address = $rr->address;
 
 Returns the text representation of the IPv6 address.
 
 
 =head2 address_long
 
-    $IPv6_address = $rr->address_long;
+	$IPv6_address = $rr->address_long;
 
 Returns the text representation specified in RFC3513, 2.2(1).
 
 
 =head2 address_short
 
-    $IPv6_address = $rr->address_short;
+	$IPv6_address = $rr->address_short;
 
 Returns the textual form of address recommended by RFC5952.
 

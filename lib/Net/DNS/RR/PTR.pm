@@ -63,8 +63,8 @@ __END__
 
 =head1 SYNOPSIS
 
-    use Net::DNS;
-    $rr = Net::DNS::RR->new('name PTR ptrdname');
+	use Net::DNS;
+	$rr = Net::DNS::RR->new('name PTR ptrdname');
 
 =head1 DESCRIPTION
 
@@ -82,8 +82,8 @@ other unpredictable behaviour.
 
 =head2 ptrdname
 
-    $ptrdname = $rr->ptrdname;
-    $rr->ptrdname( $ptrdname );
+	$ptrdname = $rr->ptrdname;
+	$rr->ptrdname( $ptrdname );
 
 A domain name which points to some location in the
 domain name space.

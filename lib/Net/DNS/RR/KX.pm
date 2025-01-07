@@ -80,8 +80,8 @@ __END__
 
 =head1 SYNOPSIS
 
-    use Net::DNS;
-    $rr = Net::DNS::RR->new('name KX preference exchange');
+	use Net::DNS;
+	$rr = Net::DNS::RR->new('name KX preference exchange');
 
 =head1 DESCRIPTION
 
@@ -99,8 +99,8 @@ other unpredictable behaviour.
 
 =head2 preference
 
-    $preference = $rr->preference;
-    $rr->preference( $preference );
+	$preference = $rr->preference;
+	$rr->preference( $preference );
 
 A 16 bit integer which specifies the preference
 given to this RR among others at the same owner.
@@ -108,8 +108,8 @@ Lower values are preferred.
 
 =head2 exchange
 
-    $exchange = $rr->exchange;
-    $rr->exchange( $exchange );
+	$exchange = $rr->exchange;
+	$rr->exchange( $exchange );
 
 A domain name which specifies a host willing
 to act as a key exchange for the owner name.

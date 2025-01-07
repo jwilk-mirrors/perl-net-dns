@@ -78,10 +78,10 @@ __END__
 
 =head1 SYNOPSIS
 
-    use Net::DNS;
-    $rr = Net::DNS::RR->new('name IN L32 preference locator32');
+	use Net::DNS;
+	$rr = Net::DNS::RR->new('name IN L32 preference locator32');
 
-    $rr = Net::DNS::RR->new(
+	$rr = Net::DNS::RR->new(
 	name	   => 'example.com',
 	type	   => 'L32',
 	preference => 10,
@@ -107,8 +107,8 @@ other unpredictable behaviour.
 
 =head2 preference
 
-    $preference = $rr->preference;
-    $rr->preference( $preference );
+	$preference = $rr->preference;
+	$rr->preference( $preference );
 
 A 16 bit unsigned integer in network byte order that indicates the
 relative preference for this L32 record among other L32 records
@@ -117,7 +117,7 @@ higher values.
 
 =head2 locator32
 
-    $locator32 = $rr->locator32;
+	$locator32 = $rr->locator32;
 
 The Locator32 field is an unsigned 32-bit integer in network byte
 order that has the same syntax and semantics as a 32-bit IPv4

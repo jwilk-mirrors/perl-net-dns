@@ -70,8 +70,8 @@ __END__
 
 =head1 SYNOPSIS
 
-    use Net::DNS;
-    $rr = Net::DNS::RR->new('name OPENPGPKEY key');
+	use Net::DNS;
+	$rr = Net::DNS::RR->new('name OPENPGPKEY key');
 
 =head1 DESCRIPTION
 
@@ -89,15 +89,15 @@ other unpredictable behaviour.
 
 =head2 key
 
-    $key = $rr->key;
-    $rr->key( $key );
+	$key = $rr->key;
+	$rr->key( $key );
 
 Base64 encoded representation of the OpenPGP public key material.
 
 =head2 keybin
 
-    $keybin = $rr->keybin;
-    $rr->keybin( $keybin );
+	$keybin = $rr->keybin;
+	$rr->keybin( $keybin );
 
 OpenPGP public key material consisting of
 a single OpenPGP transferable public key in RFC4880 format.

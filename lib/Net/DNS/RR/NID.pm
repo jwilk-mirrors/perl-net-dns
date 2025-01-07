@@ -75,10 +75,10 @@ __END__
 
 =head1 SYNOPSIS
 
-    use Net::DNS;
-    $rr = Net::DNS::RR->new('name IN NID preference nodeid');
+	use Net::DNS;
+	$rr = Net::DNS::RR->new('name IN NID preference nodeid');
 
-    $rr = Net::DNS::RR->new(
+	$rr = Net::DNS::RR->new(
 	name	   => 'example.com',
 	type	   => 'NID',
 	preference => 10,
@@ -104,8 +104,8 @@ other unpredictable behaviour.
 
 =head2 preference
 
-    $preference = $rr->preference;
-    $rr->preference( $preference );
+	$preference = $rr->preference;
+	$rr->preference( $preference );
 
 A 16 bit unsigned integer in network byte order that indicates the
 relative preference for this NID record among other NID records
@@ -114,7 +114,7 @@ higher values.
 
 =head2 nodeid
 
-    $nodeid = $rr->nodeid;
+	$nodeid = $rr->nodeid;
 
 The NodeID field is an unsigned 64-bit value in network byte order.
 The text representation uses the same syntax (i.e., groups of 4

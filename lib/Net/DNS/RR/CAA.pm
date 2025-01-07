@@ -101,8 +101,8 @@ __END__
 
 =head1 SYNOPSIS
 
-    use Net::DNS;
-    $rr = Net::DNS::RR->new('name IN CAA flags tag value');
+	use Net::DNS;
+	$rr = Net::DNS::RR->new('name IN CAA flags tag value');
 
 =head1 DESCRIPTION
 
@@ -120,8 +120,8 @@ other unpredictable behaviour.
 
 =head2 flags
 
-    $flags = $rr->flags;
-    $rr->flags( $flags );
+	$flags = $rr->flags;
+	$rr->flags( $flags );
 
 Unsigned 8-bit number representing Boolean flags.
 
@@ -129,11 +129,11 @@ Unsigned 8-bit number representing Boolean flags.
 
 =item critical
 
- $rr->critical(1);
+	$rr->critical(1);
 
- if ( $rr->critical ) {
+	if ( $rr->critical ) {
 	...
- }
+	}
 
 Issuer critical flag.
 
@@ -141,8 +141,8 @@ Issuer critical flag.
 
 =head2 tag
 
-    $tag = $rr->tag;
-    $rr->tag( $tag );
+	$tag = $rr->tag;
+	$rr->tag( $tag );
 
 The property identifier, a sequence of ASCII characters.
 
@@ -152,8 +152,8 @@ Matching of tag values is not case sensitive.
 
 =head2 value
 
-    $value = $rr->value;
-    $rr->value( $value );
+	$value = $rr->value;
+	$rr->value( $value );
 
 A sequence of octets representing the property value.
 Property values are encoded as binary values and may employ

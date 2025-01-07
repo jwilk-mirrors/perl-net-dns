@@ -541,18 +541,18 @@ __END__
 
 =head1 SYNOPSIS
 
-    use Net::DNS;
-    $rr = Net::DNS::RR->new('name SIG typecovered algorithm labels
+	use Net::DNS;
+	$rr = Net::DNS::RR->new('name SIG typecovered algorithm labels
 				orgttl sigexpiration siginception
 				keytag signame signature');
 
-    use Net::DNS::SEC;
-    $sigrr = Net::DNS::RR::SIG->create( $string, $keypath,
+	use Net::DNS::SEC;
+	$sigrr = Net::DNS::RR::SIG->create( $string, $keypath,
 					sigval => 10	# minutes
 					);
 
-    $sigrr->verify( $string, $keyrr ) || die $sigrr->vrfyerrstr;
-    $sigrr->verify( $packet, $keyrr ) || die $sigrr->vrfyerrstr;
+	$sigrr->verify( $string, $keyrr ) || die $sigrr->vrfyerrstr;
+	$sigrr->verify( $packet, $keyrr ) || die $sigrr->vrfyerrstr;
 
 =head1 DESCRIPTION
 
@@ -577,7 +577,7 @@ other unpredictable behaviour.
 
 =head2 algorithm
 
-    $algorithm = $rr->algorithm;
+	$algorithm = $rr->algorithm;
 
 The algorithm number field identifies the cryptographic algorithm
 used to create the signature.
@@ -589,11 +589,11 @@ to perform mnemonic and numeric code translation.
 
 =head2 sigex sigin sigval
 
-    $expiration = $rr->sigexpiration;
-    $expiration = $rr->sigexpiration( $value );
+	$expiration = $rr->sigexpiration;
+	$expiration = $rr->sigexpiration( $value );
 
-    $inception = $rr->siginception;
-    $inception = $rr->siginception( $value );
+	$inception = $rr->siginception;
+	$inception = $rr->siginception( $value );
 
 The signature expiration and inception fields specify a validity
 time interval for the signature.
@@ -606,16 +606,16 @@ numerical Perl time() value.
 
 =head2 keytag
 
-    $keytag = $rr->keytag;
-    $rr->keytag( $keytag );
+	$keytag = $rr->keytag;
+	$rr->keytag( $keytag );
 
 The keytag field contains the key tag value of the KEY RR that
 validates this signature.
 
 =head2 signame
 
-    $signame = $rr->signame;
-    $rr->signame( $signame );
+	$signame = $rr->signame;
+	$rr->signame( $signame );
 
 The signer name field value identifies the owner name of the KEY
 RR that a validator is supposed to use to validate this signature.
@@ -624,16 +624,16 @@ RR that a validator is supposed to use to validate this signature.
 
 =head2 sig
 
-    $sig = $rr->sig;
-    $rr->sig( $sig );
+	$sig = $rr->sig;
+	$rr->sig( $sig );
 
 The Signature field contains the cryptographic signature that covers
 the SIG RDATA (excluding the Signature field) and the subject data.
 
 =head2 sigbin
 
-    $sigbin = $rr->sigbin;
-    $rr->sigbin( $sigbin );
+	$sigbin = $rr->sigbin;
+	$rr->sigbin( $sigbin );
 
 Binary representation of the cryptographic signature.
 
@@ -641,23 +641,23 @@ Binary representation of the cryptographic signature.
 
 Create a signature over scalar data.
 
-    use Net::DNS::SEC;
+	use Net::DNS::SEC;
 
-    $keypath = '/home/olaf/keys/Kbla.foo.+001+60114.private';
+	$keypath = '/home/olaf/keys/Kbla.foo.+001+60114.private';
 
-    $sigrr = Net::DNS::RR::SIG->create( $data, $keypath );
+	$sigrr = Net::DNS::RR::SIG->create( $data, $keypath );
 
-    $sigrr = Net::DNS::RR::SIG->create( $data, $keypath,
+	$sigrr = Net::DNS::RR::SIG->create( $data, $keypath,
 					sigval => 10
 					);
-    $sigrr->print;
+	$sigrr->print;
 
 
-    # Alternatively use Net::DNS::SEC::Private 
+	# Alternatively use Net::DNS::SEC::Private 
 
-    $private = Net::DNS::SEC::Private->new($keypath);
+	$private = Net::DNS::SEC::Private->new($keypath);
 
-    $sigrr= Net::DNS::RR::SIG->create( $data, $private );
+	$sigrr= Net::DNS::RR::SIG->create( $data, $private );
 
 
 create() is an alternative constructor for a SIG RR object.  
@@ -699,8 +699,8 @@ to determine the keyowner, algorithm, and the keyid (keytag).
 
 =head2 verify
 
-    $verify = $sigrr->verify( $data, $keyrr );
-    $verify = $sigrr->verify( $data, [$keyrr, $keyrr2, $keyrr3] );
+	$verify = $sigrr->verify( $data, $keyrr );
+	$verify = $sigrr->verify( $data, [$keyrr, $keyrr2, $keyrr3] );
 
 The verify() method performs SIG0 verification of the specified data
 against the signature contained in the $sigrr object itself using
@@ -718,10 +718,10 @@ Returns false on error and sets $sig->vrfyerrstr
 
 =head2 vrfyerrstr
 
-    $sig0 = $packet->sigrr || die 'not signed';
-    print $sig0->vrfyerrstr unless $sig0->verify( $packet, $keyrr );
+	$sig0 = $packet->sigrr || die 'not signed';
+	print $sig0->vrfyerrstr unless $sig0->verify( $packet, $keyrr );
 
-    $sigrr->verify( $packet, $keyrr ) || die $sigrr->vrfyerrstr;
+	$sigrr->verify( $packet, $keyrr ) || die $sigrr->vrfyerrstr;
 
 =head1 REMARKS
 

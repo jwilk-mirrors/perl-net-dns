@@ -61,8 +61,8 @@ __END__
 
 =head1 SYNOPSIS
 
-    use Net::DNS;
-    $rr = Net::DNS::RR->new('name MB madname');
+	use Net::DNS;
+	$rr = Net::DNS::RR->new('name MB madname');
 
 =head1 DESCRIPTION
 
@@ -80,8 +80,8 @@ other unpredictable behaviour.
 
 =head2 madname
 
-    $madname = $rr->madname;
-    $rr->madname( $madname );
+	$madname = $rr->madname;
+	$rr->madname( $madname );
 
 A domain name which specifies a host which has the
 specified mailbox.

@@ -20,9 +20,9 @@ __END__
 
 =head1 SYNOPSIS
 
-    use Net::DNS;
-    $rr = Net::DNS::RR->new('alias  DELEG 0 target');
-    $rr = Net::DNS::RR->new('domain DELEG 1 nameserver ipv6hint=2001:db8::f00');
+	use Net::DNS;
+	$rr = Net::DNS::RR->new('alias  DELEG 0 target');
+	$rr = Net::DNS::RR->new('domain DELEG 1 nameserver ipv6hint=2001:db8::f00');
 
 =head1 DESCRIPTION
 

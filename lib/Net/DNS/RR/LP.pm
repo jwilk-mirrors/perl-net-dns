@@ -82,10 +82,10 @@ __END__
 
 =head1 SYNOPSIS
 
-    use Net::DNS;
-    $rr = Net::DNS::RR->new('name IN LP preference FQDN');
+	use Net::DNS;
+	$rr = Net::DNS::RR->new('name IN LP preference FQDN');
 
-    $rr = Net::DNS::RR->new(
+	$rr = Net::DNS::RR->new(
 	name	   => 'example.com',
 	type	   => 'LP',
 	preference => 10,
@@ -113,8 +113,8 @@ other unpredictable behaviour.
 
 =head2 preference
 
-    $preference = $rr->preference;
-    $rr->preference( $preference );
+	$preference = $rr->preference;
+	$rr->preference( $preference );
 
 A 16 bit unsigned integer in network byte order that indicates the
 relative preference for this LP record among other LP records
@@ -125,8 +125,8 @@ higher values.
 
 =head2 target
 
-    $target = $rr->target;
-    $rr->target( $target );
+	$target = $rr->target;
+	$rr->target( $target );
 
 The FQDN field contains the DNS target name that is used to
 reference L32 and/or L64 records.

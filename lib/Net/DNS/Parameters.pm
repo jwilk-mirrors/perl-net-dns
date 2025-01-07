@@ -454,7 +454,7 @@ Net::DNS::Parameters - DNS parameter assignments
 
 =head1 SYNOPSIS
 
-    use Net::DNS::Parameters;
+	use Net::DNS::Parameters;
 
 
 =head1 DESCRIPTION

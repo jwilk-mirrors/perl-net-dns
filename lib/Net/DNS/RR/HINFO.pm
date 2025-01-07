@@ -70,8 +70,8 @@ __END__
 
 =head1 SYNOPSIS
 
-    use Net::DNS;
-    $rr = Net::DNS::RR->new('name HINFO cpu os');
+	use Net::DNS;
+	$rr = Net::DNS::RR->new('name HINFO cpu os');
 
 =head1 DESCRIPTION
 
@@ -89,15 +89,15 @@ other unpredictable behaviour.
 
 =head2 cpu
 
-    $cpu = $rr->cpu;
-    $rr->cpu( $cpu );
+	$cpu = $rr->cpu;
+	$rr->cpu( $cpu );
 
 Returns the CPU type for this RR.
 
 =head2 os
 
-    $os = $rr->os;
-    $rr->os( $os );
+	$os = $rr->os;
+	$rr->os( $os );
 
 Returns the operating system type for this RR.
 

@@ -12,13 +12,13 @@ Net::DNS::DomainName - DNS name representation
 
 =head1 SYNOPSIS
 
-    use Net::DNS::DomainName;
+	use Net::DNS::DomainName;
 
-    $object = Net::DNS::DomainName->new('example.com');
-    $name = $object->name;
-    $data = $object->encode;
+	$object = Net::DNS::DomainName->new('example.com');
+	$name = $object->name;
+	$data = $object->encode;
 
-    ( $object, $next ) = Net::DNS::DomainName->decode( \$data, $offset );
+	( $object, $next ) = Net::DNS::DomainName->decode( \$data, $offset );
 
 =head1 DESCRIPTION
 
@@ -48,7 +48,7 @@ use Carp;
 
 =head2 new
 
-    $object = Net::DNS::DomainName->new('example.com');
+	$object = Net::DNS::DomainName->new('example.com');
 
 Creates a domain name object which identifies the domain specified
 by the character string argument.
@@ -56,7 +56,7 @@ by the character string argument.
 
 =head2 canonical
 
-    $data = $object->canonical;
+	$data = $object->canonical;
 
 Returns the canonical wire-format representation of the domain name
 as defined in RFC2535(8.1).
@@ -74,9 +74,9 @@ sub canonical {
 
 =head2 decode
 
-    $object = Net::DNS::DomainName->decode( \$buffer, $offset, $hash );
+	$object = Net::DNS::DomainName->decode( \$buffer, $offset, $hash );
 
-    ( $object, $next ) = Net::DNS::DomainName->decode( \$buffer, $offset, $hash );
+	( $object, $next ) = Net::DNS::DomainName->decode( \$buffer, $offset, $hash );
 
 Creates a domain name object which represents the DNS domain name
 identified by the wire-format data at the indicated offset within
@@ -131,7 +131,7 @@ sub decode {
 
 =head2 encode
 
-    $data = $object->encode;
+	$data = $object->encode;
 
 Returns the wire-format representation of the domain name suitable
 for inclusion in a DNS packet buffer.
@@ -154,12 +154,12 @@ Net::DNS::DomainName1035 implements a subclass of domain name
 objects which are to be encoded using the compressed wire format
 defined in RFC1035.
 
-    use Net::DNS::DomainName;
+	use Net::DNS::DomainName;
 
-    $object = Net::DNS::DomainName1035->new('compressible.example.com');
-    $data   = $object->encode( $offset, $hash );
+	$object = Net::DNS::DomainName1035->new('compressible.example.com');
+	$data   = $object->encode( $offset, $hash );
 
-    ( $object, $next ) = Net::DNS::DomainName1035->decode( \$data, $offset );
+	( $object, $next ) = Net::DNS::DomainName1035->decode( \$data, $offset );
 
 Note that RFC3597 implies that the RR types defined in RFC1035
 section 3.3 are the only types eligible for compression.
@@ -167,7 +167,7 @@ section 3.3 are the only types eligible for compression.
 
 =head2 encode
 
-    $data = $object->encode( $offset, $hash );
+	$data = $object->encode( $offset, $hash );
 
 Returns the wire-format representation of the domain name suitable
 for inclusion in a DNS packet buffer.
@@ -219,17 +219,17 @@ Note that RFC3597, and latterly RFC4034, specifies that the lower
 case canonical encoding defined in RFC2535 is to be used for RR
 types defined prior to RFC3597.
 
-    use Net::DNS::DomainName;
+	use Net::DNS::DomainName;
 
-    $object = Net::DNS::DomainName2535->new('incompressible.example.com');
-    $data   = $object->encode( $offset, $hash );
+	$object = Net::DNS::DomainName2535->new('incompressible.example.com');
+	$data   = $object->encode( $offset, $hash );
 
-    ( $object, $next ) = Net::DNS::DomainName2535->decode( \$data, $offset );
+	( $object, $next ) = Net::DNS::DomainName2535->decode( \$data, $offset );
 
 
 =head2 encode
 
-    $data = $object->encode( $offset, $hash );
+	$data = $object->encode( $offset, $hash );
 
 Returns the uncompressed wire-format representation of the domain
 name suitable for inclusion in a DNS packet buffer.

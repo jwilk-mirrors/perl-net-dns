@@ -98,11 +98,11 @@ __END__
 
 =head1 SYNOPSIS
 
-    use Net::DNS;
-    $rr = Net::DNS::RR->new('client.example.com. DHCID ( AAAB
+	use Net::DNS;
+	$rr = Net::DNS::RR->new('client.example.com. DHCID ( AAAB
 	xLmlskllE0MVjd57zHcWmEH3pCQ6VytcKD//7es/deY=');
 
-    $rr = Net::DNS::RR->new(
+	$rr = Net::DNS::RR->new(
 	name	       => 'client.example.com',
 	type	       => 'DHCID',
 	digest	       => 'ObfuscatedIdentityData',
@@ -126,24 +126,24 @@ other unpredictable behaviour.
 
 =head2 identifiertype
 
-    $identifiertype = $rr->identifiertype;
-    $rr->identifiertype( $identifiertype );
+	$identifiertype = $rr->identifiertype;
+	$rr->identifiertype( $identifiertype );
 
 The 16-bit identifier type describes the form of host identifier
 used to construct the DHCP identity information.
 
 =head2 digesttype
 
-    $digesttype = $rr->digesttype;
-    $rr->digesttype( $digesttype );
+	$digesttype = $rr->digesttype;
+	$rr->digesttype( $digesttype );
 
 The 8-bit digest type number describes the message-digest
 algorithm used to obfuscate the DHCP identity information.
 
 =head2 digest
 
-    $digest = $rr->digest;
-    $rr->digest( $digest );
+	$digest = $rr->digest;
+	$rr->digest( $digest );
 
 Binary representation of the digest of DHCP identity information.
 

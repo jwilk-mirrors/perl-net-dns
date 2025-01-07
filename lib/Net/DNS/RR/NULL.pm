@@ -20,8 +20,8 @@ __END__
 
 =head1 SYNOPSIS
 
-    use Net::DNS;
-    $rr = Net::DNS::RR->new('name NULL \# length hexdata ...');
+	use Net::DNS;
+	$rr = Net::DNS::RR->new('name NULL \# length hexdata ...');
 
 =head1 DESCRIPTION
 
@@ -39,14 +39,14 @@ other unpredictable behaviour.
 
 =head2 rdlength
 
-    $rdlength = $rr->rdlength;
+	$rdlength = $rr->rdlength;
 
 Returns the length of the record data section.
 
 =head2 rdata
 
-    $rdata = $rr->rdata;
-    $rr->rdata( $rdata );
+	$rdata = $rr->rdata;
+	$rr->rdata( $rdata );
 
 Returns the record data section as binary data.
 

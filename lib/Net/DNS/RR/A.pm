@@ -66,10 +66,10 @@ __END__
 
 =head1 SYNOPSIS
 
-    use Net::DNS;
-    $rr = Net::DNS::RR->new('name IN A address');
+	use Net::DNS;
+	$rr = Net::DNS::RR->new('name IN A address');
 
-    $rr = Net::DNS::RR->new(
+	$rr = Net::DNS::RR->new(
 	name	=> 'example.com',
 	type	=> 'A',
 	address => '192.0.2.1'
@@ -91,8 +91,8 @@ other unpredictable behaviour.
 
 =head2 address
 
-    $IPv4_address = $rr->address;
-    $rr->address( $IPv4_address );
+	$IPv4_address = $rr->address;
+	$rr->address( $IPv4_address );
 
 Version 4 IP address represented using dotted-quad notation.
 

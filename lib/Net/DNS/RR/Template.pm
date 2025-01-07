@@ -147,8 +147,8 @@ __END__
 
 =head1 SYNOPSIS
 
-    use Net::DNS;
-    $rr = Net::DNS::RR->new('name XXXX ... ');
+	use Net::DNS;
+	$rr = Net::DNS::RR->new('name XXXX ... ');
 
 =head1 DESCRIPTION
 
@@ -166,15 +166,15 @@ other unpredictable behaviour.
 
 =head2 preference
 
-    $preference = $rr->preference;
-    $rr->preference( $preference );
+	$preference = $rr->preference;
+	$rr->preference( $preference );
 
 Returns the server selection preference.
 
 =head2 foo
 
-    $foo = $rr->foo;
-    $rr->foo( $foo );
+	$foo = $rr->foo;
+	$rr->foo( $foo );
 
 Returns the domain name of the foo server.
 

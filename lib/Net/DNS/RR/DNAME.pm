@@ -66,8 +66,8 @@ __END__
 
 =head1 SYNOPSIS
 
-    use Net::DNS;
-    $rr = Net::DNS::RR->new('name DNAME target');
+	use Net::DNS;
+	$rr = Net::DNS::RR->new('name DNAME target');
 
 =head1 DESCRIPTION
 
@@ -85,8 +85,8 @@ other unpredictable behaviour.
 
 =head2 target
 
-    $target = $rr->target;
-    $rr->target( $target );
+	$target = $rr->target;
+	$rr->target( $target );
 
 Redirection target domain name which is to be substituted
 for its owner as a suffix of a domain name.

@@ -47,7 +47,7 @@ __END__
 
 =head1 SYNOPSIS
 
-    use Net::DNS::Resolver;
+	use Net::DNS::Resolver;
 
 =head1 DESCRIPTION
 

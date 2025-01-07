@@ -131,8 +131,8 @@ __END__
 
 =head1 SYNOPSIS
 
-    use Net::DNS;
-    $rr = Net::DNS::RR->new('name IN HIP algorithm hit key servers');
+	use Net::DNS;
+	$rr = Net::DNS::RR->new('name IN HIP algorithm hit key servers');
 
 =head1 DESCRIPTION
 
@@ -150,8 +150,8 @@ other unpredictable behaviour.
 
 =head2 algorithm
 
-    $algorithm = $rr->algorithm;
-    $rr->algorithm( $algorithm );
+	$algorithm = $rr->algorithm;
+	$rr->algorithm( $algorithm );
 
 The PK algorithm field indicates the public key cryptographic
 algorithm and the implied public key field format.
@@ -159,35 +159,35 @@ The values are those defined for the IPSECKEY algorithm type [RFC4025].
 
 =head2 hit
 
-    $hit = $rr->hit;
-    $rr->hit( $hit );
+	$hit = $rr->hit;
+	$rr->hit( $hit );
 
 The hexadecimal representation of the host identity tag.
 
 =head2 hitbin
 
-    $hitbin = $rr->hitbin;
-    $rr->hitbin( $hitbin );
+	$hitbin = $rr->hitbin;
+	$rr->hitbin( $hitbin );
 
 The binary representation of the host identity tag.
 
 =head2 key
 
-    $key = $rr->key;
-    $rr->key( $key );
+	$key = $rr->key;
+	$rr->key( $key );
 
 The hexadecimal representation of the public key.
 
 =head2 keybin
 
-    $keybin = $rr->keybin;
-    $rr->keybin( $keybin );
+	$keybin = $rr->keybin;
+	$rr->keybin( $keybin );
 
 The binary representation of the public key.
 
 =head2 servers
 
-    @servers = $rr->servers;
+	@servers = $rr->servers;
 
 Optional list of domain names of rendezvous servers.
 

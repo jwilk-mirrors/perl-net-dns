@@ -61,8 +61,8 @@ __END__
 
 =head1 SYNOPSIS
 
-    use Net::DNS;
-    $rr = Net::DNS::RR('name MR newname');
+	use Net::DNS;
+	$rr = Net::DNS::RR('name MR newname');
 
 =head1 DESCRIPTION
 
@@ -80,8 +80,8 @@ other unpredictable behaviour.
 
 =head2 newname
 
-    $newname = $rr->newname;
-    $rr->newname( $newname );
+	$newname = $rr->newname;
+	$rr->newname( $newname );
 
 A domain name which specifies a mailbox which is the
 proper rename of the specified mailbox.

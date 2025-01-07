@@ -31,15 +31,15 @@ __END__
 
 =head1 SYNOPSIS
 
-    use Net::DNS;
-    $rr = Net::DNS::RR->new('name SPF spfdata ...');
+	use Net::DNS;
+	$rr = Net::DNS::RR->new('name SPF spfdata ...');
 
-    $rr = Net::DNS::RR->new( name    => 'name',
+	$rr = Net::DNS::RR->new( name    => 'name',
 			    type    => 'SPF',
 			    spfdata => 'single text string'
 			    );
 
-    $rr = Net::DNS::RR->new( name    => 'name',
+	$rr = Net::DNS::RR->new( name    => 'name',
 			    type    => 'SPF',
 			    spfdata => [ 'multiple', 'strings', ... ]
 			    );
@@ -65,10 +65,10 @@ other unpredictable behaviour.
 
 =head2 txtdata
 
-    $string = $rr->spfdata;
-    @list   = $rr->spfdata;
+	$string = $rr->spfdata;
+	@list   = $rr->spfdata;
 
-    $rr->spfdata( @list );
+	$rr->spfdata( @list );
 
 When invoked in scalar context, spfdata() returns the policy text as
 a single string, with text elements concatenated without intervening

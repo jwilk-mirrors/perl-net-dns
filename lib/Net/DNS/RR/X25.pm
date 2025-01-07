@@ -64,8 +64,8 @@ __END__
 
 =head1 SYNOPSIS
 
-    use Net::DNS;
-    $rr = Net::DNS::RR->new('name X25 PSDNaddress');
+	use Net::DNS;
+	$rr = Net::DNS::RR->new('name X25 PSDNaddress');
 
 =head1 DESCRIPTION
 
@@ -85,8 +85,8 @@ other unpredictable behaviour.
 
 =head2 address
 
-    $address = $rr->address;
-    $rr->address( $address );
+	$address = $rr->address;
+	$rr->address( $address );
 
 The PSDN-address is a string of decimal digits, beginning with
 the 4 digit DNIC (Data Network Identification Code), as specified

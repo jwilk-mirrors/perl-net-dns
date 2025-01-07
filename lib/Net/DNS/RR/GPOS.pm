@@ -102,8 +102,8 @@ __END__
 
 =head1 SYNOPSIS
 
-    use Net::DNS;
-    $rr = Net::DNS::RR->new('name GPOS latitude longitude altitude');
+	use Net::DNS;
+	$rr = Net::DNS::RR->new('name GPOS latitude longitude altitude');
 
 =head1 DESCRIPTION
 
@@ -121,22 +121,22 @@ other unpredictable behaviour.
 
 =head2 latitude
 
-    $latitude = $rr->latitude;
-    $rr->latitude( $latitude );
+	$latitude = $rr->latitude;
+	$rr->latitude( $latitude );
 
 Floating-point representation of latitude, in degrees.
 
 =head2 longitude
 
-    $longitude = $rr->longitude;
-    $rr->longitude( $longitude );
+	$longitude = $rr->longitude;
+	$rr->longitude( $longitude );
 
 Floating-point representation of longitude, in degrees.
 
 =head2 altitude
 
-    $altitude = $rr->altitude;
-    $rr->altitude( $altitude );
+	$altitude = $rr->altitude;
+	$rr->altitude( $altitude );
 
 Floating-point representation of altitude, in metres.
 

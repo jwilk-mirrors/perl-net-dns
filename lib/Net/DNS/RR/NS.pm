@@ -63,10 +63,10 @@ __END__
 
 =head1 SYNOPSIS
 
-    use Net::DNS;
-    $rr = Net::DNS::RR->new('name NS nsdname');
+	use Net::DNS;
+	$rr = Net::DNS::RR->new('name NS nsdname');
 
-    $rr = Net::DNS::RR->new(
+	$rr = Net::DNS::RR->new(
 	name	=> 'example.com',
 	type	=> 'NS',
 	nsdname => 'ns.example.com',
@@ -88,8 +88,8 @@ other unpredictable behaviour.
 
 =head2 nsdname
 
-    $nsdname = $rr->nsdname;
-    $rr->nsdname( $nsdname );
+	$nsdname = $rr->nsdname;
+	$rr->nsdname( $nsdname );
 
 A domain name which specifies a host which should be
 authoritative for the specified class and domain.

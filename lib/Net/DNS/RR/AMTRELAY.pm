@@ -152,8 +152,8 @@ __END__
 
 =head1 SYNOPSIS
 
-    use Net::DNS;
-    $rr = Net::DNS::RR->new('owner AMTRELAY precedence Dbit relaytype relay');
+	use Net::DNS;
+	$rr = Net::DNS::RR->new('owner AMTRELAY precedence Dbit relaytype relay');
 
 =head1 DESCRIPTION
 
@@ -177,8 +177,8 @@ other unpredictable behaviour.
 
 =head2 precedence
 
-    $precedence = $rr->precedence;
-    $rr->precedence( $precedence );
+	$precedence = $rr->precedence;
+	$rr->precedence( $precedence );
 
 8-bit integer which indicates relative precedence within the RRset.
 Relays listed in AMTRELAY records with lower precedence are to be
@@ -186,8 +186,8 @@ attempted first.
 
 =head2 Dbit, Discovery Optional
 
-    $Dbit = $rr->Dbit;
-    $rr->Dbit(1);
+	$Dbit = $rr->Dbit;
+	$rr->Dbit(1);
 
 Boolean field which indicates that the gateway MAY send an AMT Request
 message directly to the discovered relay address without first sending
@@ -195,7 +195,7 @@ an AMT Discovery message.
 
 =head2 relaytype
 
-    $relaytype = $rr->relaytype;
+	$relaytype = $rr->relaytype;
 
 The relaytype type field indicates the format of the information that is
 stored in the relay field.
@@ -216,8 +216,8 @@ The following values are defined:
 
 =head2 relay
 
-    $relay = $rr->relay;
-    $rr->relay( $relay );
+	$relay = $rr->relay;
+	$rr->relay( $relay );
 
 The relay field is the address or domain name of the AMT relay.
 It is formatted according to the relaytype field.

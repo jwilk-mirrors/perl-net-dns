@@ -59,10 +59,10 @@ __END__
 
 =head1 SYNOPSIS
 
-    use Net::DNS;
-    $rr = Net::DNS::RR->new('name IN EUI64 address');
+	use Net::DNS;
+	$rr = Net::DNS::RR->new('name IN EUI64 address');
 
-    $rr = Net::DNS::RR->new(
+	$rr = Net::DNS::RR->new(
 	name	=> 'example.com',
 	type	=> 'EUI64',
 	address => '00-00-5e-ef-10-00-00-2a'

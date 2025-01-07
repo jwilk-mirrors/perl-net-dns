@@ -102,8 +102,8 @@ __END__
 
 =head1 SYNOPSIS
 
-    use Net::DNS;
-    $rr = Net::DNS::RR->new('name SRV priority weight port target');
+	use Net::DNS;
+	$rr = Net::DNS::RR->new('name SRV priority weight port target');
 
 =head1 DESCRIPTION
 
@@ -121,29 +121,29 @@ other unpredictable behaviour.
 
 =head2 priority
 
-    $priority = $rr->priority;
-    $rr->priority( $priority );
+	$priority = $rr->priority;
+	$rr->priority( $priority );
 
 Returns the priority for this target host.
 
 =head2 weight
 
-    $weight = $rr->weight;
-    $rr->weight( $weight );
+	$weight = $rr->weight;
+	$rr->weight( $weight );
 
 Returns the weight for this target host.
 
 =head2 port
 
-    $port = $rr->port;
-    $rr->port( $port );
+	$port = $rr->port;
+	$rr->port( $port );
 
 Returns the port number for the service on this target host.
 
 =head2 target
 
-    $target = $rr->target;
-    $rr->target( $target );
+	$target = $rr->target;
+	$rr->target( $target );
 
 Returns the domain name of the target host.
 

@@ -78,10 +78,10 @@ __END__
 
 =head1 SYNOPSIS
 
-    use Net::DNS;
-    $rr = Net::DNS::RR->new('name IN L64 preference locator64');
+	use Net::DNS;
+	$rr = Net::DNS::RR->new('name IN L64 preference locator64');
 
-    $rr = Net::DNS::RR->new(
+	$rr = Net::DNS::RR->new(
 	name	   => 'example.com',
 	type	   => 'L64',
 	preference => 10,
@@ -107,8 +107,8 @@ other unpredictable behaviour.
 
 =head2 preference
 
-    $preference = $rr->preference;
-    $rr->preference( $preference );
+	$preference = $rr->preference;
+	$rr->preference( $preference );
 
 A 16 bit unsigned integer in network byte order that indicates the
 relative preference for this L64 record among other L64 records
@@ -117,7 +117,7 @@ higher values.
 
 =head2 locator64
 
-    $locator64 = $rr->locator64;
+	$locator64 = $rr->locator64;
 
 The Locator64 field is an unsigned 64-bit integer in network byte
 order that has the same syntax and semantics as a 64-bit IPv6

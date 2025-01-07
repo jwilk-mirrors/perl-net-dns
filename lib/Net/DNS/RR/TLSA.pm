@@ -107,8 +107,8 @@ __END__
 
 =head1 SYNOPSIS
 
-    use Net::DNS;
-    $rr = Net::DNS::RR->new('name TLSA usage selector matchingtype certificate');
+	use Net::DNS;
+	$rr = Net::DNS::RR->new('name TLSA usage selector matchingtype certificate');
 
 =head1 DESCRIPTION
 
@@ -130,24 +130,24 @@ other unpredictable behaviour.
 
 =head2 usage
 
-    $usage = $rr->usage;
-    $rr->usage( $usage );
+	$usage = $rr->usage;
+	$rr->usage( $usage );
 
 8-bit integer value which specifies the provided association that
 will be used to match the certificate presented in the TLS handshake.
 
 =head2 selector
 
-    $selector = $rr->selector;
-    $rr->selector( $selector );
+	$selector = $rr->selector;
+	$rr->selector( $selector );
 
 8-bit integer value which specifies which part of the TLS certificate
 presented by the server will be matched against the association data.
 
 =head2 matchingtype
 
-    $matchingtype = $rr->matchingtype;
-    $rr->matchingtype( $matchingtype );
+	$matchingtype = $rr->matchingtype;
+	$rr->matchingtype( $matchingtype );
 
 8-bit integer value which specifies how the certificate association
 is presented.
@@ -156,21 +156,21 @@ is presented.
 
 =head2 cert
 
-    $cert = $rr->cert;
-    $rr->cert( $cert );
+	$cert = $rr->cert;
+	$rr->cert( $cert );
 
 Hexadecimal representation of the certificate data.
 
 =head2 certbin
 
-    $certbin = $rr->certbin;
-    $rr->certbin( $certbin );
+	$certbin = $rr->certbin;
+	$rr->certbin( $certbin );
 
 Binary representation of the certificate data.
 
 =head2 babble
 
-    print $rr->babble;
+	print $rr->babble;
 
 The babble() method returns the 'BubbleBabble' representation of the
 digest if the Digest::BubbleBabble package is available, otherwise

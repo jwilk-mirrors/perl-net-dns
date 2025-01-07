@@ -20,8 +20,8 @@ __END__
 
 =head1 SYNOPSIS
 
-    use Net::DNS;
-    $rr = Net::DNS::RR->new('name HTTPS SvcPriority TargetName alpn=h3-29,h3-28,h3-27,h2 ...');
+	use Net::DNS;
+	$rr = Net::DNS::RR->new('name HTTPS SvcPriority TargetName alpn=h3-29,h3-28,h3-27,h2 ...');
 
 =head1 DESCRIPTION
 
