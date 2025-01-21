@@ -635,21 +635,22 @@ sub sign_tsig {
 
 =head2 verify and verifyerr
 
-	$packet->verify()	|| die $packet->verifyerr;
-	$reply->verify($query)	|| die $reply->verifyerr;
+	$reply->verify($query) || die $reply->verifyerr;
 
-Verify TSIG signature of packet or reply to the corresponding query.
+Verify TSIG signature of a reply to the corresponding query.
 
 
 	$opaque  = $packet1->verify( $query ) || die $packet1->verifyerr;
 	$opaque  = $packet2->verify( $opaque );
 	$verifed = $packet3->verify( $opaque ) || die $packet3->verifyerr;
 
-The opaque intermediate object references returned during multi-packet
-verify() will be undefined (Boolean false) if verification fails.
-Access to the object itself, if it exists, is expressly forbidden.
-Testing at every stage may be omitted, which results in a BADSIG error
+Verify TSIG signature of a multi-packet reply to the corresponding query.
+
+The opaque intermediate object references returned by verify() at each
+stage will be undefined (Boolean false) if verification fails.
+Testing at every stage is not necessary, which produces a BADSIG error
 on the final packet in the absence of more specific information.
+Access to the objects themselves, if they exist, is expressly forbidden.
 
 =cut
 

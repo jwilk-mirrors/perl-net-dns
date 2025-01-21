@@ -166,13 +166,9 @@ the corresponding ( name => value ) form may also be used.
 
 	# Did it work?
 	if ($reply) {
-	if ( $reply->header->rcode eq 'NOERROR' ) {
-		    print "Update succeeded\n";
+		print 'Update RCODE: ', $reply->header->rcode, "\n";
 	} else {
-		    print 'Update failed: ', $reply->header->rcode, "\n";
-	}
-	} else {
-	print 'Update failed: ', $resolver->errorstring, "\n";
+		print 'Update failed: ', $resolver->errorstring, "\n";
 	}
 
 

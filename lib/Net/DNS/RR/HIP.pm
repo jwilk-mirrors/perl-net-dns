@@ -176,7 +176,7 @@ The binary representation of the host identity tag.
 	$key = $rr->key;
 	$rr->key( $key );
 
-The hexadecimal representation of the public key.
+The MIME Base64 representation of the public key.
 
 =head2 keybin
 
@@ -223,6 +223,6 @@ DEALINGS IN THE SOFTWARE.
 =head1 SEE ALSO
 
 L<perl> L<Net::DNS> L<Net::DNS::RR>
-L<RFC8005|https://tools.ietf.org/html/rfc8005>
+L<RFC8005|https://iana.org/go/rfc8005>
 
 =cut

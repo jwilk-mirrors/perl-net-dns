@@ -83,9 +83,8 @@ sub flags {
 
 sub zone {
 	my ( $self, @value ) = @_;
-	for ( $self->{flags} |= 0 ) {
-		if ( scalar @value ) {
-			$_ |= 0x0100;
+	if ( scalar @value ) {
+		for ( $self->{flags} |= 0x0100 ) {
 			$_ ^= 0x0100 unless shift @value;
 		}
 	}
@@ -95,9 +94,8 @@ sub zone {
 
 sub revoke {
 	my ( $self, @value ) = @_;
-	for ( $self->{flags} |= 0 ) {
-		if ( scalar @value ) {
-			$_ |= 0x0080;
+	if ( scalar @value ) {
+		for ( $self->{flags} |= 0x0080 ) {
 			$_ ^= 0x0080 unless shift @value;
 		}
 	}
@@ -107,9 +105,8 @@ sub revoke {
 
 sub sep {
 	my ( $self, @value ) = @_;
-	for ( $self->{flags} |= 0 ) {
-		if ( scalar @value ) {
-			$_ |= 0x0001;
+	if ( scalar @value ) {
+		for ( $self->{flags} |= 0x0001 ) {
 			$_ ^= 0x0001 unless shift @value;
 		}
 	}
@@ -310,7 +307,7 @@ Unsigned 16-bit number representing Boolean flags.
 	$rr->zone(1);
 
 	if ( $rr->zone ) {
-	...
+		...
 	}
 
 Boolean ZONE flag.
@@ -324,7 +321,7 @@ Boolean ZONE flag.
 	$rr->revoke(1);
 
 	if ( $rr->revoke ) {
-	...
+		...
 	}
 
 Boolean REVOKE flag.
@@ -338,7 +335,7 @@ Boolean REVOKE flag.
 	$rr->sep(1);
 
 	if ( $rr->sep ) {
-	...
+		...
 	}
 
 Boolean Secure Entry Point (SEP) flag.
@@ -388,6 +385,8 @@ the BIND dnssec-keygen program. The format of that name being:
 	K<fqdn>+<algorithm>+<keyid>.private
 
 =head2 signame
+
+	$signame = $rr->signame;
 
 Returns the canonical signer name of the privatekey.
 

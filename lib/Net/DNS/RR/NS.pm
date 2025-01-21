@@ -67,10 +67,10 @@ __END__
 	$rr = Net::DNS::RR->new('name NS nsdname');
 
 	$rr = Net::DNS::RR->new(
-	name	=> 'example.com',
-	type	=> 'NS',
-	nsdname => 'ns.example.com',
-	);
+			name	=> 'example.com',
+			type	=> 'NS',
+			nsdname => 'ns.example.com',
+			);
 
 =head1 DESCRIPTION
 

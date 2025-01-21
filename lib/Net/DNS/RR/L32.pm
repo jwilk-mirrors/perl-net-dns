@@ -82,11 +82,11 @@ __END__
 	$rr = Net::DNS::RR->new('name IN L32 preference locator32');
 
 	$rr = Net::DNS::RR->new(
-	name	   => 'example.com',
-	type	   => 'L32',
-	preference => 10,
-	locator32  => '10.1.02.0'
-	);
+			name	   => 'example.com',
+			type	   => 'L32',
+			preference => 10,
+			locator32  => '10.1.02.0'
+			);
 
 =head1 DESCRIPTION
 
@@ -117,7 +117,7 @@ higher values.
 
 =head2 locator32
 
-	$locator32 = $rr->locator32;
+ $locator32 = $rr->locator32;
 
 The Locator32 field is an unsigned 32-bit integer in network byte
 order that has the same syntax and semantics as a 32-bit IPv4
@@ -155,6 +155,6 @@ DEALINGS IN THE SOFTWARE.
 =head1 SEE ALSO
 
 L<perl> L<Net::DNS> L<Net::DNS::RR>
-L<RFC6742|https://tools.ietf.org/html/rfc6742>
+L<RFC6742|https://iana.org/go/rfc6742>
 
 =cut

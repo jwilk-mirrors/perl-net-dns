@@ -132,16 +132,15 @@ other unpredictable behaviour.
 	$algorithm = $rr->algorithm;
 	$rr->algorithm( $algorithm );
 
-The Hash Algorithm field is represented as an unsigned decimal
-integer.  The value has a maximum of 255. 
+The 8-bit algorithm field is represented as an unsigned decimal integer. 
 
 =head2 flags
 
 	$flags = $rr->flags;
 	$rr->flags( $flags );
 
-The Flags field is represented as an unsigned decimal integer.
-The value has a maximum of 255. 
+The Flags field is an unsigned decimal integer
+interpreted as eight concatenated Boolean values. 
 
 =head2 iterations
 

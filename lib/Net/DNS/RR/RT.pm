@@ -100,7 +100,7 @@ other unpredictable behaviour.
 	$preference = $rr->preference;
 	$rr->preference( $preference );
 
-	A 16 bit integer representing the preference of the route.
+A 16 bit integer representing the preference of the route.
 Smaller numbers indicate more preferred routes.
 
 =head2 intermediate

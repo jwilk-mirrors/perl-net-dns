@@ -20,13 +20,13 @@ use Net::DNS::Text;
 
 
 sub _decode_rdata {			## decode rdata from wire-format octet string
-	my ( $self, $data, $offset ) = @_;
+	my ( $self, $data, $offset, @opaque ) = @_;
 
 	@{$self}{qw(order preference)} = unpack "\@$offset n2", $$data;
 	( $self->{flags},   $offset ) = Net::DNS::Text->decode( $data, $offset + 4 );
 	( $self->{service}, $offset ) = Net::DNS::Text->decode( $data, $offset );
 	( $self->{regexp},  $offset ) = Net::DNS::Text->decode( $data, $offset );
-	$self->{replacement} = Net::DNS::DomainName2535->decode( $data, $offset );
+	$self->{replacement} = Net::DNS::DomainName2535->decode( $data, $offset, @opaque );
 	return;
 }
 
@@ -120,7 +120,8 @@ __END__
 =head1 SYNOPSIS
 
 	use Net::DNS;
-	$rr = Net::DNS::RR->new('name NAPTR order preference flags service regexp replacement');
+	$rr = Net::DNS::RR->new('name NAPTR ( order preference
+			flags service regexp replacement )');
 
 =head1 DESCRIPTION
 
@@ -224,6 +225,6 @@ DEALINGS IN THE SOFTWARE.
 =head1 SEE ALSO
 
 L<perl> L<Net::DNS> L<Net::DNS::RR>
-L<RFC3403|https://tools.ietf.org/html/rfc3403>
+L<RFC3403|https://iana.org/go/rfc3403>
 
 =cut

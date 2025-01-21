@@ -93,6 +93,6 @@ DEALINGS IN THE SOFTWARE.
 
 L<perl> L<Net::DNS> L<Net::DNS::RR>
 L<Net::DNS::RR::DS>
-L<RFC7344|https://tools.ietf.org/html/rfc7344>
+L<RFC7344|https://iana.org/go/rfc7344>
 
 =cut

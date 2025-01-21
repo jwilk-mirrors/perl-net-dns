@@ -15,7 +15,7 @@ Net::DNS - Perl Interface to the Domain Name System
 
 =head1 SYNOPSIS
 
-	use Net::DNS;
+use Net::DNS;
 
 =head1 DESCRIPTION
 
@@ -461,7 +461,6 @@ class method. See L<Net::DNS::RR> for details.
 =head2 rrsort
 
 	use Net::DNS;
-
 	my @sorted = rrsort( $rrtype, $attribute, @rr_array );
 
 C<rrsort()> selects all RRs from the input array that are of the type defined
@@ -505,14 +504,11 @@ See L<Net::DNS::Update> for an example of performing dynamic updates.
 
 	use Net::DNS;
 	my $res   = Net::DNS::Resolver->new;
-	my $reply = $res->search("www.example.com", "AAAA");
+	my $reply = $res->search( "www.example.com", "AAAA" );
+	die "query failed: ", $res->errorstring unless $reply;
 
-	if ($reply) {
-	foreach my $rr ($reply->answer) {
-	print $rr->address, "\n" if $rr->can("address");
-	}
-	} else {
-	warn "query failed: ", $res->errorstring, "\n";
+	foreach my $rr ( $reply->answer ) {
+		print $rr->address, "\n" if $rr->can("address");
 	}
 
 
@@ -520,14 +516,11 @@ See L<Net::DNS::Update> for an example of performing dynamic updates.
 
 	use Net::DNS;
 	my $res   = Net::DNS::Resolver->new;
-	my $reply = $res->query("example.com", "NS");
+	my $reply = $res->query( "example.com", "NS");
+	die "query failed: ", $res->errorstring unless $reply;
 
-	if ($reply) {
-	foreach $rr (grep { $_->type eq "NS" } $reply->answer) {
-	print $rr->nsdname, "\n";
-	}
-	} else {
-	warn "query failed: ", $res->errorstring, "\n";
+	foreach $rr ( grep {$_->type eq "NS"} $reply->answer ) {
+		print $rr->nsdname, "\n";
 	}
 
 
@@ -536,14 +529,10 @@ See L<Net::DNS::Update> for an example of performing dynamic updates.
 	use Net::DNS;
 	my $name = "example.com";
 	my $res  = Net::DNS::Resolver->new;
-	my @mx   = mx($res, $name);
+	my @mx   = mx( $res, $name );
 
-	if (@mx) {
 	foreach $rr (@mx) {
-	print $rr->preference, "\t", $rr->exchange, "\n";
-	}
-	} else {
-	warn "Can not find MX records for $name: ", $res->errorstring, "\n";
+		print $rr->preference, "\t", $rr->exchange, "\n";
 	}
 
 
@@ -551,31 +540,28 @@ See L<Net::DNS::Update> for an example of performing dynamic updates.
 
 	use Net::DNS;
 	my $res   = Net::DNS::Resolver->new;
-	my $reply = $res->query("example.com", "SOA");
+	my $reply = $res->query( "example.com", "SOA" );
+	die "query failed: ", $res->errorstring unless $reply;
 
-	if ($reply) {
-	foreach my $rr ($reply->answer) {
-	$rr->print;
-	}
-	} else {
-	warn "query failed: ", $res->errorstring, "\n";
+	foreach my $rr ( $reply->answer ) {
+		$rr->print;
 	}
 
 
 =head2 Perform a zone transfer and print all the records.
 
 	use Net::DNS;
-	my $res  = Net::DNS::Resolver->new;
-	$res->tcp_timeout(20);
-	$res->nameservers("ns.example.com");
+	my $res  = Net::DNS::Resolver->new(
+		nameservers => ["a.iana-servers.net", "b.iana-servers.net"],
+		tcp_timeout => 20
+		);
 
 	my @zone = $res->axfr("example.com");
+	warn $res->errorstring if $res->errorstring;
 
 	foreach $rr (@zone) {
-	$rr->print;
+		$rr->print;
 	}
-
-	warn $res->errorstring if $res->errorstring;
 
 
 =head2 Perform a background query and print the reply.
@@ -584,19 +570,17 @@ See L<Net::DNS::Update> for an example of performing dynamic updates.
 	my $res    = Net::DNS::Resolver->new;
 	$res->udp_timeout(10);
 	$res->tcp_timeout(20);
-	my $socket = $res->bgsend("host.example.com", "AAAA");
+	my $socket = $res->bgsend( "www.example.com", "AAAA" );
 
 	while ( $res->bgbusy($socket) ) {
-	# do some work here while waiting for the response
-	# ...and some more here
+		# do some work here whilst awaiting the response
+		# ...and some more here
 	}
 
 	my $packet = $res->bgread($socket);
-	if ($packet) {
+	die "query failed: ", $res->errorstring unless $packet;
+
 	$packet->print;
-	} else {
-	warn "query failed: ", $res->errorstring, "\n";
-	}
 
 
 =head1 BUGS
@@ -643,7 +627,8 @@ DEALINGS IN THE SOFTWARE.
 
 =head1 AUTHOR INFORMATION
 
-Net::DNS is maintained at NLnet Labs (www.nlnetlabs.nl) by Willem Toorop.
+Net::DNS is maintained at NLnet Labs (www.nlnetlabs.nl) by Willem Toorop
+and Dick Franks.
 
 Between 2005 and 2012 Net::DNS was maintained by Olaf Kolkman.
 

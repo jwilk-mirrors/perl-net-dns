@@ -85,15 +85,17 @@ __END__
 	use Net::DNS;
 	$rr = Net::DNS::RR->new( 'name TXT	txtdata ...' );
 
-	$rr = Net::DNS::RR->new( name    => 'name',
-			     type    => 'TXT',
-			     txtdata => 'single text string'
-			     );
+	$rr = Net::DNS::RR->new(
+			name	=> 'name',
+			type	=> 'TXT',
+			txtdata => 'single text string'
+			);
 
-	$rr = Net::DNS::RR->new( name    => 'name',
-			     type    => 'TXT',
-			     txtdata => [ 'multiple', 'strings', ... ]
-			     );
+	$rr = Net::DNS::RR->new(
+			name	=> 'name',
+			type	=> 'TXT',
+			txtdata => [ 'multiple', 'strings', ... ]
+			);
 
 	use utf8;
 	$rr = Net::DNS::RR->new( 'jp TXT	古池や　蛙飛込む　水の音' );
@@ -115,7 +117,7 @@ other unpredictable behaviour.
 =head2 txtdata
 
 	$string = $rr->txtdata;
-	@list   = $rr->txtdata;
+	@list	= $rr->txtdata;
 
 	$rr->txtdata( @list );
 

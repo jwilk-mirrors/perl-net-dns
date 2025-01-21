@@ -26,9 +26,9 @@ __END__
 	my $target = 'resolver.example.net';
 
 	my $resolver = Net::DNS::Resolver->new(
-		nameserver => $target,
-		recurse	   => 0
-		);
+				nameserver => $target,
+				recurse	   => 0
+				);
 
 	$resolver->send( $target, 'RESINFO' )->print;
 

@@ -92,10 +92,10 @@ __END__
 	$rr = Net::DNS::RR->new('name IN AAAA address');
 
 	$rr = Net::DNS::RR->new(
-	name	=> 'example.com',
-	type	=> 'AAAA',
-	address => '2001:DB8::8:800:200C:417A'
-	);
+			name	=> 'example.com',
+			type	=> 'AAAA',
+			address => '2001:DB8::8:800:200C:417A'
+			);
 
 =head1 DESCRIPTION
 
@@ -167,6 +167,6 @@ DEALINGS IN THE SOFTWARE.
 =head1 SEE ALSO
 
 L<perl> L<Net::DNS> L<Net::DNS::RR>
-L<RFC3596|https://tools.ietf.org/html/rfc3596>
+L<RFC3596|https://iana.org/go/rfc3596>
 
 =cut

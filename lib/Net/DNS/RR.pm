@@ -66,7 +66,7 @@ sub new {
 
 	$aaaa	= Net::DNS::RR->new('host.example.com. 86400 AAAA 2001:DB8::1');
 	$mx	= Net::DNS::RR->new('example.com. 7200 MX 10 mailhost.example.com.');
-	$cname = Net::DNS::RR->new('www.example.com 300 IN CNAME host.example.com');
+	$cname	= Net::DNS::RR->new('www.example.com 300 IN CNAME host.example.com');
 	$txt	= Net::DNS::RR->new('txt.example.com 3600 HS TXT "text data"');
 
 Returns an object of the appropriate RR type, or a L<Net::DNS::RR> object

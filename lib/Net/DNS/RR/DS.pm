@@ -265,10 +265,10 @@ __END__
 
 	use Net::DNS::SEC;
 	$ds = Net::DNS::RR::DS->create(
-	$dnskeyrr,
-	digtype => 'SHA256',
-	ttl	=> 3600
-	);
+			$dnskeyrr,
+			digtype => 'SHA256',
+			ttl	=> 3600
+			);
 
 =head1 DESCRIPTION
 

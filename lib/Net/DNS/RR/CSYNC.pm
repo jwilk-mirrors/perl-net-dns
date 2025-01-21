@@ -70,9 +70,8 @@ sub flags {
 
 sub immediate {
 	my ( $self, @value ) = @_;
-	for ( $self->{flags} |= 0 ) {
-		if ( scalar @value ) {
-			$_ |= 0x0001;
+	if ( scalar @value ) {
+		for ( $self->{flags} |= 0x0001 ) {
 			$_ ^= 0x0001 unless shift @value;
 		}
 	}
@@ -82,9 +81,8 @@ sub immediate {
 
 sub soaminimum {
 	my ( $self, @value ) = @_;
-	for ( $self->{flags} |= 0 ) {
-		if ( scalar @value ) {
-			$_ |= 0x0002;
+	if ( scalar @value ) {
+		for ( $self->{flags} |= 0x0002 ) {
 			$_ ^= 0x0002 unless shift @value;
 		}
 	}
@@ -145,7 +143,7 @@ which affect the processing of the CSYNC record.
 	$rr->immediate(1);
 
 	if ( $rr->immediate ) {
-	...
+		...
 	}
 
 If not set, a parental agent must not process the CSYNC record until
@@ -161,7 +159,7 @@ mechanism.
 	$rr->soaminimum(1);
 
 	if ( $rr->soaminimum ) {
-	...
+		...
 	}
 
 If set, a parental agent querying child authoritative servers must not
@@ -211,6 +209,6 @@ DEALINGS IN THE SOFTWARE.
 =head1 SEE ALSO
 
 L<perl> L<Net::DNS> L<Net::DNS::RR>
-L<RFC7477|https://tools.ietf.org/html/rfc7477>
+L<RFC7477|https://iana.org/go/rfc7477>
 
 =cut

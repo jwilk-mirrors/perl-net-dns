@@ -172,6 +172,6 @@ DEALINGS IN THE SOFTWARE.
 =head1 SEE ALSO
 
 L<perl> L<Net::DNS> L<Net::DNS::RR>
-L<RFC1712|https://tools.ietf.org/html/rfc1712>
+L<RFC1712|https://iana.org/go/rfc1712>
 
 =cut

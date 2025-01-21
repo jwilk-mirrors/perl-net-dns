@@ -4,6 +4,7 @@ $Id$                       -*-text-*-
 **** 1.50 [unreleased]
 
 	Add RESINFO package for resolver information.
+	Documentation revision and reformatting.
 
 
 **** 1.49 Dec 27, 2024

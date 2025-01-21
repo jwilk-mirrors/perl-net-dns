@@ -287,6 +287,6 @@ DEALINGS IN THE SOFTWARE.
 =head1 SEE ALSO
 
 L<perl> L<Net::DNS> L<Net::DNS::RR>
-L<RFC4025|https://tools.ietf.org/html/rfc4025>
+L<RFC4025|https://iana.org/go/rfc4025>
 
 =cut

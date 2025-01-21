@@ -23,8 +23,8 @@ plan tests => 3;
 my $rr = Net::DNS::RR->new( type => 'NSEC3' );
 
 
-my $optout = $rr->optout;
-ok( !$optout, 'Boolean optout flag has default value' );
+my $optout = $rr->optout(0);
+ok( !$optout, 'Boolean optout flag cleared' );
 
 $rr->optout( !$optout );
 ok( $rr->optout, 'Boolean optout flag toggled' );

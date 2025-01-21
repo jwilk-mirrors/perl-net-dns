@@ -85,13 +85,6 @@ __END__
 	use Net::DNS;
 	$rr = Net::DNS::RR->new('name IN LP preference FQDN');
 
-	$rr = Net::DNS::RR->new(
-	name	   => 'example.com',
-	type	   => 'LP',
-	preference => 10,
-	target	   => 'target.example.com.'
-	);
-
 =head1 DESCRIPTION
 
 Class for DNS Locator Pointer (LP) resource records.
@@ -163,6 +156,6 @@ DEALINGS IN THE SOFTWARE.
 =head1 SEE ALSO
 
 L<perl> L<Net::DNS> L<Net::DNS::RR>
-L<RFC6742|https://tools.ietf.org/html/rfc6742>
+L<RFC6742|https://iana.org/go/rfc6742>
 
 =cut

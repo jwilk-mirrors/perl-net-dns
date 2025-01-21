@@ -333,7 +333,7 @@ __END__
 =head1 SYNOPSIS
 
 	use Net::DNS;
-	$rr = Net::DNS::RR->new('name HTTPS SvcPriority TargetName SvcParams');
+	$rr = Net::DNS::RR->new('name SVCB  SvcPriority TargetName SvcParams');
 
 =head1 DESCRIPTION
 

@@ -70,10 +70,10 @@ __END__
 	$rr = Net::DNS::RR->new('name IN A address');
 
 	$rr = Net::DNS::RR->new(
-	name	=> 'example.com',
-	type	=> 'A',
-	address => '192.0.2.1'
-	);
+			name	=> 'example.com',
+			type	=> 'A',
+			address => '192.0.2.1'
+			);
 
 =head1 DESCRIPTION
 

@@ -511,11 +511,11 @@ __END__
 
 	$packet->edns->UDPsize(1232);	# UDP payload size
 
-	$packet->edns->option( 'NSID'	=> {'OPTION-DATA' => 'rawbytes'} );
-	$packet->edns->option( 'DAU'	=> [8, 10, 13, 14, 15, 16] );
-	$packet->edns->option( 'TCP-KEEPALIVE'  => 200 );
+	$packet->edns->option( 'NSID' => {'OPTION-DATA' => 'rawbytes'} );
+	$packet->edns->option( 'DAU'  => [8, 10, 13, 14, 15, 16] );
+	$packet->edns->option( 'TCP-KEEPALIVE' => 200 );
 	$packet->edns->option( 'EXTENDED-ERROR' => {'INFO-CODE' => 123} );
-	$packet->edns->option( '65023'	=> {'BASE16' => '076578616d706c6500'} );
+	$packet->edns->option( '65023' => {'BASE16' => '076578616d706c6500'} );
 
 	$packet->edns->print;
 
@@ -568,7 +568,7 @@ reassembled in the network stack of the originating host.
 
 =head2 rcode
 
-	$extended_rcode	  = $packet->header->rcode;
+	$extended_rcode = $packet->header->rcode;
 
 The 12 bit extended RCODE. The most significant 8 bits are obtained from
 the OPT record. The least significant 4 bits reside in the packet
@@ -626,8 +626,10 @@ option value:
 
 	$packet->edns->option( 'DAU' => [8, 10, 13, 14, 15, 16] );
 
-	$packet->edns->option( 'EXTENDED-ERROR' => {'INFO-CODE' => 123,
-						    'EXTRA-TEXT' => ""} );
+	$packet->edns->option( 'EXTENDED-ERROR' => {
+					'INFO-CODE'  => 123,
+					'EXTRA-TEXT' => ""
+					} );
 
 
 =head1 COPYRIGHT

@@ -118,7 +118,7 @@ desired target address.
 	$scheme = $rr->scheme;
 	$rr->scheme( $scheme );
 
-The scheme indicates the mode used for locating the desired notification address.
+The scheme indicates the mode used for locating the notification address.
 This is an 8 bit unsigned integer.
 Records with value 0 (null scheme) are ignored by consumers.
 
@@ -136,7 +136,7 @@ This is a 16 bit unsigned integer.
 	$rr->target( $target );
 
 The domain name of the target host providing the service
-of listening for generalized notifications of the specified type.
+which listens for notifications of the specified type.
 This name MUST resolve to one or more address records.
 
 

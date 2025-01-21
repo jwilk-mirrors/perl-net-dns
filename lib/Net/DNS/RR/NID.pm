@@ -56,7 +56,7 @@ sub preference {
 sub nodeid {
 	my ( $self, $idnt ) = @_;
 	$self->{nodeid} = pack 'n4', map { hex($_) } split /:/, $idnt if defined $idnt;
-	return $self->{nodeid} ? sprintf( '%0.4x:%0.4x:%0.4x:%0.4x', unpack 'n4', $self->{nodeid} ) : undef;
+	return $self->{nodeid} ? join( ':', unpack 'H4H4H4H4', $self->{nodeid} ) : undef;
 }
 
 
@@ -77,13 +77,6 @@ __END__
 
 	use Net::DNS;
 	$rr = Net::DNS::RR->new('name IN NID preference nodeid');
-
-	$rr = Net::DNS::RR->new(
-	name	   => 'example.com',
-	type	   => 'NID',
-	preference => 10,
-	nodeid	   => '8:800:200C:417A'
-	);
 
 =head1 DESCRIPTION
 
@@ -153,6 +146,6 @@ DEALINGS IN THE SOFTWARE.
 =head1 SEE ALSO
 
 L<perl> L<Net::DNS> L<Net::DNS::RR>
-L<RFC6742|https://tools.ietf.org/html/rfc6742>
+L<RFC6742|https://iana.org/go/rfc6742>
 
 =cut

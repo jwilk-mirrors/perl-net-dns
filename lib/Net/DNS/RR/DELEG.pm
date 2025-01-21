@@ -21,8 +21,8 @@ __END__
 =head1 SYNOPSIS
 
 	use Net::DNS;
-	$rr = Net::DNS::RR->new('alias  DELEG 0 target');
-	$rr = Net::DNS::RR->new('domain DELEG 1 nameserver ipv6hint=2001:db8::f00');
+	$rr = Net::DNS::RR->new('alias DELEG 0 target');
+	$rr = Net::DNS::RR->new('child DELEG 1 nameserver ipv6hint=2001:db8::f00');
 
 =head1 DESCRIPTION
 
@@ -82,6 +82,6 @@ DEALINGS IN THE SOFTWARE.
 L<perl> L<Net::DNS> L<Net::DNS::RR>
 L<Net::DNS::RR::SVCB>
 
-L<RFC9460|https://tools.ietf.org/html/rfc9460>
+L<RFC9460|https://iana.org/go/rfc9460>
 
 =cut

@@ -111,9 +111,8 @@ sub flags {
 
 sub optout {
 	my ( $self, @value ) = @_;
-	for ( $self->{flags} |= 0 ) {
-		if ( scalar @value ) {
-			$_ |= 0x01;
+	if ( scalar @value ) {
+		for ( $self->{flags} |= 0x01 ) {
 			$_ ^= 0x01 unless shift @value;
 		}
 	}
@@ -354,8 +353,8 @@ other unpredictable behaviour.
 	$algorithm = $rr->algorithm;
 	$rr->algorithm( $algorithm );
 
-The Hash Algorithm field is represented as an unsigned decimal
-integer.  The value has a maximum of 255.
+The 8-bit algorithm field is represented as an unsigned decimal integer,
+but may be specified using the algorithm mnemonic.
 
 algorithm() may also be invoked as a class method or simple function
 to perform mnemonic and numeric code translation.
@@ -375,7 +374,7 @@ interpreted as eight concatenated Boolean values.
 	$rr->optout(1);
 
 	if ( $rr->optout ) {
-	...
+		...
 	}
 
 Boolean Opt Out flag.

@@ -136,6 +136,7 @@ __END__
 =head1 SYNOPSIS
 
 	use Net::DNS;
+	$rr = new Net::DNS::RR('example.com IN TKEY ...	');
 
 =head1 DESCRIPTION
 
@@ -240,6 +241,6 @@ DEALINGS IN THE SOFTWARE.
 =head1 SEE ALSO
 
 L<perl> L<Net::DNS> L<Net::DNS::RR>
-L<RFC2930|https://tools.ietf.org/html/rfc2930>
+L<RFC2930|https://iana.org/go/rfc2930>
 
 =cut

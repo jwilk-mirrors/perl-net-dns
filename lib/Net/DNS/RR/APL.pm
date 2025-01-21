@@ -184,11 +184,12 @@ other unpredictable behaviour.
 	
 	@aplist = $rr->aplist( '1:224.0.0.0/4', '2:FF00:0:0:0:0:0:0:0/8' );
 	
-	@aplist = $rr->aplist( negate  => 1,
-			   family  => 1,
-			   address => '192.168.38.0',
-			   prefix  => 28,
-			   );
+	@aplist = $rr->aplist(
+			negate	=> 1,
+			family	=> 1,
+			address => '192.168.38.0',
+			prefix	=> 28,
+			);
 
 Ordered, possibly empty, list of address prefix items.
 Additional items, if present, are appended to the existing list
@@ -206,7 +207,7 @@ created it.
 	$rr->negate(1);
 
 	if ( $rr->negate ) {
-	...
+		...
 	}
 
 Boolean attribute indicating the prefix to be an address range exclusion.
@@ -272,6 +273,6 @@ DEALINGS IN THE SOFTWARE.
 =head1 SEE ALSO
 
 L<perl> L<Net::DNS> L<Net::DNS::RR>
-L<RFC3123|https://tools.ietf.org/html/rfc3123>
+L<RFC3123|https://iana.org/go/rfc3123>
 
 =cut

@@ -34,16 +34,6 @@ __END__
 	use Net::DNS;
 	$rr = Net::DNS::RR->new('name SPF spfdata ...');
 
-	$rr = Net::DNS::RR->new( name    => 'name',
-			    type    => 'SPF',
-			    spfdata => 'single text string'
-			    );
-
-	$rr = Net::DNS::RR->new( name    => 'name',
-			    type    => 'SPF',
-			    spfdata => [ 'multiple', 'strings', ... ]
-			    );
-
 =head1 DESCRIPTION
 
 Class for DNS Sender Policy Framework (SPF) resource records.
@@ -66,7 +56,7 @@ other unpredictable behaviour.
 =head2 txtdata
 
 	$string = $rr->spfdata;
-	@list   = $rr->spfdata;
+	@list	= $rr->spfdata;
 
 	$rr->spfdata( @list );
 
@@ -109,6 +99,6 @@ DEALINGS IN THE SOFTWARE.
 
 L<perl> L<Net::DNS> L<Net::DNS::RR>
 L<Net::DNS::RR::TXT>
-L<RFC7208|https://tools.ietf.org/html/rfc7208>
+L<RFC7208|https://iana.org/go/rfc7208>
 
 =cut

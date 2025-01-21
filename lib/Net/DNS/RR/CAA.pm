@@ -71,13 +71,12 @@ sub flags {
 
 sub critical {
 	my ( $self, @value ) = @_;
-	for ( $self->{flags} |= 0 ) {
-		if ( scalar @value ) {
-			$_ |= 0x0080;
-			$_ ^= 0x0080 unless shift @value;
+	if ( scalar @value ) {
+		for ( $self->{flags} |= 0x80 ) {
+			$_ ^= 0x80 unless shift @value;
 		}
 	}
-	return $self->{flags} & 0x0080;
+	return $self->{flags} & 0x80;
 }
 
 
@@ -132,7 +131,7 @@ Unsigned 8-bit number representing Boolean flags.
 	$rr->critical(1);
 
 	if ( $rr->critical ) {
-	...
+		...
 	}
 
 Issuer critical flag.
@@ -144,11 +143,9 @@ Issuer critical flag.
 	$tag = $rr->tag;
 	$rr->tag( $tag );
 
-The property identifier, a sequence of ASCII characters.
-
-Tag values may contain ASCII characters a-z, hyphen and 0-9.
-Tag values should not contain any other characters.
-Matching of tag values is not case sensitive.
+Property identifier which may contain the characters a-z, A-Z, and 0-9.
+The tag field must not contain any other characters.
+Matching of tags is not case sensitive.
 
 =head2 value
 
@@ -191,6 +188,6 @@ DEALINGS IN THE SOFTWARE.
 =head1 SEE ALSO
 
 L<perl> L<Net::DNS> L<Net::DNS::RR>
-L<RFC8659|https://tools.ietf.org/html/rfc8659>
+L<RFC8659|https://iana.org/go/rfc8659>
 
 =cut

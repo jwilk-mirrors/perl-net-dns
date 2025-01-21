@@ -82,11 +82,11 @@ __END__
 	$rr = Net::DNS::RR->new('name IN L64 preference locator64');
 
 	$rr = Net::DNS::RR->new(
-	name	   => 'example.com',
-	type	   => 'L64',
-	preference => 10,
-	locator64  => '2001:0DB8:1140:1000'
-	);
+			name	   => 'example.com',
+			type	   => 'L64',
+			preference => 10,
+			locator64  => '2001:0DB8:1140:1000'
+			);
 
 =head1 DESCRIPTION
 
@@ -117,7 +117,7 @@ higher values.
 
 =head2 locator64
 
-	$locator64 = $rr->locator64;
+ $locator64 = $rr->locator64;
 
 The Locator64 field is an unsigned 64-bit integer in network byte
 order that has the same syntax and semantics as a 64-bit IPv6
@@ -155,6 +155,6 @@ DEALINGS IN THE SOFTWARE.
 =head1 SEE ALSO
 
 L<perl> L<Net::DNS> L<Net::DNS::RR>
-L<RFC6742|https://tools.ietf.org/html/rfc6742>
+L<RFC6742|https://iana.org/go/rfc6742>
 
 =cut

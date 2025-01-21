@@ -135,12 +135,12 @@ for my $rr ( Net::DNS::RR->new(". $type @data") ) {
 
 
 {
-	ok( Net::DNS::RR::RRSIG::_ordered( undef,	0 ),	      '_ordered( undef, 0 )' );
-	ok( Net::DNS::RR::RRSIG::_ordered( 0,		1 ),	      '_ordered( 0, 1 )' );
+	ok( Net::DNS::RR::RRSIG::_ordered( undef,	 0 ),	      '_ordered( undef, 0 )' );
+	ok( Net::DNS::RR::RRSIG::_ordered( 0,		 1 ),	      '_ordered( 0, 1 )' );
 	ok( Net::DNS::RR::RRSIG::_ordered( 0x7fffffff,	0x80000000 ), '_ordered( 0x7fffffff, 0x80000000 )' );
-	ok( Net::DNS::RR::RRSIG::_ordered( 0xffffffff,	0 ),	      '_ordered( 0xffffffff, 0 )' );
+	ok( Net::DNS::RR::RRSIG::_ordered( 0xffffffff,	 0 ),	      '_ordered( 0xffffffff, 0 )' );
 	ok( Net::DNS::RR::RRSIG::_ordered( -2,		-1 ),	      '_ordered( -2, -1 )' );
-	ok( Net::DNS::RR::RRSIG::_ordered( -1,		0 ),	      '_ordered( -1, 0 )' );
+	ok( Net::DNS::RR::RRSIG::_ordered( -1,		 0 ),	      '_ordered( -1, 0 )' );
 	ok( !Net::DNS::RR::RRSIG::_ordered( undef,	undef ),      '!_ordered( undef, undef )' );
 	ok( !Net::DNS::RR::RRSIG::_ordered( 0,		undef ),      '!_ordered( 0, undef )' );
 	ok( !Net::DNS::RR::RRSIG::_ordered( 0x80000000, 0x7fffffff ), '!_ordered( 0x80000000, 0x7fffffff )' );
