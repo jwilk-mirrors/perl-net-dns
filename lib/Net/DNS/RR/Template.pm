@@ -210,6 +210,6 @@ DEALINGS IN THE SOFTWARE.
 =head1 SEE ALSO
 
 L<perl> L<Net::DNS> L<Net::DNS::RR>
-L<RFC????|https://tools.ietf.org/html/rfc????>
+L<RFC????|https://iana.org/go/rfc????>
 
 =cut
