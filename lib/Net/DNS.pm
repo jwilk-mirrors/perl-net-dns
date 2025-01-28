@@ -15,7 +15,9 @@ Net::DNS - Perl Interface to the Domain Name System
 
 =head1 SYNOPSIS
 
-use Net::DNS;
+	use Net::DNS;
+	my $resolver = Net::DNS::Resolver->new(...);
+	my $response = $resolver->send(...);
 
 =head1 DESCRIPTION
 

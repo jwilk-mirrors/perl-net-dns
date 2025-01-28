@@ -121,7 +121,7 @@ sub json {
 QQ
 	}
 
-	my $flags  = sprintf '%04x', $self->flags;
+	my $flags  = $self->flags;
 	my $rcode  = $self->rcode;
 	my $size   = $self->udpsize;
 	my @format = map { join( "\n\t\t\t", $self->_format_option($_) ) } $self->options;
@@ -130,7 +130,7 @@ QQ
 
 	return <<"QQ";
  {	"EDNS-VERSION":	$version,
-	"FLAGS":	"$flags",
+	"FLAGS":	$flags,
 	"RCODE":	$rcode,
 	"UDPSIZE":	$size,
 	"OPTIONS":	[@indent@option ]
@@ -520,7 +520,7 @@ __END__
 	$packet->edns->print;
 
 	;; {	"EDNS-VERSION":	0,
-	;;	"FLAGS":	"8000",
+	;;	"FLAGS":	32768,
 	;;	"RCODE":	0,
 	;;	"UDPSIZE":	1232,
 	;;	"OPTIONS":	[
