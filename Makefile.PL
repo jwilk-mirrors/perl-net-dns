@@ -103,7 +103,6 @@ my $online_tests = 2;			##  2 = non-fatal, 1 = on, 0 = off  ##
 
 my @options = (
 	'online-tests!'		 => \$online_tests,
-	'noonline-tests'	 => sub { $online_tests = 0; },
 	'non-fatal-online-tests' => sub { $online_tests = 2; },
 	'IPv6-tests!'		 => \$IPv6_tests,
 	'help!'			 => \$help
@@ -305,8 +304,7 @@ sub postamble {
 	return <<'END';
 test_cover :
 	cover -delete
-	HARNESS_PERL_SWITCHES=-MDevel::Cover $(MAKE) test
-	cover
+	cover -test
 END
 }
 

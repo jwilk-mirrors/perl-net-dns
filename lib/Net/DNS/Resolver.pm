@@ -84,19 +84,19 @@ The following keywords are recognised in resolver configuration files:
 
 =over
 
-=item B<nameserver> address
+=item B<nameserver>
 
 IP address of a name server that the resolver should query.
 
-=item B<domain> localdomain
+=item B<domain>
 
 The domain suffix to be appended to a short non-absolute name.
 
-=item B<search> domain ...
+=item B<search>
 
 A space-separated list of domains in the desired search path.
 
-=item B<options> option:value ...
+=item B<options>
 
 A space-separated list of key:value items.
 

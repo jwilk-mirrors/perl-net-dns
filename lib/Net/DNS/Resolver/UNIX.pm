@@ -12,11 +12,11 @@ Net::DNS::Resolver::UNIX - Unix resolver class
 =cut
 
 
-my @config_file = grep { -f $_ && -r _ } '/etc/resolv.conf';
+my @config_file = grep { -f $_ && -r $_ } '/etc/resolv.conf';
 
 my $homedir = $ENV{HOME};
 my $dotfile = '.resolv.conf';
-my @dotfile = grep { -f $_ && -o _ } map {"$_/$dotfile"} grep {$_} $homedir, '.';
+my @dotfile = grep { -f $_ && -o $_ } map {"$_/$dotfile"} grep {$_} $homedir, '.';
 
 
 my $path = $ENV{PATH};

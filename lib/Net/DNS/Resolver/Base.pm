@@ -25,9 +25,10 @@ our $VERSION = (qw$Id$)[2];
 # [Revised March 2016, June 2018]
 
 
-use constant OS_SPEC => defined eval "require Net::DNS::Resolver::$^O";	## no critic
-use constant OS_CONF => join '::', 'Net::DNS::Resolver', OS_SPEC ? $^O : 'UNIX';
-use base OS_CONF;
+use constant OS_SPEC => "Net::DNS::Resolver::$^O";
+use constant OS_UNIX => "Net::DNS::Resolver::UNIX";
+use constant OS_CONF => grep eval "require $_", OS_SPEC, OS_UNIX;	## no critic
+use base (OS_CONF)[0];
 
 
 use constant USE_SOCKET_IP => defined eval 'use IO::Socket::IP 0.38; 1;';	## no critic
@@ -325,19 +326,17 @@ sub nameservers {
 		$self->{nameserver6} = \@ipv6;
 	}
 
-	my @ns4 = $self->{force_v6} ? () : @{$self->{nameserver4}};
-	my @ns6 = $self->{force_v4} ? () : @{$self->{nameserver6}};
+	my @IPv4 = @{$self->{nameserver4}};
+	my @IPv6 = @{$self->{nameserver6}};
+	my @map4 = map "::FFFF:$_", @IPv4;
 
-	my @nameservers = @{$self->{nameservers}};
-	@nameservers = ( @ns4, @ns6 ) if $self->{prefer_v4} || !scalar(@ns6);
-	@nameservers = ( @ns6, @ns4 ) if $self->{prefer_v6} || !scalar(@ns4);
+	my @nameservers = scalar(@IPv6) ? @{$self->{nameservers}} : ( @IPv4, @map4 );
+	@nameservers = ( @IPv4, @IPv6 ) if $self->{prefer_v4};
+	@nameservers = ( @IPv6, @IPv4 ) if $self->{prefer_v6};
+	@nameservers = scalar(@IPv6) ? @IPv6 : @map4 if $self->{force_v6};
+	@nameservers = @IPv4 if $self->{force_v4};
 
-	return @nameservers if scalar @nameservers;
-
-	my $error = 'no nameservers';
-	$error = 'IPv4 transport disabled' if scalar(@ns4) < scalar @{$self->{nameserver4}};
-	$error = 'IPv6 transport disabled' if scalar(@ns6) < scalar @{$self->{nameserver6}};
-	$self->errorstring($error);
+	$self->errorstring('no nameservers') unless @nameservers;
 	return @nameservers;
 }
 
@@ -373,10 +372,9 @@ sub _reset_errorstring {
 }
 
 sub errorstring {
-	my $self = shift;
-	my $text = shift || return $self->{errorstring};
-	$self->_diag( 'errorstring:', $text );
-	return $self->{errorstring} = $text;
+	my ( $self, $text ) = @_;
+	$self->_diag( 'errorstring:', $self->{errorstring} = $text ) if $text;
+	return $self->{errorstring};
 }
 
 
@@ -446,23 +444,25 @@ sub _send_tcp {
 	foreach my $ip (@ns) {
 		$self->_diag( 'tcp send', "[$ip]" );
 
-		my $socket = $self->_create_tcp_socket($ip);
+		my $connection = $self->_create_tcp_socket($ip);
 		$self->errorstring($!);
-		my $select = IO::Select->new( $socket || next );
+		my $select = IO::Select->new( $connection || next );
 
-		$socket->send($tcp_packet);
+		$connection->send($tcp_packet);
 		$self->errorstring($!);
 
-		my ($peer) = $select->can_read($timeout);
-		next unless $peer;				# uncoverable branch true
-		my $buffer = _read_tcp($peer);
-		my $host   = $self->{replyfrom} = $peer->peerhost;
-		$self->_diag( 'packet from', "[$host]", length($buffer), 'octets' );
+		my @ready = $select->can_read($timeout);
+		next unless @ready;				# uncoverable branch true
+		my $socket = shift @ready;
+		my $buffer = _read_tcp($socket);
+
+		$self->{replyfrom} = $ip;
+		$self->_diag( 'packet from', "[$ip]", length($buffer), 'octets' );
 
 		my $reply = Net::DNS::Packet->decode( \$buffer, $self->{debug} );
 		$self->errorstring($@);
 		next unless $self->_accept_reply( $reply, $query );
-		$reply->from($host);
+		$reply->from( $socket->peerhost );
 
 		if ( $self->{tsig_rr} && !$reply->verify($query) ) {
 			$self->errorstring( $reply->verifyerr );
@@ -475,8 +475,8 @@ sub _send_tcp {
 		$fallback = $reply;
 	}
 
-	$self->{errorstring} = $fallback->header->rcode if $fallback;
-	$self->errorstring('query timed out') unless $self->{errorstring};
+	$self->errorstring( $fallback->header->rcode ) if $fallback;
+	$self->errorstring('query timed out') unless $self->errorstring;
 	return $fallback;
 }
 
@@ -521,17 +521,19 @@ NAMESERVER: foreach my $ns (@ns) {
 					if TESTS && Scalar::Util::tainted($sockaddr);
 
 			my $reply;
-			while ( my ($socket) = $select->can_read($timeout) ) {
+			while ( my @ready = $select->can_read($timeout) ) {
+				my $socket = shift @ready;
 				my $buffer = _read_udp($socket);
 
-				my $peer = $self->{replyfrom} = $socket->peerhost;
-				$self->_diag( "packet from [$peer]", length($buffer), 'octets' );
+				$self->{replyfrom} = $ip;
+				$self->_diag( 'packet from', "[$ip]", length($buffer), 'octets' );
 
 				my $packet = Net::DNS::Packet->decode( \$buffer, $self->{debug} );
 				$self->errorstring($@);
 				next unless $self->_accept_reply( $packet, $query );
+
+				$packet->from( $socket->peerhost );
 				$reply = $packet;
-				$reply->from($peer);
 				last;
 			}					#SELECT LOOP
 
@@ -553,8 +555,8 @@ NAMESERVER: foreach my $ns (@ns) {
 		$timeout += $timeout;
 	}							#RETRY LOOP
 
-	$self->{errorstring} = $fallback->header->rcode if $fallback;
-	$self->errorstring('query timed out') unless $self->{errorstring};
+	$self->errorstring( $fallback->header->rcode ) if $fallback;
+	$self->errorstring('query timed out') unless $self->errorstring;
 	return $fallback;
 }
 
@@ -677,14 +679,14 @@ sub _bgread {
 	my $dgram  = $handle->socktype() == SOCK_DGRAM;
 	my $buffer = $dgram ? _read_udp($handle) : _read_tcp($handle);
 
-	my $peer = $self->{replyfrom} = $handle->peerhost;
-	$self->_diag( "packet from [$peer]", length($buffer), 'octets' );
+	my $peerhost = $self->{replyfrom} = $handle->peerhost;
+	$self->_diag( "packet from [$peerhost]", length($buffer), 'octets' );
 
 	my $reply = Net::DNS::Packet->decode( \$buffer, $self->{debug} );
 	$self->errorstring($@);
 
 	return unless $self->_accept_reply( $reply, $query );
-	$reply->from($peer);
+	$reply->from($peerhost);
 
 	return $reply unless $self->{tsig_rr} && !$reply->verify($query);
 	$self->errorstring( $reply->verifyerr );
@@ -1047,9 +1049,9 @@ sub srcaddr {
 
 sub tsig {
 	my ( $self, $arg, @etc ) = @_;
+	return $arg unless $arg;
+	return $arg if ref($arg) eq 'Net::DNS::RR::TSIG';
 	$self->{tsig_rr} = eval {
-		return $arg unless $arg;
-		return $arg if ref($arg) eq 'Net::DNS::RR::TSIG';
 		local $SIG{__DIE__};
 		require Net::DNS::RR::TSIG;
 		Net::DNS::RR::TSIG->create( $arg, @etc );
@@ -1103,7 +1105,7 @@ sub _diag {				## debug output
 		foreach ( grep { $_->can('address') } @glue ) {
 			push @{$glue{lc $_->name}}, $_->address;
 		}
-		map {@$_} values %glue;
+		return map {@$_} values %glue;
 	};
 
 	my @ip;

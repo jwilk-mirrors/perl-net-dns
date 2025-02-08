@@ -37,7 +37,7 @@ my @dataset = (				## plausible places to seek resolver configuration
 
 my $homedir = $ENV{HOME};
 my $dotfile = '.resolv.conf';
-my @dotfile = grep { -f $_ && -o _ } map {"$_/$dotfile"} grep {$_} $homedir, '.';
+my @dotfile = grep { -f $_ && -o $_ } map {"$_/$dotfile"} grep {$_} $homedir, '.';
 
 
 my %option = (				## map MVS config option names

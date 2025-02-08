@@ -33,7 +33,7 @@ eval {
 	my $resolver = Net::DNS::Resolver->new( igntc => 1 );
 	exit plan skip_all => 'No nameservers' unless $resolver->nameservers;
 
-	my $reply = $resolver->send(qw(. NS IN)) || die $!;
+	my $reply = $resolver->send(qw(. NS IN)) || die $resolver->errorstring;
 
 	my @ns = grep { $_->type eq 'NS' } $reply->answer, $reply->authority;
 	exit plan skip_all => 'Local nameserver broken' unless scalar @ns;
@@ -47,7 +47,7 @@ eval {
 	$resolver->force_v6(1);
 	exit plan skip_all => 'No IPv6 transport' unless $resolver->nameservers;
 
-	my $reply = $resolver->send(qw(. NS IN)) || die $!;
+	my $reply = $resolver->send(qw(. NS IN)) || die $resolver->errorstring;
 	my $from  = $reply->from();
 
 	my @ns = grep { $_->type eq 'NS' } $reply->answer, $reply->authority;
@@ -56,7 +56,7 @@ eval {
 	exit plan skip_all => "Non-authoritative response from $from" unless $reply->header->aa;
 
 	1;
-} || exit( plan skip_all => "Cannot access global root nameservers: $@" );
+} || exit( plan skip_all => "Cannot reach global root: $@" );
 
 
 my $IP = eval {
