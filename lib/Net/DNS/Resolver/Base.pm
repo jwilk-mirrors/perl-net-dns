@@ -95,8 +95,8 @@ use constant PACKETSZ => 512;
 		adflag		=> 0,	# see RFC6840, 5.7
 		cdflag		=> 0,	# see RFC6840, 5.9
 		udppacketsize	=> 0,	# value bounded below by PACKETSZ
-		force_v4	=> ( IPv6 ? 0 : 1 ),
-		force_v6	=> 0,	# only relevant if IPv6 is supported
+		force_v4	=> 0,
+		force_v6	=> 0,
 		prefer_v4	=> 0,
 		prefer_v6	=> 0,
 		},
@@ -321,23 +321,25 @@ sub nameservers {
 	if ( scalar(@ns) || !defined(wantarray) ) {
 		my @ipv4 = grep { _ipv4($_) } @ip;
 		my @ipv6 = grep { _ipv6($_) } @ip;
+		my @map4 = map	{"::FFFF:$_"} @ipv4;
 		$self->{nameservers} = \@ip;
 		$self->{nameserver4} = \@ipv4;
 		$self->{nameserver6} = \@ipv6;
+		$self->{mapped_IPv4} = \@map4;
 	}
 
 	my @IPv4 = @{$self->{nameserver4}};
-	my @IPv6 = @{$self->{nameserver6}};
-	my @map4 = map "::FFFF:$_", @IPv4;
+	my @IPv6 = IPv6 ? @{$self->{nameserver6}} : ();
+	my @map4 = IPv6 ? @{$self->{mapped_IPv4}} : ();
 
-	my @nameservers = scalar(@IPv6) ? @{$self->{nameservers}} : ( @IPv4, @map4 );
-	@nameservers = ( @IPv4, @IPv6 ) if $self->{prefer_v4};
-	@nameservers = ( @IPv6, @IPv4 ) if $self->{prefer_v6};
-	@nameservers = scalar(@IPv6) ? @IPv6 : @map4 if $self->{force_v6};
-	@nameservers = @IPv4 if $self->{force_v4};
+	my @IPlist = @IPv6 ? @{$self->{nameservers}} : @IPv4;
+	@IPlist = ( @IPv6, @IPv4 ) if $self->{prefer_v6};
+	@IPlist = ( @IPv4, @IPv6 ) if $self->{prefer_v4};
+	@IPlist = ( @IPv6, @map4 ) if $self->{force_v6};
+	@IPlist = @IPv4 if $self->{force_v4};
 
-	$self->errorstring('no nameservers') unless @nameservers;
-	return @nameservers;
+	$self->errorstring('no nameservers') unless @IPlist;
+	return @IPlist;
 }
 
 sub nameserver { return &nameservers; }
@@ -873,17 +875,18 @@ sub _create_tcp_socket {
 
 	my $ip6_addr = IPv6 && _ipv6($ip);
 	$socket = IO::Socket::IP->new(
-		LocalAddr => $ip6_addr ? $self->{srcaddr6} : $self->{srcaddr4},
-		LocalPort => $self->{srcport},
-		PeerAddr  => $ip,
-		PeerPort  => $self->{port},
-		Proto	  => 'tcp',
-		Timeout	  => $self->{tcp_timeout},
+		LocalAddr	 => $ip6_addr ? $self->{srcaddr6} : $self->{srcaddr4},
+		LocalPort	 => $self->{srcport},
+		PeerAddr	 => $ip,
+		PeerPort	 => $self->{port},
+		Proto		 => 'tcp',
+		Timeout		 => $self->{tcp_timeout},
+		GetAddrInfoFlags => AI_NUMERICHOST,
 		@sockopt
 		)
 			if USE_SOCKET_IP;
 
-	unless (USE_SOCKET_IP) {
+	unless ( USE_SOCKET_IP or $ip6_addr ) {
 		$socket = IO::Socket::INET->new(
 			LocalAddr => $self->{srcaddr4},
 			LocalPort => $self->{srcport} || undef,
@@ -892,8 +895,7 @@ sub _create_tcp_socket {
 			Proto	  => 'tcp',
 			Timeout	  => $self->{tcp_timeout},
 			@sockopt
-			)
-				unless $ip6_addr;
+			);
 	}
 
 	$self->{persistent}{$sock_key} = $socket if $self->{persistent_tcp};
@@ -910,23 +912,23 @@ sub _create_udp_socket {
 
 	my $ip6_addr = IPv6 && _ipv6($ip);
 	$socket = IO::Socket::IP->new(
-		LocalAddr => $ip6_addr ? $self->{srcaddr6} : $self->{srcaddr4},
-		LocalPort => $self->{srcport},
-		Proto	  => 'udp',
-		Type	  => SOCK_DGRAM,
+		LocalAddr	 => $ip6_addr ? $self->{srcaddr6} : $self->{srcaddr4},
+		LocalPort	 => $self->{srcport},
+		Proto		 => 'udp',
+		Type		 => SOCK_DGRAM,
+		GetAddrInfoFlags => AI_NUMERICHOST,
 		@sockopt
 		)
 			if USE_SOCKET_IP;
 
-	unless (USE_SOCKET_IP) {
+	unless ( USE_SOCKET_IP or $ip6_addr ) {
 		$socket = IO::Socket::INET->new(
 			LocalAddr => $self->{srcaddr4},
 			LocalPort => $self->{srcport} || undef,
 			Proto	  => 'udp',
 			Type	  => SOCK_DGRAM,
 			@sockopt
-			)
-				unless $ip6_addr;
+			);
 	}
 
 	$self->{persistent}{$sock_key} = $socket if $self->{persistent_udp};

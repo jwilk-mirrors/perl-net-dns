@@ -5,7 +5,7 @@
 use strict;
 use warnings;
 use IO::File;
-use Test::More tests => 18;
+use Test::More tests => 22;
 
 use Net::DNS::Resolver;
 
@@ -40,27 +40,36 @@ ok( $class->string(),	   '$class->string' );
 
 ok( $resolver->domain('example.com'),	  '$resolver->domain' );       # check instance methods
 ok( $resolver->searchlist('example.com'), '$resolver->searchlist' );
-$resolver->nameservers(qw(127.0.0.1 ::1));
+$resolver->nameservers(qw(127.0.0.1 ::1 ::ffff:127.0.0.1 fe80::1234%1));
 ok( scalar( $resolver->nameservers() ), '$resolver->nameservers' );
 $resolver->nameservers();
 is( scalar( $resolver->nameservers() ), 0, 'delete nameservers' );
 
 
-$resolver->nameservers(qw(127.0.0.1 ::1 ::ffff:127.0.0.1 fe80::1234%1));
-$resolver->force_v4(0);						# set by default if no IPv6
-$resolver->prefer_v6(1);
-my ($IPv6) = $resolver->nameserver();
-is( $IPv6, '::1', '$resolver->prefer_v6(1)' );
+my ($IPv4) = $resolver->nameserver(qw(127.0.0.1));
+is( $IPv4, '127.0.0.1', 'IPv4 nameserver' );
 
-$resolver->nameservers(qw(127.0.0.1 ::1));
-$resolver->prefer_v4(1);
-my ($IPv4) = $resolver->nameserver();
-is( $IPv4, '127.0.0.1', '$resolver->prefer_v4(1)' );
+my ($IPv6) = $resolver->nameserver(qw(::1));
 
-$resolver->nameservers(qw(127.0.0.1));
-$resolver->force_v6(1);
-my ($map4) = $resolver->nameserver();
-is( $map4, '::FFFF:127.0.0.1', '$resolver->force_v6(1)' );
+SKIP: {
+	skip( 'IPv6 specific test', 6 ) unless $IPv6;
+	is( $IPv6, '::1', 'IPv6 nameserver' );
+
+	my ($pref4) = $class->new( prefer_v4 => 1 )->nameserver(qw(::1 127.0.0.1));
+	is( $pref4, '127.0.0.1', '$resolver->prefer_v4(1)' );
+
+	my ($force4) = $class->new( force_v4 => 1 )->nameserver(qw(::1 127.0.0.1));
+	is( $force4, '127.0.0.1', '$resolver->force_v4(1)' );
+
+	my ($pref6) = $class->new( prefer_v6 => 1 )->nameserver(qw(127.0.0.1 ::1));
+	is( $pref6, '::1', '$resolver->prefer_v6(1)' );
+
+	my ($force6) = $class->new( force_v6 => 1 )->nameserver(qw(127.0.0.1 ::1));
+	is( $force6, '::1', '$resolver->force_v6(1)' );
+
+	my ($map4) = $class->new( force_v6 => 1 )->nameserver(qw(127.0.0.1));
+	is( $map4, '::FFFF:127.0.0.1', '$resolver->force_v6(1) for IPv4' );
+}
 
 
 foreach my $ip (qw(127.0.0.1 ::1)) {

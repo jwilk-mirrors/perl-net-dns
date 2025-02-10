@@ -689,8 +689,8 @@ For example, if we wanted to cache lookups:
 	my %cache;
 
 	sub send {
-	$self = shift;
-	$cache{"@_"} ||= $self->SUPER::send(@_);
+		my ( $self, @q ) = @_;
+		return $cache{"@q"} ||= $self->SUPER::send(@q);
 	}
 
 
