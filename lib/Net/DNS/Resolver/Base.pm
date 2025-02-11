@@ -330,12 +330,11 @@ sub nameservers {
 
 	my @IPv4 = @{$self->{nameserver4}};
 	my @IPv6 = IPv6 ? @{$self->{nameserver6}} : ();
-	my @map4 = IPv6 ? @{$self->{mapped_IPv4}} : ();
 
 	my @IPlist = @IPv6 ? @{$self->{nameservers}} : @IPv4;
 	@IPlist = ( @IPv6, @IPv4 ) if $self->{prefer_v6};
 	@IPlist = ( @IPv4, @IPv6 ) if $self->{prefer_v4};
-	@IPlist = ( @IPv6, @map4 ) if $self->{force_v6};
+	@IPlist = @IPv6 if $self->{force_v6};
 	@IPlist = @IPv4 if $self->{force_v4};
 
 	$self->errorstring('no nameservers') unless @IPlist;
