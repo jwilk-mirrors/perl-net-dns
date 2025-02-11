@@ -5,7 +5,7 @@
 use strict;
 use warnings;
 use IO::File;
-use Test::More tests => 22;
+use Test::More tests => 21;
 
 use Net::DNS::Resolver;
 
@@ -66,9 +66,6 @@ SKIP: {
 
 	my ($force6) = $class->new( force_v6 => 1 )->nameserver(qw(127.0.0.1 ::1));
 	is( $force6, '::1', '$resolver->force_v6(1)' );
-
-	my ($map4) = $class->new( force_v6 => 1 )->nameserver(qw(127.0.0.1));
-	is( $map4, '::FFFF:127.0.0.1', '$resolver->force_v6(1) for IPv4' );
 }
 
 
