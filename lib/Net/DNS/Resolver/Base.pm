@@ -321,11 +321,9 @@ sub nameservers {
 	if ( scalar(@ns) || !defined(wantarray) ) {
 		my @ipv4 = grep { _ipv4($_) } @ip;
 		my @ipv6 = grep { _ipv6($_) } @ip;
-		my @map4 = map	{"::FFFF:$_"} @ipv4;
 		$self->{nameservers} = \@ip;
 		$self->{nameserver4} = \@ipv4;
 		$self->{nameserver6} = \@ipv6;
-		$self->{mapped_IPv4} = \@map4;
 	}
 
 	my @IPv4 = @{$self->{nameserver4}};
