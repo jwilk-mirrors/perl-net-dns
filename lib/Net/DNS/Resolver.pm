@@ -588,8 +588,6 @@ The default value is false.
 
 	$resolver->tsig( $keyfile, fudge => 60 );
 
-	$resolver->tsig( $tsig_rr );
-
 	$resolver->tsig( undef );
 
 Set the TSIG record used to automatically sign outgoing queries, zone

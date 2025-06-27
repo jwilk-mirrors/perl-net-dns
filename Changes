@@ -1,6 +1,11 @@
 $Id$                       -*-text-*-
 
 
+**** 1.51 [unreleased]
+
+	Minor code and documentation improvements.
+
+
 **** 1.50 Feb 21, 2025
 
 	Minor code improvements in Resolver::Base.

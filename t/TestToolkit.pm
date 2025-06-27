@@ -49,10 +49,13 @@ sub noexception {
 
 sub _execute {
 	my $code = shift;
-	local $SIG{__DIE__}  = sub { croak "@_" };
-	local $SIG{__WARN__} = sub { croak "@_" };
-	local ( $@, $! );
-	eval {&$code};
+	my @warning;
+	local $SIG{__WARN__} = sub { push @warning, "@_" };
+	local ( $@, $!, $SIG{__DIE__} );	## isolate eval
+	eval {
+		&$code;
+		die "$_\n" for @warning;
+	};
 	my ($exception) = split /[\r\n]+/, "$@\n";
 	return $exception;
 }

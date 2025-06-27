@@ -3,7 +3,7 @@ package Net::DNS::Parameters;
 ################################################
 ##
 ##	Domain Name System (DNS) Parameters
-##	(last updated 2024-12-10)
+##	(last updated 2025-06-16)
 ##
 ################################################
 
@@ -50,6 +50,7 @@ our %classbyname = ( '*' => 255, @classbyname );
 
 # Registry: Resource Record (RR) TYPEs
 my @typebyname = (
+	DELEG	   => 65432,					# draft-ietf-deleg
 	A	   => 1,					# RFC1035
 	NS	   => 2,					# RFC1035
 	MD	   => 3,					# RFC1035
@@ -114,7 +115,9 @@ my @typebyname = (
 	ZONEMD	   => 63,					# RFC8976
 	SVCB	   => 64,					# RFC9460
 	HTTPS	   => 65,					# RFC9460
-	DSYNC	   => 66,					# draft-ietf-dnsop-generalized-notify-03
+	DSYNC	   => 66,					# RFC-ietf-dnsop-generalized-notify-09
+	HHIT	   => 67,					# draft-ietf-drip-registries-28
+	BRID	   => 68,					# draft-ietf-drip-registries-28
 	SPF	   => 99,					# RFC7208
 	UINFO	   => 100,					# IANA-Reserved
 	UID	   => 101,					# IANA-Reserved
@@ -126,7 +129,7 @@ my @typebyname = (
 	LP	   => 107,					# RFC6742
 	EUI48	   => 108,					# RFC7043
 	EUI64	   => 109,					# RFC7043
-	NXNAME	   => 128,					# draft-ietf-dnsop-compact-denial-of-existence-04
+	NXNAME	   => 128,					# RFC-ietf-dnsop-compact-denial-of-existence-07
 	TKEY	   => 249,					# RFC2930
 	TSIG	   => 250,					# RFC8945
 	IXFR	   => 251,					# RFC1995
@@ -198,7 +201,7 @@ our %rcodebyname = @rcodebyname;
 # Registry: DNS EDNS0 Option Codes (OPT)
 my @ednsoptionbyname = (
 	LLQ		 => 1,					# RFC8764
-	'UPDATE-LEASE'	 => 2,					# RFC-ietf-dnssd-update-lease-08
+	'UPDATE-LEASE'	 => 2,					# RFC9664
 	NSID		 => 3,					# RFC5001
 	DAU		 => 5,					# RFC6975
 	DHU		 => 6,					# RFC6975
@@ -239,6 +242,7 @@ our %dnsflagbyname = @dnsflagbyname;
 # Registry: EDNS Header Flags (16 bits)
 my @ednsflagbyname = (
 	DO => 0x8000,						# RFC4035 RFC3225 RFC6840
+	CO => 0x4000,						# RFC-ietf-dnsop-compact-denial-of-existence-07
 	);
 push @ednsflagbyname, map { /^\d/ ? $_ : lc($_) } @ednsflagbyname;
 our %ednsflagbyname = @ednsflagbyname;
@@ -291,7 +295,7 @@ my @dnserrorbyval = (
 	27 => 'Unsupported NSEC3 Iterations Value',		# RFC9276
 	28 => 'Unable to conform to policy',			# draft-homburg-dnsop-codcp-00
 	29 => 'Synthesized',					# https://github.com/PowerDNS/pdns/pull/12334
-	30 => 'Invalid Query Type',				# draft-ietf-dnsop-compact-denial-of-existence-04
+	30 => 'Invalid Query Type',				# RFC-ietf-dnsop-compact-denial-of-existence-07
 	);
 our %dnserrorbyval = @dnserrorbyval;
 

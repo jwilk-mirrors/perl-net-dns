@@ -769,10 +769,9 @@ sub AUTOLOAD {				## Default method
 	our $AUTOLOAD;
 	my ($method) = reverse split /::/, $AUTOLOAD;
 
-	for ( my $action = $method ) {	## tolerate mixed-case attribute name
-		tr [A-Z-] [a-z_];
-		if ( $self->can($action) ) {
-			*{$AUTOLOAD} = sub { shift->$action(@_) };
+	for ( my $canonical = lc($method) ) {	## tolerate mixed-case attribute name
+		if ( $self->can($canonical) ) {
+			*{$AUTOLOAD} = sub { shift->$canonical(@_) };
 			return &$AUTOLOAD;
 		}
 	}
@@ -786,7 +785,7 @@ sub AUTOLOAD {				## Default method
 	my $module = join '::', __PACKAGE__, $self->type;
 	eval("require $module") if $oref eq __PACKAGE__;	## no critic ProhibitStringyEval
 
-	@_ = ( <<"END" );
+	@_ = (<<"END");
 ***  FATAL PROGRAM ERROR!!	Unknown instance method "$method"
 ***  which the program has attempted to call for the object:
 ***

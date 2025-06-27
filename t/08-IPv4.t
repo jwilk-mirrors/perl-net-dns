@@ -53,7 +53,7 @@ eval {
 	exit plan skip_all => "Non-authoritative response from $from" unless $reply->header->aa;
 
 	1;
-} || exit( plan skip_all => "Cannot reach global root: $@" );
+} || exit( plan skip_all => $@ || 'Cannot reach global root' );
 
 
 my $IP = eval {
