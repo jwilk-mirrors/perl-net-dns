@@ -769,11 +769,10 @@ sub AUTOLOAD {				## Default method
 	our $AUTOLOAD;
 	my ($method) = reverse split /::/, $AUTOLOAD;
 
-	for ( my $canonical = lc($method) ) {	## tolerate mixed-case attribute name
-		if ( $self->can($canonical) ) {
-			*{$AUTOLOAD} = sub { shift->$canonical(@_) };
-			return &$AUTOLOAD;
-		}
+	my $canonical = lc($method);	## tolerate mixed-case attribute name
+	if ( $self->can($canonical) ) {
+		*{$AUTOLOAD} = sub { shift->$canonical(@_) };
+		return &$AUTOLOAD;
 	}
 
 	my $oref = ref($self);

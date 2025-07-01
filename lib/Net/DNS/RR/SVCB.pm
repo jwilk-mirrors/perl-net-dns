@@ -258,7 +258,7 @@ sub _presentation {			## represent octet string(s) using local charset
 sub _boolean {
 	my @arg = @_;
 	return '' unless scalar @arg;
-	return pop(@arg) ? '' : undef;
+	return shift(@arg) ? '' : undef;
 }
 
 sub _string {
@@ -291,13 +291,12 @@ sub AUTOLOAD {				## Dynamic constructor/accessor methods
 	my ( $self, @argument ) = @_;
 
 	our $AUTOLOAD;
-	my ($method) = reverse split /::/, $AUTOLOAD;
-	$method =~ s/\W/_/g;
+	my ($method)  = reverse split /::/, $AUTOLOAD;
 	my $canonical = lc($method);
+	$canonical =~ s/-/_/g;
 	if ( $self->can($canonical) ) {
 		no strict 'refs';	## no critic ProhibitNoStrict
-		*{$AUTOLOAD} = sub { shift->$canonical(@_) }
-				unless $method eq $canonical;
+		*{$AUTOLOAD} = sub { shift->$canonical(@_) };
 		return $self->$canonical(@argument);
 	}
 
