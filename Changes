@@ -3,6 +3,8 @@ $Id$                       -*-text-*-
 
 **** 1.51 [unreleased]
 
+	Resync with IANA DNS Parameters registry.
+	Add prototype DELEG RR package.
 	Minor code and documentation improvements.
 
 

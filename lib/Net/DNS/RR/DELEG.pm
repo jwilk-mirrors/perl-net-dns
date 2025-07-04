@@ -15,6 +15,7 @@ Net::DNS::RR::DELEG - DNS DELEG resource record
 
 use integer;
 
+use Carp;
 
 my %keyname = reverse(
 	IPv4addr => 'key4',
@@ -25,12 +26,10 @@ my %keyname = reverse(
 sub _format_rdata {			## format rdata portion of RR string.
 	my $self = shift;
 
-	my $SvcPriority = $self->{SvcPriority};
-	my $TargetName	= $self->{TargetName}->string;
-	my @SvcPriority = grep { $_ > 1 } $SvcPriority;
-
-	my $mode  = $SvcPriority ? 'DIRECT' : 'INCLUDE';
-	my @rdata = join '=', $mode, join ',', @SvcPriority, $TargetName;
+	my $priority = $self->{SvcPriority};
+	my $mode     = $priority ? 'DIRECT' : 'INCLUDE';
+	my @rdata    = join '=', $mode, $self->{TargetName}->string;
+	push @rdata, "\n", join '=', 'Priority', $priority if $priority > 1;
 
 	my $params = $self->{SvcParams} || [];
 	my @params = @$params;
@@ -42,7 +41,7 @@ sub _format_rdata {			## format rdata portion of RR string.
 			push @rdata, "\n", length($val) ? "$name=@val" : "$name";
 		} else {
 			my @hex = unpack 'H*', $val;
-			$self->_annotation("unexpected $key=@hex");
+			$self->_annotation(qq(unexpected $key="@hex"));
 		}
 	}
 
@@ -54,16 +53,16 @@ sub _parse_rdata {			## populate RR from rdata in argument list
 	my ( $self, @argument ) = @_;
 
 	local $SIG{__WARN__} = sub { die @_ };
-	while ( my $svcparam = shift @argument ) {
-		for ($svcparam) {
+	while ( my $parameter = shift @argument ) {
+		for ($parameter) {
 			my @value;
 			if (/^key\d+.*$/i) {			# reject SVCB generic key
 				my $rhs = /=$/ ? shift @argument : '';
-				Carp::croak "Unexpected parameter: $_ $rhs";
+				croak "Unexpected parameter: $_$rhs";
 			} elsif (/^[^=]+=(.*)$/) {
 				local $_ = length($1) ? $1 : shift @argument;
 				s/^"([^"]*)"$/$1/;		# strip enclosing quotes
-				s/\\,/\\044/g;			# disguise (RFC1035) escaped comma
+				s/\\,/\\044/g;			# disguise escaped comma
 				push @value, split /,/;
 			}
 
@@ -76,19 +75,24 @@ sub _parse_rdata {			## populate RR from rdata in argument list
 }
 
 
-sub direct {
-	my ( $self, @arg ) = @_;				# uncoverable pod
-	my $target = pop @arg;
-	( $self->{SvcPriority} ) = ( @arg, 1 );
-	$self->{TargetName} = Net::DNS::DomainName->new($target);
+sub DIRECT {
+	my ( $self, $servername ) = @_;				# uncoverable pod
+	$self->{SvcPriority} = 1;
+	$self->{TargetName}  = Net::DNS::DomainName->new($servername);
 	return;
 }
 
-sub include {
+sub INCLUDE {
 	my ( $self, $target ) = @_;				# uncoverable pod
 	$self->{SvcPriority} = 0;
 	$self->{TargetName}  = Net::DNS::DomainName->new($target);
 	return;
+}
+
+sub priority {
+	my ( $self, @value ) = @_;				# uncoverable pod
+	my @arg = $self->{SvcPriority} ? @value : ();
+	return $self->SvcPriority(@arg) || croak 'Priority invalid for INCLUDE';
 }
 
 sub glue4 {				## glue4=192.0.2.53,...

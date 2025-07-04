@@ -3,7 +3,7 @@ package Net::DNS::Parameters;
 ################################################
 ##
 ##	Domain Name System (DNS) Parameters
-##	(last updated 2025-06-16)
+##	(last updated 2025-07-01)
 ##
 ################################################
 
@@ -200,26 +200,28 @@ our %rcodebyname = @rcodebyname;
 
 # Registry: DNS EDNS0 Option Codes (OPT)
 my @ednsoptionbyname = (
-	LLQ		 => 1,					# RFC8764
-	'UPDATE-LEASE'	 => 2,					# RFC9664
-	NSID		 => 3,					# RFC5001
-	DAU		 => 5,					# RFC6975
-	DHU		 => 6,					# RFC6975
-	N3U		 => 7,					# RFC6975
-	'CLIENT-SUBNET'	 => 8,					# RFC7871
-	EXPIRE		 => 9,					# RFC7314
-	COOKIE		 => 10,					# RFC7873
-	'TCP-KEEPALIVE'	 => 11,					# RFC7828
-	PADDING		 => 12,					# RFC7830
-	CHAIN		 => 13,					# RFC7901
-	'KEY-TAG'	 => 14,					# RFC8145
-	'EXTENDED-ERROR' => 15,					# RFC8914
-	'CLIENT-TAG'	 => 16,					# draft-bellis-dnsop-edns-tags-01
-	'SERVER-TAG'	 => 17,					# draft-bellis-dnsop-edns-tags-01
-	'REPORT-CHANNEL' => 18,					# RFC9567
-	ZONEVERSION	 => 19,					# RFC9660
-	'UMBRELLA-IDENT' => 20292,				# https://developer.cisco.com/docs/cloud-security/#!integrating-network-devic
-	DEVICEID	 => 26946,				# https://developer.cisco.com/docs/cloud-security/#!network-devices-getting-s
+	LLQ		  => 1,					# RFC8764
+	'UPDATE-LEASE'	  => 2,					# RFC9664
+	NSID		  => 3,					# RFC5001
+	DAU		  => 5,					# RFC6975
+	DHU		  => 6,					# RFC6975
+	N3U		  => 7,					# RFC6975
+	'CLIENT-SUBNET'	  => 8,					# RFC7871
+	EXPIRE		  => 9,					# RFC7314
+	COOKIE		  => 10,				# RFC7873
+	'TCP-KEEPALIVE'	  => 11,				# RFC7828
+	PADDING		  => 12,				# RFC7830
+	CHAIN		  => 13,				# RFC7901
+	'KEY-TAG'	  => 14,				# RFC8145
+	'EXTENDED-ERROR'  => 15,				# RFC8914
+	'CLIENT-TAG'	  => 16,				# draft-bellis-dnsop-edns-tags-01
+	'SERVER-TAG'	  => 17,				# draft-bellis-dnsop-edns-tags-01
+	'REPORT-CHANNEL'  => 18,				# RFC9567
+	ZONEVERSION	  => 19,				# RFC9660
+	'MQTYPE-QUERY'	  => 20,				# draft-ietf-dnssd-multi-qtypes-07
+	'MQTYPE-RESPONSE' => 21,				# draft-ietf-dnssd-multi-qtypes-07
+	'UMBRELLA-IDENT'  => 20292,				# https://developer.cisco.com/docs/cloud-security/#!integrating-network-devic
+	DEVICEID	  => 26946,				# https://developer.cisco.com/docs/cloud-security/#!network-devices-getting-s
 	);
 our %ednsoptionbyval = reverse @ednsoptionbyname;
 push @ednsoptionbyname, map { /^\d/ ? $_ : lc($_) } @ednsoptionbyname;
