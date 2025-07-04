@@ -1,7 +1,7 @@
 $Id$                       -*-text-*-
 
 
-**** 1.51 [unreleased]
+**** 1.51 Jul 4, 2025
 
 	Resync with IANA DNS Parameters registry.
 	Add prototype DELEG RR package.
