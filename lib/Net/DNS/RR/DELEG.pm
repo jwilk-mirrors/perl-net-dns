@@ -14,12 +14,11 @@ Net::DNS::RR::DELEG - DNS DELEG resource record
 =cut
 
 use integer;
-
 use Carp;
 
 my %keyname = reverse(
-	IPv4addr => 'key4',
-	IPv6addr => 'key6',
+	IPv4 => 'key4',
+	IPv6 => 'key6',
 	);
 
 
@@ -27,9 +26,10 @@ sub _format_rdata {			## format rdata portion of RR string.
 	my $self = shift;
 
 	my $priority = $self->{SvcPriority};
+	my @target   = grep { $_ ne '.' } $self->{TargetName}->string;
 	my $mode     = $priority ? 'DIRECT' : 'INCLUDE';
-	my @rdata    = join '=', $mode, $self->{TargetName}->string;
-	push @rdata, "\n", join '=', 'Priority', $priority if $priority > 1;
+	my @rdata    = join '=', $mode, @target;
+	push @rdata, "Priority=$priority" if $priority > 1;
 
 	my $params = $self->{SvcParams} || [];
 	my @params = @$params;
@@ -37,8 +37,7 @@ sub _format_rdata {			## format rdata portion of RR string.
 		my $key = join '', 'key', shift @params;
 		my $val = shift @params;
 		if ( my $name = $keyname{$key} ) {
-			my @val = $self->$name;
-			push @rdata, "\n", length($val) ? "$name=@val" : "$name";
+			push @rdata, join '=', $name, $self->$name;
 		} else {
 			my @hex = unpack 'H*', $val;
 			$self->_annotation(qq(unexpected $key="@hex"));
@@ -52,7 +51,6 @@ sub _format_rdata {			## format rdata portion of RR string.
 sub _parse_rdata {			## populate RR from rdata in argument list
 	my ( $self, @argument ) = @_;
 
-	local $SIG{__WARN__} = sub { die @_ };
 	while ( my $parameter = shift @argument ) {
 		for ($parameter) {
 			my @value;
@@ -75,50 +73,77 @@ sub _parse_rdata {			## populate RR from rdata in argument list
 }
 
 
+sub _post_parse {			## parser post processing
+	my $self = shift;
+
+	unless ( $self->_empty ) {
+		my $paramref = $self->{SvcParams} || [];
+		return if $self->targetname;
+		die('incomplete DELEG parameter set') unless @$paramref;
+	}
+	return;
+}
+
+
+sub _defaults {				## specify RR attribute default values
+	my $self = shift;
+
+	$self->DIRECT;
+	return;
+}
+
+
 sub DIRECT {
-	my ( $self, $servername ) = @_;				# uncoverable pod
+	my ( $self, @servername ) = @_;
 	$self->{SvcPriority} = 1;
-	$self->{TargetName}  = Net::DNS::DomainName->new($servername);
+	$self->{TargetName}  = Net::DNS::DomainName->new( @servername, '.' );
 	return;
 }
 
 sub INCLUDE {
-	my ( $self, $target ) = @_;				# uncoverable pod
+	my ( $self, $target ) = @_;
 	$self->{SvcPriority} = 0;
-	$self->{TargetName}  = Net::DNS::DomainName->new($target);
+	$self->targetname($target);
 	return;
 }
 
 sub priority {
-	my ( $self, @value ) = @_;				# uncoverable pod
+	my ( $self, @value ) = @_;
 	my @arg = $self->{SvcPriority} ? @value : ();
-	return $self->SvcPriority(@arg) || croak 'Priority invalid for INCLUDE';
+	my $val = $self->SvcPriority(@arg);
+	return $val ? $val : croak 'Priority invalid for INCLUDE';
 }
 
-sub glue4 {				## glue4=192.0.2.53,...
+sub targetname {
 	my ( $self, @value ) = @_;
+	$self->SUPER::targetname( shift @value ) if @value;
+	my $target = $self->{TargetName} || return;
+	return $target->name eq '.' ? undef : $target->name;
+}
+
+sub ip4 {				## ip4=192.0.2.53,...
+	my ( $self, @value ) = @_;				# uncoverable pod
 	my $ip = $self->ipv4hint(@value);
 	return $ip if @value;
 	my @ip = unpack 'a4' x ( length($ip) / 4 ), $ip;
 	return join ',', map { bless( {address => $_}, 'Net::DNS::RR::A' )->address } @ip;
 }
 
-sub glue6 {				## glue6=2001:DB8::53,...
-	my ( $self, @value ) = @_;
+sub ip6 {				## ip6=2001:DB8::53,...
+	my ( $self, @value ) = @_;				# uncoverable pod
 	my $ip = $self->ipv6hint(@value);
 	return $ip if @value;
 	my @ip = unpack 'a16' x ( length($ip) / 16 ), $ip;
-	return join ',', map { bless( {address => $_}, 'Net::DNS::RR::AAAA' )->address } @ip;
+	return join ',', map { bless( {address => $_}, 'Net::DNS::RR::AAAA' )->address_short } @ip;
 }
 
-sub ipv4addr { return &glue4 }
-sub ipv6addr { return &glue6 }
-
+sub ipv4 { return &ip4 }					# uncoverable pod
+sub ipv6 { return &ip6 }					# uncoverable pod
 
 sub generic {
 	my $self  = shift;
 	my @ttl	  = grep {defined} $self->{ttl};
-	my @class = map	 {"CLASS$_"} grep {defined} $self->{class};
+	my @class = map	 { $_ ? "CLASS$_" : () } $self->{class};
 	my @core  = ( $self->{owner}->string, @ttl, @class, "TYPE$self->{type}" );
 	my @rdata = $self->_empty ? () : $self->SUPER::_format_rdata;
 	return join "\n\t", Net::DNS::RR::_wrap( "@core (", @rdata, ')' );
@@ -132,8 +157,9 @@ __END__
 =head1 SYNOPSIS
 
 	use Net::DNS;
+	$rr = Net::DNS::RR->new('zone DELEG DIRECT=nameserver IPv4=192.0.2.1 IPv6=2001:db8::53');
+	$rr = Net::DNS::RR->new('zone DELEG DIRECT IPv4=192.0.2.1 IPv6=2001:db8::53');
 	$rr = Net::DNS::RR->new('zone DELEG INCLUDE=targetname');
-	$rr = Net::DNS::RR->new('zone DELEG DIRECT=nameserver IPv4addr=192.0.2.1 IPv6addr=2001:db8::53');
 
 =head1 DESCRIPTION
 
@@ -156,6 +182,54 @@ Use of undocumented package features or direct access to internal data
 structures is discouraged and could result in program termination or
 other unpredictable behaviour.
 
+
+=head2 DIRECT
+
+	example. DELEG DIRECT=nameserver
+	example. DELEG DIRECT=nameserver IPv6=2001:db8::53
+	example. DELEG DIRECT IPv4=192.0.2.1 IPv6=2001:db8::53
+
+Specifies the mode to be direct (non-zero SvcPriority)
+and nameserver domain name which may be absent.
+
+
+=head2 INCLUDE
+
+	example. DELEG INCLUDE=targetname
+	$target = $rr->targetname;
+
+Specifies the mode to be indirect (zero SvcPriority)
+and the location of an external nameserver configuration.
+
+
+=head2 priority
+
+	example. DELEG DIRECT=nameserver priority=123
+	$priority = $rr->priority;
+
+Sets or gets the priority value for a DIRECT mode DELEG record.
+
+
+=head2 targetname
+
+	$target = $rr->targetname;
+
+Returns the target domain name or the undefined value if not specified.
+
+
+=head2 IPv4
+
+	example. DELEG DIRECT IPv4=192.0.2.1
+	@ip = $rr->IPv4;
+
+Sets or gets the list of IP addresses.
+
+=head2 IPv6
+
+	example. DELEG DIRECT IPv6=2001:db8::53
+	@ip = $rr->IPv6;
+
+Sets or gets the list of IP addresses.
 
 
 =head1 COPYRIGHT

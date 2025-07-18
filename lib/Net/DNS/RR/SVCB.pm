@@ -82,7 +82,7 @@ sub _format_rdata {			## format rdata portion of RR string.
 	my $length = 2 + length $encode;
 	my @target = grep {length} split /(\S{32})/, unpack 'H*', $encode;
 	my $target = substr $self->{TargetName}->string, 0, 40;
-	push @rdata, join '', shift(@target), "\t; $target\n";
+	push @rdata, join '', shift(@target), "\t; $target\n" unless $target eq '.';
 	push @rdata, @target;
 
 	my $params = $self->{SvcParams} || [];
@@ -183,11 +183,11 @@ sub svcpriority {
 sub targetname {
 	my ( $self, @value ) = @_;				# uncoverable pod
 
-	for (@value) { $self->{TargetName} = Net::DNS::DomainName->new($_) }
+	$self->{TargetName} = Net::DNS::DomainName->new($_) for @value;
 
 	my $target = $self->{TargetName} ? $self->{TargetName}->name : return;
-	return $target unless $self->{SvcPriority};
-	return ( $target eq '.' ) ? $self->owner : $target;
+	return $target unless $target eq '.';
+	return $self->{SvcPriority} ? $self->owner : undef;
 }
 
 
