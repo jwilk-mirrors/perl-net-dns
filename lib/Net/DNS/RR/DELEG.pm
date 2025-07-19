@@ -29,7 +29,7 @@ sub _format_rdata {			## format rdata portion of RR string.
 	my @target   = grep { $_ ne '.' } $self->{TargetName}->string;
 	my $mode     = $priority ? 'DIRECT' : 'INCLUDE';
 	my @rdata    = join '=', $mode, @target;
-	push @rdata, "Priority=$priority" if $priority > 1;
+	push @rdata, "priority=$priority" if $priority > 1;
 
 	my $params = $self->{SvcParams} || [];
 	my @params = @$params;
@@ -76,10 +76,10 @@ sub _parse_rdata {			## populate RR from rdata in argument list
 sub _post_parse {			## parser post processing
 	my $self = shift;
 
-	unless ( $self->_empty ) {
-		my $paramref = $self->{SvcParams} || [];
-		return if $self->targetname;
-		die('incomplete DELEG parameter set') unless @$paramref;
+	my $paramref = $self->{SvcParams} || [];
+	unless (@$paramref) {
+		return if $self->_empty;
+		die('target name not specified') unless $self->targetname;
 	}
 	return;
 }
@@ -96,7 +96,7 @@ sub _defaults {				## specify RR attribute default values
 sub DIRECT {
 	my ( $self, @servername ) = @_;
 	$self->{SvcPriority} = 1;
-	$self->{TargetName}  = Net::DNS::DomainName->new( @servername, '.' );
+	$self->targetname( @servername, '.' );
 	return;
 }
 
@@ -108,7 +108,7 @@ sub INCLUDE {
 }
 
 sub priority {
-	my ( $self, @value ) = @_;
+	my ( $self, @value ) = @_;				# uncoverable pod
 	my @arg = $self->{SvcPriority} ? @value : ();
 	my $val = $self->SvcPriority(@arg);
 	return $val ? $val : croak 'Priority invalid for INCLUDE';
@@ -116,9 +116,9 @@ sub priority {
 
 sub targetname {
 	my ( $self, @value ) = @_;
-	$self->SUPER::targetname( shift @value ) if @value;
-	my $target = $self->{TargetName} || return;
-	return $target->name eq '.' ? undef : $target->name;
+	$self->{TargetName} = Net::DNS::DomainName->new(@value) if @value;
+	my $target = $self->{TargetName} ? $self->{TargetName}->name : return;
+	return $target eq '.' ? undef : $target;
 }
 
 sub ip4 {				## ip4=192.0.2.53,...
@@ -157,17 +157,19 @@ __END__
 =head1 SYNOPSIS
 
 	use Net::DNS;
-	$rr = Net::DNS::RR->new('zone DELEG DIRECT=nameserver IPv4=192.0.2.1 IPv6=2001:db8::53');
-	$rr = Net::DNS::RR->new('zone DELEG DIRECT IPv4=192.0.2.1 IPv6=2001:db8::53');
+	$rr = Net::DNS::RR->new('zone DELEG DIRECT=nameserver IPv4=192.0.2.1');
+	$rr = Net::DNS::RR->new('zone DELEG DIRECT IPv6=2001:db8::53');
 	$rr = Net::DNS::RR->new('zone DELEG INCLUDE=targetname');
 
 =head1 DESCRIPTION
 
 
-The DNS DELEG resource record appears in, and is logically a part of,
-the parent zone to mark the delegation point for a child zone.
-It advertises, directly or indirectly, transport methods
-available for connection to nameservers serving the child zone.
+The DNS DELEG resource record set, wherever it appears, advertises the
+authoritative nameservers and transport methods to be used to resolve
+queries for data at the owner name or its subordinates.
+
+The DELEG RRset is authoritative data within the parent zone and must
+not appear at the apex of the child zone.
 
 The DELEG class is derived from, and inherits properties of,
 the Net::DNS::RR::SVCB class.
@@ -188,26 +190,19 @@ other unpredictable behaviour.
 	example. DELEG DIRECT=nameserver
 	example. DELEG DIRECT=nameserver IPv6=2001:db8::53
 	example. DELEG DIRECT IPv4=192.0.2.1 IPv6=2001:db8::53
+	$nameserver = $rr->targetname;
 
-Specifies the mode to be direct (non-zero SvcPriority)
-and nameserver domain name which may be absent.
+Specifies the nameserver domain name, which may be absent,
+and sets DIRECT mode (non-zero SvcPriority).
 
 
 =head2 INCLUDE
 
 	example. DELEG INCLUDE=targetname
-	$target = $rr->targetname;
+	$targetname = $rr->targetname;
 
-Specifies the mode to be indirect (zero SvcPriority)
-and the location of an external nameserver configuration.
-
-
-=head2 priority
-
-	example. DELEG DIRECT=nameserver priority=123
-	$priority = $rr->priority;
-
-Sets or gets the priority value for a DIRECT mode DELEG record.
+Specifies the location of an external nameserver configuration
+and sets INCLUDE mode (zero SvcPriority).
 
 
 =head2 targetname

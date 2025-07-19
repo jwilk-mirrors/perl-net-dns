@@ -182,9 +182,7 @@ sub svcpriority {
 
 sub targetname {
 	my ( $self, @value ) = @_;				# uncoverable pod
-
-	$self->{TargetName} = Net::DNS::DomainName->new($_) for @value;
-
+	$self->{TargetName} = Net::DNS::DomainName->new(@value) if @value;
 	my $target = $self->{TargetName} ? $self->{TargetName}->name : return;
 	return $target unless $target eq '.';
 	return $self->{SvcPriority} ? $self->owner : undef;
