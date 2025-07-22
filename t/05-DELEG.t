@@ -14,7 +14,7 @@ exit( plan skip_all => 'unresolved AUTOLOAD regression	[perl #120694]' )
 		unless ( $] > 5.018001 )
 		or ( $] < 5.018 );
 
-plan tests => 17;
+plan tests => 25;
 
 
 my $type = 'DELEG';
@@ -24,40 +24,45 @@ my $typecode = unpack 'xn', Net::DNS::RR->new( type => $type )->encode;
 is( $typecode, $code, "$type RR type code = $code" );
 
 
-for my $rr ( Net::DNS::RR->new('example. IN DELEG') ) {
-	is( $rr->targetname, undef, 'empty DELEG with undefined targetname' );
+for my $rr ( Net::DNS::RR->new( my $record = 'example. IN DELEG' ) ) {
+	ok( $rr, "new DELEG RR:	$record" );
+	is( $rr->priority,   undef, 'undefined priority' );
+	is( $rr->targetname, undef, 'undefined targetname' );
 	ok( $rr->string,  'presentation format string' );
 	ok( $rr->generic, 'RFC3597 generic format' );
 }
 
 
-for my $rr ( Net::DNS::RR->new(<<'END') ) {
-example.	DELEG	(
-	DIRECT=nsdname
-	IPv4=192.0.2.1
-	IPv6=2001:db8::53
-	port=53
-	priority=123 )
-END
-	ok( $rr->targetname, 'DELEG with specified servername' );
+for my $rr ( Net::DNS::RR->new( my $record = 'example. DELEG DIRECT=servername' ) ) {
+	ok( $rr, "new DELEG RR:	$record" );
+	is( $rr->priority, 1, 'non-zero priority' );
+	ok( $rr->targetname, 'defined targetname' );
+}
+
+
+for my $rr ( Net::DNS::RR->new( my $record = 'example. DELEG DIRECT=servername IPv6=2001:db8::53' ) ) {
+	ok( $rr, "new DELEG RR:	$record" );
+	is( $rr->priority, 1, 'non-zero priority' );
+	ok( $rr->targetname, 'defined targetname' );
+}
+
+
+for my $rr ( Net::DNS::RR->new( my $record = 'example. DELEG IPv4=192.0.2.1 IPv6=2001:db8::53 port=53' ) ) {
+	ok( $rr, "new DELEG RR:	$record" );
+	is( $rr->targetname, undef, 'undefined targetname' );
+	ok( $rr->priority(123), 'set non-zero priority' );
+	is( $rr->priority, 123, 'changed priority' );
+	ok( $rr->string,  'presentation format string' );
+	ok( $rr->generic, 'RFC3597 generic format' );
+}
+
+
+for my $rr ( Net::DNS::RR->new( my $record = 'example. DELEG INCLUDE="targetname"' ) ) {
+	ok( $rr, "new DELEG RR:	$record" );
+	is( $rr->priority, 0, 'zero priority' );
+	ok( $rr->targetname, 'defined targetname' );
 	ok( $rr->string,     'presentation format string' );
-}
-
-
-for my $rr ( Net::DNS::RR->new('example. IN DELEG IPv6=2001:db8::53') ) {
-	is( $rr->targetname, undef, 'DELEG with unspecified targetname' );
-	ok( $rr->string, 'presentation format string' );
-}
-
-
-for my $rr ( Net::DNS::RR->new('. DELEG INCLUDE="target"') ) {
-	is( $rr->targetname, 'target', 'INCLUDE key specifies targetname' );
-	ok( $rr->string,  'presentation format string' );
-	ok( $rr->generic, 'RFC3597 generic format' );
-	exception( 'priority parameter disallowed',  sub { $rr->_parse_rdata('priority=123') } );
-	exception( 'generic keyNN=value disallowed', sub { $rr->_parse_rdata(qw(key123= "x")) } );
-	exception( 'generic boolean key disallowed', sub { $rr->_parse_rdata('key123') } );
-	exception( 'unknown boolean key disallowed', sub { $rr->_parse_rdata('bogus') } );
+	exception( 'priority parameter disallowed', sub { $rr->_parse_rdata('priority=123') } );
 }
 
 exception( 'incomplete INCLUDE parameter', sub { Net::DNS::RR->new('example. DELEG INCLUDE') } );

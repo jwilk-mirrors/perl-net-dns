@@ -14,7 +14,7 @@ exit( plan skip_all => 'unresolved AUTOLOAD regression	[perl #120694]' )
 		unless ( $] > 5.018001 )
 		or ( $] < 5.018 );
 
-plan tests => 49;
+plan tests => 50;
 
 
 my $name = 'SVCB.example';
@@ -22,7 +22,7 @@ my $type = 'SVCB';
 my $code = 64;
 my @attr = qw( svcpriority targetname port );
 my @data = qw( 1 pool.svc.example 1234 );
-my @also = qw(mandatory alpn no-default-alpn port ipv4hint ech ipv6hint dohpath ohttp);
+my @also = qw(key0 mandatory alpn no-default-alpn port ipv4hint ech ipv6hint dohpath ohttp);
 
 my $wire = '000104706f6f6c03737663076578616d706c65000003000204d2';
 

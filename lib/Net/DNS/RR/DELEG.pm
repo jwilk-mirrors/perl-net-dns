@@ -54,10 +54,7 @@ sub _parse_rdata {			## populate RR from rdata in argument list
 	while ( my $parameter = shift @argument ) {
 		for ($parameter) {
 			my @value;
-			if (/^key\d+.*$/i) {			# reject SVCB generic key
-				my $rhs = /=$/ ? shift @argument : '';
-				croak "Unexpected parameter: $_$rhs";
-			} elsif (/^[^=]+=(.*)$/) {
+			if (/^[^=]+=(.*)$/) {
 				local $_ = length($1) ? $1 : shift @argument;
 				s/^"([^"]*)"$/$1/;		# strip enclosing quotes
 				s/\\,/\\044/g;			# disguise escaped comma
@@ -93,25 +90,23 @@ sub _defaults {				## specify RR attribute default values
 }
 
 
-sub DIRECT {
-	my ( $self, @servername ) = @_;
-	$self->{SvcPriority} = 1;
+sub direct {
+	my ( $self, @servername ) = @_;				# uncoverable pod
 	$self->targetname( @servername, '.' );
-	return;
+	return $self->{SvcPriority} = 1;
 }
 
-sub INCLUDE {
-	my ( $self, $target ) = @_;
-	$self->{SvcPriority} = 0;
+sub include {
+	my ( $self, $target ) = @_;				# uncoverable pod
 	$self->targetname($target);
-	return;
+	return $self->{SvcPriority} = 0;
 }
 
 sub priority {
 	my ( $self, @value ) = @_;				# uncoverable pod
-	my @arg = $self->{SvcPriority} ? @value : ();
-	my $val = $self->SvcPriority(@arg);
-	return $val ? $val : croak 'Priority invalid for INCLUDE';
+	return $self->{SvcPriority}	     unless @value;
+	croak 'priority invalid for INCLUDE' unless $self->{SvcPriority};
+	return $self->{SvcPriority} = shift @value;
 }
 
 sub targetname {
@@ -123,7 +118,7 @@ sub targetname {
 
 sub ip4 {				## ip4=192.0.2.53,...
 	my ( $self, @value ) = @_;				# uncoverable pod
-	my $ip = $self->ipv4hint(@value);
+	my $ip = $self->SUPER::ipv4hint(@value);
 	return $ip if @value;
 	my @ip = unpack 'a4' x ( length($ip) / 4 ), $ip;
 	return join ',', map { bless( {address => $_}, 'Net::DNS::RR::A' )->address } @ip;
@@ -131,7 +126,7 @@ sub ip4 {				## ip4=192.0.2.53,...
 
 sub ip6 {				## ip6=2001:DB8::53,...
 	my ( $self, @value ) = @_;				# uncoverable pod
-	my $ip = $self->ipv6hint(@value);
+	my $ip = $self->SUPER::ipv6hint(@value);
 	return $ip if @value;
 	my @ip = unpack 'a16' x ( length($ip) / 16 ), $ip;
 	return join ',', map { bless( {address => $_}, 'Net::DNS::RR::AAAA' )->address_short } @ip;
@@ -165,11 +160,11 @@ __END__
 
 
 The DNS DELEG resource record set, wherever it appears, advertises the
-authoritative nameservers and transport methods to be used to resolve
-queries for data at the owner name or its subordinates.
+authoritative nameservers and transport parameters to be used to resolve
+queries for data at the owner name or any subordinate thereof.
 
-The DELEG RRset is authoritative data within the parent zone and must
-not appear at the apex of the child zone.
+The DELEG RRset is authoritative data within the delegating zone
+and must not appear at the apex of the subordinate zone.
 
 The DELEG class is derived from, and inherits properties of,
 the Net::DNS::RR::SVCB class.
@@ -259,6 +254,8 @@ DEALINGS IN THE SOFTWARE.
 
 L<perl> L<Net::DNS> L<Net::DNS::RR>
 L<Net::DNS::RR::SVCB>
+
+draft-ietf-deleg
 
 L<RFC9460|https://iana.org/go/rfc9460>
 
