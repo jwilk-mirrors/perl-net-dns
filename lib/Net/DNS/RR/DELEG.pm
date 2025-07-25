@@ -14,7 +14,6 @@ Net::DNS::RR::DELEG - DNS DELEG resource record
 =cut
 
 use integer;
-use Carp;
 
 my %keyname = reverse(
 	IPv4 => 'key4',
@@ -90,23 +89,29 @@ sub _defaults {				## specify RR attribute default values
 }
 
 
-sub direct {
-	my ( $self, @servername ) = @_;				# uncoverable pod
+sub DIRECT {
+	my ( $self, @servername ) = @_;
 	$self->targetname( @servername, '.' );
-	return $self->{SvcPriority} = 1;
+	return $self->SvcPriority(1);
 }
 
-sub include {
-	my ( $self, $target ) = @_;				# uncoverable pod
+sub INCLUDE {
+	my ( $self, $target ) = @_;
 	$self->targetname($target);
-	return $self->{SvcPriority} = 0;
+	return $self->SvcPriority(0);
 }
 
 sub priority {
-	my ( $self, @value ) = @_;				# uncoverable pod
-	return $self->{SvcPriority}	     unless @value;
-	croak 'priority invalid for INCLUDE' unless $self->{SvcPriority};
-	return $self->{SvcPriority} = shift @value;
+	my ( $self, @value ) = @_;
+	my $priority = $self->{SvcPriority};
+	return $priority unless @value;
+	my ($value) = @value;
+	if ($priority) {
+		die 'invalid zero priority' unless $value;
+	} else {
+		die 'invalid non-zero priority' if $value;
+	}
+	return $self->SvcPriority(@value);
 }
 
 sub targetname {
@@ -116,24 +121,22 @@ sub targetname {
 	return $target eq '.' ? undef : $target;
 }
 
-sub ip4 {				## ip4=192.0.2.53,...
+sub ipv4 {				## ip4=192.0.2.53,...
 	my ( $self, @value ) = @_;				# uncoverable pod
-	my $ip = $self->SUPER::ipv4hint(@value);
-	return $ip if @value;
-	my @ip = unpack 'a4' x ( length($ip) / 4 ), $ip;
+	my $packed = $self->_SvcParam( 4, _ipv4(@value) );
+	return $packed if @value;
+	my @ip = unpack 'a4' x ( length($packed) / 4 ), $packed;
 	return join ',', map { bless( {address => $_}, 'Net::DNS::RR::A' )->address } @ip;
 }
 
-sub ip6 {				## ip6=2001:DB8::53,...
+sub ipv6 {				## ip6=2001:DB8::53,...
 	my ( $self, @value ) = @_;				# uncoverable pod
-	my $ip = $self->SUPER::ipv6hint(@value);
-	return $ip if @value;
-	my @ip = unpack 'a16' x ( length($ip) / 16 ), $ip;
+	my $packed = $self->_SvcParam( 6, _ipv6(@value) );
+	return $packed if @value;
+	my @ip = unpack 'a16' x ( length($packed) / 16 ), $packed;
 	return join ',', map { bless( {address => $_}, 'Net::DNS::RR::AAAA' )->address_short } @ip;
 }
 
-sub ipv4 { return &ip4 }					# uncoverable pod
-sub ipv6 { return &ip6 }					# uncoverable pod
 
 sub generic {
 	my $self  = shift;
@@ -143,6 +146,26 @@ sub generic {
 	my @rdata = $self->_empty ? () : $self->SUPER::_format_rdata;
 	return join "\n\t", Net::DNS::RR::_wrap( "@core (", @rdata, ')' );
 }
+
+
+########################################
+
+sub _concatenate {			## concatenate octet string(s)
+	my @arg = @_;
+	return scalar(@arg) ? join( '', @arg ) : return @arg;
+}
+
+sub _ipv4 {
+	my @arg = @_;
+	return _concatenate( map { Net::DNS::RR::A::address( {}, $_ ) } @arg );
+}
+
+sub _ipv6 {
+	my @arg = @_;
+	return _concatenate( map { Net::DNS::RR::AAAA::address( {}, $_ ) } @arg );
+}
+
+########################################
 
 
 1;
@@ -198,6 +221,16 @@ and sets DIRECT mode (non-zero SvcPriority).
 
 Specifies the location of an external nameserver configuration
 and sets INCLUDE mode (zero SvcPriority).
+
+
+=head2 priority
+
+	example. DELEG DIRECT=nameserver priority=123
+	$priority = $rr->priority;
+
+Gets or sets the priority value for the DELEG record.
+An exception will be raised for any attempt to set
+a non-zero priority for INCLUDE.
 
 
 =head2 targetname

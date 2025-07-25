@@ -14,7 +14,7 @@ exit( plan skip_all => 'unresolved AUTOLOAD regression	[perl #120694]' )
 		unless ( $] > 5.018001 )
 		or ( $] < 5.018 );
 
-plan tests => 25;
+plan tests => 28;
 
 
 my $type = 'DELEG';
@@ -35,23 +35,25 @@ for my $rr ( Net::DNS::RR->new( my $record = 'example. IN DELEG' ) ) {
 
 for my $rr ( Net::DNS::RR->new( my $record = 'example. DELEG DIRECT=servername' ) ) {
 	ok( $rr, "new DELEG RR:	$record" );
-	is( $rr->priority, 1, 'non-zero priority' );
+	isnt( $rr->priority, 0, 'non-zero priority' );
 	ok( $rr->targetname, 'defined targetname' );
+	ok( $rr->string,     'presentation format string' );
 }
 
 
 for my $rr ( Net::DNS::RR->new( my $record = 'example. DELEG DIRECT=servername IPv6=2001:db8::53' ) ) {
 	ok( $rr, "new DELEG RR:	$record" );
-	is( $rr->priority, 1, 'non-zero priority' );
-	ok( $rr->targetname, 'defined targetname' );
+	is( $rr->priority, 1, 'default priority 1' );
+	ok( $rr->priority(123), 'set arbitrary priority' );
+	is( $rr->priority, 123, 'verify changed priority' );
+	exception( 'zero priority value rejected', sub { $rr->priority(0) } );
+	ok( $rr->string, 'presentation format string' );
 }
 
 
 for my $rr ( Net::DNS::RR->new( my $record = 'example. DELEG IPv4=192.0.2.1 IPv6=2001:db8::53 port=53' ) ) {
 	ok( $rr, "new DELEG RR:	$record" );
 	is( $rr->targetname, undef, 'undefined targetname' );
-	ok( $rr->priority(123), 'set non-zero priority' );
-	is( $rr->priority, 123, 'changed priority' );
 	ok( $rr->string,  'presentation format string' );
 	ok( $rr->generic, 'RFC3597 generic format' );
 }
@@ -62,7 +64,8 @@ for my $rr ( Net::DNS::RR->new( my $record = 'example. DELEG INCLUDE="targetname
 	is( $rr->priority, 0, 'zero priority' );
 	ok( $rr->targetname, 'defined targetname' );
 	ok( $rr->string,     'presentation format string' );
-	exception( 'priority parameter disallowed', sub { $rr->_parse_rdata('priority=123') } );
+	is( $rr->priority(0), 0, 'zero priority silently accepted' );
+	exception( 'non-zero priority rejected', sub { $rr->priority(123) } );
 }
 
 exception( 'incomplete INCLUDE parameter', sub { Net::DNS::RR->new('example. DELEG INCLUDE') } );
