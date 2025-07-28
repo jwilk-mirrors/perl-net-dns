@@ -6,6 +6,9 @@ $Id$                       -*-text-*-
 	Refactor SVCB to avoid internal use of generic keyNN.
 	DELEG documentation and code improvement.
 
+Fix rt.cpan.org #168433
+	Bug in resolver base selection on non-Unix/Linux platforms
+
 
 **** 1.51 Jul 4, 2025
 

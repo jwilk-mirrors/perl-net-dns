@@ -75,7 +75,7 @@ sub _post_parse {			## parser post processing
 	my $paramref = $self->{SvcParams} || [];
 	unless (@$paramref) {
 		return if $self->_empty;
-		die('target name not specified') unless $self->targetname;
+		die('no name or address specified') unless $self->targetname;
 	}
 	return;
 }

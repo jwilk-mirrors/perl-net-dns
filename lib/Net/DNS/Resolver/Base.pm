@@ -27,7 +27,7 @@ our $VERSION = (qw$Id$)[2];
 
 use constant OS_SPEC => "Net::DNS::Resolver::$^O";
 use constant OS_UNIX => "Net::DNS::Resolver::UNIX";
-use constant OS_CONF => grep eval "require $_", OS_SPEC, OS_UNIX;	## no critic
+use constant OS_CONF => grep( eval "require $_", OS_SPEC ), OS_UNIX;	## no critic
 use base (OS_CONF)[0];
 
 

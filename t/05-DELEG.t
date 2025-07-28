@@ -38,6 +38,7 @@ for my $rr ( Net::DNS::RR->new( my $record = 'example. DELEG DIRECT=servername' 
 	isnt( $rr->priority, 0, 'non-zero priority' );
 	ok( $rr->targetname, 'defined targetname' );
 	ok( $rr->string,     'presentation format string' );
+	ok( $rr->generic,    'RFC3597 generic format' );
 }
 
 
@@ -54,8 +55,7 @@ for my $rr ( Net::DNS::RR->new( my $record = 'example. DELEG DIRECT=servername I
 for my $rr ( Net::DNS::RR->new( my $record = 'example. DELEG IPv4=192.0.2.1 IPv6=2001:db8::53 port=53' ) ) {
 	ok( $rr, "new DELEG RR:	$record" );
 	is( $rr->targetname, undef, 'undefined targetname' );
-	ok( $rr->string,  'presentation format string' );
-	ok( $rr->generic, 'RFC3597 generic format' );
+	ok( $rr->string, 'presentation format string' );
 }
 
 
@@ -65,11 +65,11 @@ for my $rr ( Net::DNS::RR->new( my $record = 'example. DELEG INCLUDE="targetname
 	ok( $rr->targetname, 'defined targetname' );
 	ok( $rr->string,     'presentation format string' );
 	is( $rr->priority(0), 0, 'zero priority silently accepted' );
-	exception( 'non-zero priority rejected', sub { $rr->priority(123) } );
+	exception( 'non-zero priority rejected', sub { $rr->priority(1) } );
 }
 
-exception( 'incomplete INCLUDE parameter', sub { Net::DNS::RR->new('example. DELEG INCLUDE') } );
-exception( 'incomplete DIRECT parameter',  sub { Net::DNS::RR->new('example. DELEG DIRECT') } );
+exception( 'incomplete INCLUDE parameter',    sub { Net::DNS::RR->new('example. DELEG INCLUDE') } );
+exception( 'incomplete DIRECT parameter set', sub { Net::DNS::RR->new('example. DELEG DIRECT') } );
 
 exit;
 
