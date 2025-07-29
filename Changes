@@ -1,7 +1,7 @@
 $Id$                       -*-text-*-
 
 
-**** 1.52 [unreleased]
+**** 1.52 Jul 29, 2025
 
 	Refactor SVCB to avoid internal use of generic keyNN.
 	DELEG documentation and code improvement.
