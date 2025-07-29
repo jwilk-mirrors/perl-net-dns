@@ -229,7 +229,7 @@ sub ipv6hint {				## ipv6hint=2001:DB8::1,...
 
 sub dohpath {				## dohpath=/dns-query{?dns}
 	my ( $self, @value ) = @_;				# uncoverable pod
-	return $self->_SvcParam( 7, map { _string($_) } @value );
+	return $self->_SvcParam( 7, map { substr _string($_), 1 } @value );
 }
 
 sub ohttp {				## ohttp

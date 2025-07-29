@@ -42,7 +42,7 @@ for my $rr ( Net::DNS::RR->new( my $record = 'example. DELEG DIRECT=servername' 
 }
 
 
-for my $rr ( Net::DNS::RR->new( my $record = 'example. DELEG DIRECT=servername IPv6=2001:db8::53' ) ) {
+for my $rr ( Net::DNS::RR->new( my $record = 'example. DELEG DIRECT=servername IPv4=192.0.2.1 port=53 key65534' ) ) {
 	ok( $rr, "new DELEG RR:	$record" );
 	is( $rr->priority, 1, 'default priority 1' );
 	ok( $rr->priority(123), 'set arbitrary priority' );
@@ -52,7 +52,11 @@ for my $rr ( Net::DNS::RR->new( my $record = 'example. DELEG DIRECT=servername I
 }
 
 
-for my $rr ( Net::DNS::RR->new( my $record = 'example. DELEG IPv4=192.0.2.1 IPv6=2001:db8::53 port=53' ) ) {
+for my $rr (
+	Net::DNS::RR->new(
+		my $record = 'example. DELEG IPv6=2001:db8::53 alpn=dot key2 tls-supported-groups=29'
+		)
+	) {
 	ok( $rr, "new DELEG RR:	$record" );
 	is( $rr->targetname, undef, 'undefined targetname' );
 	ok( $rr->string, 'presentation format string' );
