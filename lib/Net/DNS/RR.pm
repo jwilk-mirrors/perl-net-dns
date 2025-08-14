@@ -326,16 +326,17 @@ This differs from RR attribute methods, which omit the trailing dot.
 sub string {
 	my $self = shift;
 
-	my $name = $self->{owner}->string;
-	my @ttl	 = grep {defined} $self->{ttl};
-	my @core = ( $name, @ttl, $self->class, $self->type );
+	my $owner = $self->{owner}->string;
+	my @ttl	  = defined $self->{ttl}   ? $self->{ttl} : ();
+	my @class = defined $self->{class} ? $self->class : ();
+	my @core  = ( $owner, @ttl, @class, $self->type );
 
 	local $SIG{__DIE__};
 	my $empty = $self->_empty;
 	my @rdata = $empty ? () : eval { $self->_format_rdata };
 	carp $@ if $@;
 
-	my $tab	 = length($name) < 72 ? "\t" : ' ';
+	my $tab	 = length($owner) < 72 ? "\t" : ' ';
 	my @line = _wrap( join( $tab, @core, '(' ), @rdata, ')' );
 
 	my $last = pop(@line);					# last or only line
@@ -372,8 +373,9 @@ Returns a token list representation of the RR zone file string.
 sub token {
 	my $self = shift;
 
-	my @ttl	 = grep {defined} $self->{ttl};
-	my @core = ( $self->{owner}->string, @ttl, $self->class, $self->type );
+	my @ttl	  = defined $self->{ttl}   ? $self->{ttl} : ();
+	my @class = defined $self->{class} ? $self->class : ();
+	my @core  = ( $self->{owner}->string, @ttl, @class, $self->type );
 
 	# parse into quoted strings, contiguous non-whitespace and (discarded) comments
 	local $_ = $self->_empty ? '' : join( ' ', $self->_format_rdata );
@@ -399,8 +401,8 @@ and provisioning software.
 sub generic {
 	my $self = shift;
 
-	my @ttl	  = grep {defined} $self->{ttl};
-	my @class = map	 {"CLASS$_"} grep {defined} $self->{class};
+	my @ttl	  = defined $self->{ttl}   ? $self->{ttl}	   : ();
+	my @class = defined $self->{class} ? "CLASS$self->{class}" : ();
 	my @core  = ( $self->{owner}->string, @ttl, @class, "TYPE$self->{type}" );
 	my $data  = $self->rdata;
 	my @data  = ( '\\#', length($data), split /(\S{32})/, unpack 'H*', $data );

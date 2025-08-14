@@ -40,6 +40,7 @@ for my $rr ( Net::DNS::RR->new( name => $name, type => $type, %$hash ) ) {
 		is( $rr2->$_, $rr->$_, "additional attribute rr->$_()" );
 	}
 
+	$rr->class(1);
 	$rr->ttl(1234);
 	my $encoded = $rr->encode;
 	my $decoded = Net::DNS::RR->decode( \$encoded );

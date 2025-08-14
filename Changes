@@ -1,6 +1,12 @@
 $Id$                       -*-text-*-
 
 
+**** 1.53 [unreleased]
+
+	Suppress autovivified undefined $rr->{class} and $rr->{ttl}.
+	Rework test scripts for SVCB and DELEG.
+
+
 **** 1.52 Jul 29, 2025
 
 	Refactor SVCB to avoid internal use of generic keyNN.

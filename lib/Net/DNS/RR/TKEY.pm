@@ -64,10 +64,6 @@ sub _encode_rdata {			## encode rdata as wire-format octet string
 }
 
 
-sub class {				## override RR method
-	return 'ANY';
-}
-
 sub encode {				## override RR method
 	my $self = shift;
 
