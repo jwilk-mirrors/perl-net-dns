@@ -47,10 +47,8 @@ sub _decode_rdata {			## decode rdata from wire-format octet string
 	my $params = $self->{SvcParams} = [];
 	while ( ( my $start = $offset + 4 ) <= $limit ) {
 		my ( $key, $size ) = unpack( "\@$offset n2", $rdata );
-		my $next = $start + $size;
-		last if $next > $limit;
+		last if ( $offset = $start + $size ) > $limit;
 		push @$params, ( $key, substr $rdata, $start, $size );
-		$offset = $next;
 	}
 	die $self->type . ': corrupt RDATA' unless $offset == $limit;
 	return;

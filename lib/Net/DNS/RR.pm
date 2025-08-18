@@ -721,7 +721,7 @@ sub _subclass {
 
 sub _annotation {
 	my ( $self, @note ) = @_;
-	push @{$self->{annotation}}, "; @note", "\n" if scalar @note;
+	push @{$self->{annotation}}, "\t; @note" if scalar @note;
 	return wantarray ? @{delete( $self->{annotation} ) || []} : undef;
 }
 

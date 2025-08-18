@@ -4,7 +4,7 @@ use strict;
 use warnings;
 our $VERSION = (qw$Id$)[2];
 
-use base qw(Net::DNS::RR::SVCB);
+use base qw(Net::DNS::RR);
 
 
 =head1 NAME
@@ -15,33 +15,64 @@ Net::DNS::RR::DELEG - DNS DELEG resource record
 
 use integer;
 
-my %keyname = reverse(
-	ip4 => 'key4',
-	ip6 => 'key6',
+use Net::DNS::RR::A;
+use Net::DNS::RR::AAAA;
+use Net::DNS::DomainName;
+
+my %keyname = (
+	key1 => 'server-ip4',
+	key2 => 'server-ip6',
+	key3 => 'server-name',
+	key4 => 'include-name',
 	);
+
+
+sub _decode_rdata {			## decode rdata from wire-format octet string
+	my ( $self, $data, $offset ) = @_;
+
+	my $limit = $self->{rdlength};
+	my $rdata = $self->{rdata} = substr $$data, $offset, $limit;
+	my $index = 0;
+
+	my $params = $self->{parameters} = [];
+	while ( ( my $start = $index + 4 ) <= $limit ) {
+		my ( $key, $size ) = unpack( "\@$index n2", $rdata );
+		last if ( $index = $start + $size ) > $limit;
+		push @$params, ( $key, substr $rdata, $start, $size );
+	}
+	die $self->type . ': corrupt RDATA' unless $index == $limit;
+	return;
+}
+
+
+sub _encode_rdata {			## encode rdata as wire-format octet string
+	my $self = shift;
+
+	my @packed;
+	my ($paramref) = grep {defined} $self->{parameters}, [];
+	my @parameters = @$paramref;
+	while (@parameters) {
+		my $key = shift @parameters;
+		my $val = shift @parameters;
+		push @packed, pack( 'n2a*', $key, length($val), $val );
+	}
+	return join '', @packed;
+}
 
 
 sub _format_rdata {			## format rdata portion of RR string.
 	my $self = shift;
 
 	my @rdata;
-	for my $key (qw(nsname include)) {
-		my $name = $self->$key || next;
-		push @rdata, join '=', $key, $name;
-	}
-
-	my $priority = $self->priority;
-	push @rdata, "priority=$priority" if $priority;
-
-	my $params = $self->{SvcParams} || [];
-	my @params = @$params;
-	while (@params) {
-		my $key = join '', 'key', shift @params;
-		my $val = shift @params;
+	my ($paramref) = grep {defined} $self->{parameters}, [];
+	my @parameters = @$paramref;
+	while (@parameters) {
+		my $key = join '', 'key', shift @parameters;
+		my $val = shift @parameters;
 		if ( my $name = $keyname{$key} ) {
 			my @val = grep {length} $self->$name;
 			my @rhs = grep {length} join ',', @val;
-			push @rdata, "\n", join '=', $name, @rhs;
+			push @rdata, join '=', $name, @rhs;
 		} else {
 			my @hex = unpack 'H*', $val;
 			$self->_annotation(qq(unexpected $key="@hex"));
@@ -60,7 +91,6 @@ sub _parse_rdata {			## populate RR from rdata in argument list
 		m/^[^=]+=?(.*)$/;
 		for ( my $rhs = /=$/ ? shift @argument : $1 ) {
 			s/^"(.*)"$/$1/;				# strip enclosing quotes
-			s/\\,/\\044/g;				# disguise escaped comma
 			push @value, length() ? split /,/ : ();
 		}
 
@@ -74,97 +104,47 @@ sub _parse_rdata {			## populate RR from rdata in argument list
 sub _post_parse {			## parser post processing
 	my $self = shift;
 
-	my $paramref = $self->{SvcParams} || [];
-	unless (@$paramref) {
-		return if $self->_empty;
-		die 'no parameters specified' unless $self->_targetname;
+	my ($paramref) = grep {defined} $self->{parameters}, [];
+	my %paramhash  = @$paramref;
+	if ( delete $paramhash{4} ) {
+		die( $self->type . qq[: parameter conflicts with include-name] ) if scalar keys %paramhash;
 	}
 	return;
 }
 
 
-sub _defaults {				## specify RR attribute default values
-	my $self = shift;
-
-	$self->direct('.');
-	return;
-}
-
-
-sub direct {
-	my ( $self, @servername ) = @_;
-	$self->_mode(1) if @servername;
-	return $self->_mode ? $self->_targetname(@servername) : undef;
-}
-
-sub include {
-	my ( $self, @destination ) = @_;
-	$self->_mode(0) if @destination;
-	return $self->_mode ? undef : $self->_targetname(@destination);
-}
-
-sub priority {
-	my ( $self, $value ) = @_;
-	my $state = $self->{SvcPriority};
-	if ( defined $value ) {
-		$state = $state ? $state & 1 : 0;
-		$self->{SvcPriority} = $state |= ( $value << 8 );
-	}
-	return $state ? $state >> 8 : $state;
-}
-
-sub ip4 {				## ip4=192.0.2.53,...
+sub server_ip4 {			## server-ip4=192.0.2.53
 	my ( $self, @value ) = @_;
-	return $self->_SvcParam( 4, _address4(@value) ) unless defined wantarray;
-	my $packed = $self->_SvcParam(4);
+	return $self->_parameter( 1, _address4(@value) ) if @value;
+	my $packed = $self->_parameter(1) || return;
 	my @iplist = unpack 'a4' x ( length($packed) / 4 ), $packed;
 	return map { bless( {address => $_}, 'Net::DNS::RR::A' )->address } @iplist;
 }
 
-sub ip6 {				## ip6=2001:DB8::53,...
+sub server_ip6 {			## server-ip6=2001:DB8::53
 	my ( $self, @value ) = @_;
-	return $self->_SvcParam( 6, _address6(@value) ) unless defined wantarray;
-	my $packed = $self->_SvcParam(6);
+	return $self->_parameter( 2, _address6(@value) ) if @value;
+	my $packed = $self->_parameter(2) || return;
 	my @iplist = unpack 'a16' x ( length($packed) / 16 ), $packed;
 	return map { bless( {address => $_}, 'Net::DNS::RR::AAAA' )->address } @iplist;
 }
 
+sub server_name {			## server-name=nameserver.example
+	my ( $self, @value ) = @_;
+	return $self->_parameter( 3, _domain(@value) ) if @value;
+	my $packed = $self->_parameter(3) || return;
+	return Net::DNS::DomainName->decode( \$packed )->fqdn;
+}
 
-sub generic {
-	my $self = shift;
-	our @ISA;
-	my ($super) = @ISA;
-	local %Net::DNS::Parameters::classbyval;
-	local %Net::DNS::Parameters::typebyval;
-	return bless( {%$self}, $super )->string;
+sub include_name {			## include-name=devolved.example
+	my ( $self, @value ) = @_;
+	return $self->_parameter( 4, _domain(@value) ) if @value;
+	my $packed = $self->_parameter(4) || return;
+	return Net::DNS::DomainName->decode( \$packed )->fqdn;
 }
 
 
 ########################################
-
-sub nsname { return &direct }
-
-sub _mode {
-	my ( $self, $value ) = @_;
-	my $state = $self->{SvcPriority};
-	if ( defined $value ) {
-		$state = $state ? $state & 0xff00 : 0;
-		$self->{SvcPriority} = $state |= ( $value & 1 );
-	}
-	return $state ? $state & 1 : $state;
-}
-
-sub _targetname {
-	my ( $self, @value ) = @_;
-	$self->{TargetName} = Net::DNS::DomainName->new(@value) if @value;
-	my $target = $self->{TargetName} ? $self->{TargetName}->name : return;
-	return $target eq '.' ? undef : $target;
-}
-
-sub targetname { __PACKAGE__->_deprecate('TargetName'); return &_targetname }	 # uncoverable pod
-
-sub svcpriority { __PACKAGE__->_deprecate('SvcPriority'); return &priority }	 # uncoverable pod
-
 
 sub AUTOLOAD {				## Dynamic constructor/accessor methods
 	my ( $self, @argument ) = @_;
@@ -181,8 +161,28 @@ sub AUTOLOAD {				## Dynamic constructor/accessor methods
 
 	my $super = "SUPER::$method";
 	return $self->$super(@argument) unless $method =~ /^key[0]*(\d+)$/i;
-	die "unsupported $method(...)" if @argument;
-	return $self->_SvcParam($1);
+	die( $self->type . qq[: unsupported $method(...)] ) if @argument;
+	return $self->_parameter($1);
+}
+
+
+sub _parameter {
+	my ( $self, $key, @argument ) = @_;
+
+	my ($paramref) = grep {defined} $self->{parameters}, [];
+	my %parameter  = @$paramref;
+
+	if ( scalar @argument ) {
+		my $arg = shift @argument;			# key($value);
+		delete $parameter{$key} unless defined $arg;
+		die( $self->type . qq[: duplicate parameter "key$key"] ) if defined $parameter{$key};
+		die( $self->type . qq[: unexpected "key$key" value] )	 if scalar @argument;
+		delete $self->{rdata};
+		$parameter{$key} = $arg if defined $arg;
+		$self->{parameters} = [map { ( $_, $parameter{$_} ) } sort { $a <=> $b } keys %parameter];
+	}
+
+	return $parameter{$key};
 }
 
 
@@ -201,6 +201,25 @@ sub _address6 {
 	return _concatenate( map { Net::DNS::RR::AAAA::address( {}, $_ ) } @arg );
 }
 
+sub _domain {
+	my @arg = @_;
+	return map { Net::DNS::DomainName->new($_)->encode() } @arg;
+}
+
+
+# uncoverable pod
+sub ip4 { return &server_ip4 }
+
+# uncoverable pod
+sub ip6 { return &server_ip6 }
+
+# uncoverable pod
+sub nsname { return &server_name }
+
+# uncoverable pod
+sub include { return &include_name }
+
+
 ########################################
 
 
@@ -211,9 +230,9 @@ __END__
 =head1 SYNOPSIS
 
 	use Net::DNS;
-	$rr = Net::DNS::RR->new('zone DELEG nsname=nameserver IPv4=192.0.2.1');
-	$rr = Net::DNS::RR->new('zone DELEG IPv6=2001:db8::53');
-	$rr = Net::DNS::RR->new('zone DELEG include=targetname');
+	$rr = Net::DNS::RR->new('zone DELEG server-name=nameserver server-ip4=192.0.2.1');
+	$rr = Net::DNS::RR->new('zone DELEG server-ip6=2001:db8::53');
+	$rr = Net::DNS::RR->new('zone DELEG include-name=targetname');
 
 =head1 DESCRIPTION
 
@@ -225,10 +244,6 @@ queries for data at the owner name or any subordinate thereof.
 The DELEG RRset is authoritative data within the delegating zone
 and must not appear at the apex of the subordinate zone.
 
-The DELEG class is derived from, and inherits properties of,
-the Net::DNS::RR::SVCB class.
-
-
 =head1 METHODS
 
 The available methods are those inherited from the base class augmented
@@ -239,50 +254,48 @@ structures is discouraged and could result in program termination or
 other unpredictable behaviour.
 
 
-=head2 nsname
+=head2 server_ip4
 
-=head2 direct
+=head2 server-ip4
 
-	example. DELEG nsname=nameserver.example.
-	$nameserver = $rr->nsname;
+	example. DELEG server-name=... server-ip4=192.0.2.1
+	@ip = $rr->server_ip4;
 
-Specifies the domain name of the nameserver and sets DIRECT mode.
+Sets or gets a list of IP addresses.
+
+
+=head2 server_ip6
+
+=head2 server-ip6
+
+	example. DELEG server-name=... server-ip6=2001:db8::53
+	@ip = $rr->server_ip6;
+
+Sets or gets a list of IP addresses.
+
+
+=head2 server_name
+
+=head2 server-name
+
+	example. DELEG server-name=nameserver.example.
+	$nameserver = $rr->server_name;
+
+Specifies the domain name of the nameserver.
 
 Returns the nameserver domain name or the undefined value if not specified.
 
 
-=head2 include
+=head2 include_name
 
-	example. DELEG include=devolved.example.
-	$destination = $rr->include;
+=head2 include-name
 
-Specifies the location of a devolved nameserver configuration and sets INCLUDE mode.
+	example. DELEG include-name=devolved.example.
+	$destination = $rr->include_name;
 
-Returns the INCLUDE destination domain name or the undefined value if not specified.
+Specifies the location of a devolved nameserver configuration.
 
-
-=head2 priority
-
-	example. DELEG	nsname=... priority=123
-	example. DELEG	include=... priority=123
-	$priority = $rr->priority;
-
-Gets or sets the priority value for the DELEG record.
-
-
-=head2 ip4
-
-	example. DELEG nsname=... IP4=192.0.2.1
-	@ip = $rr->IP4;
-
-Sets or gets a list of IP addresses.
-
-=head2 ip6
-
-	example. DELEG nsname=... IP6=2001:db8::53
-	@ip = $rr->IP6;
-
-Sets or gets a list of IP addresses.
+Returns the destination domain name or the undefined value if not specified.
 
 
 =head1 COPYRIGHT
@@ -316,12 +329,6 @@ DEALINGS IN THE SOFTWARE.
 =head1 SEE ALSO
 
 L<perl> L<Net::DNS> L<Net::DNS::RR>
-L<Net::DNS::RR::SVCB>
-
-draft-ietf-deleg
-
-L<RFC9460|https://iana.org/go/rfc9460>
-
-L<Service Parameter Keys|https://iana.org/assignments/dns-svcb>
+draft-ietf-deleg-02
 
 =cut
