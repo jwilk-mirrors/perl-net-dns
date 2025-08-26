@@ -20,10 +20,10 @@ use Net::DNS::RR::AAAA;
 use Net::DNS::DomainName;
 
 my %keyname = (
-	key1 => 'server-ip4',
-	key2 => 'server-ip6',
-	key3 => 'server-name',
-	key4 => 'include-name',
+	1 => 'server-ip4',
+	2 => 'server-ip6',
+	3 => 'server-name',
+	4 => 'include-name',
 	);
 
 
@@ -67,7 +67,7 @@ sub _format_rdata {			## format rdata portion of RR string.
 	my ($paramref) = grep {defined} $self->{parameters}, [];
 	my @parameters = @$paramref;
 	while (@parameters) {
-		my $key = join '', 'key', shift @parameters;
+		my $key = shift @parameters;
 		my $val = shift @parameters;
 		if ( my $name = $keyname{$key} ) {
 			my @val = grep {length} $self->$name;
@@ -75,7 +75,7 @@ sub _format_rdata {			## format rdata portion of RR string.
 			push @rdata, join '=', $name, @rhs;
 		} else {
 			my @hex = unpack 'H*', $val;
-			$self->_annotation(qq(unexpected $key="@hex"));
+			$self->_annotation(qq[unexpected key$key="@hex"]);
 		}
 	}
 
@@ -91,6 +91,7 @@ sub _parse_rdata {			## populate RR from rdata in argument list
 		m/^[^=]+=?(.*)$/;
 		for ( my $rhs = /=$/ ? shift @argument : $1 ) {
 			s/^"(.*)"$/$1/;				# strip enclosing quotes
+			s/\\,/\\044/g;				# disguise escaped comma
 			push @value, length() ? split /,/ : ();
 		}
 
@@ -106,8 +107,16 @@ sub _post_parse {			## parser post processing
 
 	my ($paramref) = grep {defined} $self->{parameters}, [];
 	my %paramhash  = @$paramref;
-	if ( delete $paramhash{4} ) {
-		die( $self->type . qq[: parameter conflicts with include-name] ) if scalar keys %paramhash;
+	if ( defined $paramhash{3} ) {
+		die( $self->type . qq[: invalid $keyname{3}] )
+				unless unpack 'xa*', $paramhash{3};
+	}
+
+	if ( defined $paramhash{4} ) {
+		die( $self->type . qq[: invalid $keyname{4}] )
+				unless unpack 'xa*', delete $paramhash{4};
+		die( $self->type . qq[: parameter conflicts with $keyname{4}] )
+				if scalar keys %paramhash;
 	}
 	return;
 }
@@ -118,7 +127,7 @@ sub server_ip4 {			## server-ip4=192.0.2.53
 	return $self->_parameter( 1, _address4(@value) ) if @value;
 	my $packed = $self->_parameter(1) || return;
 	my @iplist = unpack 'a4' x ( length($packed) / 4 ), $packed;
-	return map { bless( {address => $_}, 'Net::DNS::RR::A' )->address } @iplist;
+	return map { Net::DNS::RR::A::address( {address => $_} ) } @iplist;
 }
 
 sub server_ip6 {			## server-ip6=2001:DB8::53
@@ -126,7 +135,7 @@ sub server_ip6 {			## server-ip6=2001:DB8::53
 	return $self->_parameter( 2, _address6(@value) ) if @value;
 	my $packed = $self->_parameter(2) || return;
 	my @iplist = unpack 'a16' x ( length($packed) / 16 ), $packed;
-	return map { bless( {address => $_}, 'Net::DNS::RR::AAAA' )->address } @iplist;
+	return map { Net::DNS::RR::AAAA::address_short( {address => $_} ) } @iplist;
 }
 
 sub server_name {			## server-name=nameserver.example
@@ -174,9 +183,10 @@ sub _parameter {
 
 	if ( scalar @argument ) {
 		my $arg = shift @argument;			# key($value);
+		my $tag = $keyname{$key} || '';
 		delete $parameter{$key} unless defined $arg;
-		die( $self->type . qq[: duplicate parameter "key$key"] ) if defined $parameter{$key};
-		die( $self->type . qq[: unexpected "key$key" value] )	 if scalar @argument;
+		die( $self->type . qq[: duplicate parameter $tag] ) if defined $parameter{$key};
+		die( $self->type . qq[: unexpected $tag value] )    if scalar @argument;
 		delete $self->{rdata};
 		$parameter{$key} = $arg if defined $arg;
 		$self->{parameters} = [map { ( $_, $parameter{$_} ) } sort { $a <=> $b } keys %parameter];
@@ -207,18 +217,25 @@ sub _domain {
 }
 
 
-# uncoverable pod
-sub ip4 { return &server_ip4 }
+sub generic {
+	my $self = shift;
+	my $size = 0;
+	my @rdata;
+	my ($paramref) = grep {defined} $self->{parameters}, [];
+	my @parameters = @$paramref;
+	while (@parameters) {
+		my $key = shift @parameters;
+		my $val = shift @parameters;
+		push @rdata, "\n", unpack 'H4H4', pack( 'n2', $key, length $val );
+		$size += 4 + length $val;
+		push @rdata, split /(\S{32})/, unpack 'H*', $val;
+	}
 
-# uncoverable pod
-sub ip6 { return &server_ip6 }
-
-# uncoverable pod
-sub nsname { return &server_name }
-
-# uncoverable pod
-sub include { return &include_name }
-
+	my @ttl	  = grep {defined} $self->{ttl};
+	my @class = map	 { $_ ? "CLASS$_" : () } $self->{class};
+	my @core  = ( $self->{owner}->string, @ttl, @class, "TYPE$self->{type}" );
+	return join "\n\t", Net::DNS::RR::_wrap( "@core ( \\# $size", @rdata, ')' );
+}
 
 ########################################
 
@@ -230,19 +247,19 @@ __END__
 =head1 SYNOPSIS
 
 	use Net::DNS;
-	$rr = Net::DNS::RR->new('zone DELEG server-name=nameserver server-ip4=192.0.2.1');
-	$rr = Net::DNS::RR->new('zone DELEG server-ip6=2001:db8::53');
-	$rr = Net::DNS::RR->new('zone DELEG include-name=targetname');
+	$rr = Net::DNS::RR->new('zone DELEG server-ip4=192.0.2.1 ...');
+	$rr = Net::DNS::RR->new('zone DELEG server-ip6=2001:db8::53 ...');
+	$rr = Net::DNS::RR->new('zone DELEG server-name=nameserver.example ...');
+	$rr = Net::DNS::RR->new('zone DELEG include-name=devolved.example');
 
 =head1 DESCRIPTION
-
 
 The DNS DELEG resource record set, wherever it appears, advertises the
 authoritative nameservers and transport parameters to be used to resolve
 queries for data at the owner name or any subordinate thereof.
 
-The DELEG RRset is authoritative data within the delegating zone
-and must not appear at the apex of the subordinate zone.
+The DELEG RRset is authoritative data within the delegating zone.
+A DELEG RRset must not appear at the apex of a delegated zone.
 
 =head1 METHODS
 
@@ -256,9 +273,7 @@ other unpredictable behaviour.
 
 =head2 server_ip4
 
-=head2 server-ip4
-
-	example. DELEG server-name=... server-ip4=192.0.2.1
+	eg.example. DELEG server-ip4=192.0.2.1,...
 	@ip = $rr->server_ip4;
 
 Sets or gets a list of IP addresses.
@@ -266,9 +281,7 @@ Sets or gets a list of IP addresses.
 
 =head2 server_ip6
 
-=head2 server-ip6
-
-	example. DELEG server-name=... server-ip6=2001:db8::53
+	eg.example. DELEG server-ip6=2001:db8::53,...
 	@ip = $rr->server_ip6;
 
 Sets or gets a list of IP addresses.
@@ -276,9 +289,7 @@ Sets or gets a list of IP addresses.
 
 =head2 server_name
 
-=head2 server-name
-
-	example. DELEG server-name=nameserver.example.
+	eg.example. DELEG server-name=nameserver.example.
 	$nameserver = $rr->server_name;
 
 Specifies the domain name of the nameserver.
@@ -288,9 +299,7 @@ Returns the nameserver domain name or the undefined value if not specified.
 
 =head2 include_name
 
-=head2 include-name
-
-	example. DELEG include-name=devolved.example.
+	eg.example. DELEG include-name=devolved.example.
 	$destination = $rr->include_name;
 
 Specifies the location of a devolved nameserver configuration.
