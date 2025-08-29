@@ -1,7 +1,7 @@
 $Id$                       -*-text-*-
 
 
-**** 1.53 [unreleased]
+**** 1.53 Aug 29, 2025
 
 	Suppress autovivified undefined $rr->{class} and $rr->{ttl}.
 	Rework test scripts for SVCB and DELEG.
