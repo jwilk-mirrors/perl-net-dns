@@ -86,11 +86,12 @@ QQ
 	my $cd = $self->cd;
 	my $do = $self->do;
 	my $co = $self->co;
+	my $de = $self->de;
 	return <<"QQ";
 ;;	id = $dispid
 ;;	qr = $qr	aa = $aa	tc = $tc	rd = $rd	opcode = $opcode
 ;;	ra = $ra	z  = $zz	ad = $ad	cd = $cd	rcode  = $rcode
-;;	do = $do	co = $co
+;;	do = $do	co = $co	de = $de
 ;;	qdcount = $qd	ancount = $an
 ;;	nscount = $ns	arcount = $ar
 QQ
@@ -376,7 +377,7 @@ sub adcount { return &arcount; }
 
 =head1 EDNS Protocol Extensions
 
-=head2 do, co
+=head2 do, co, de
 
 	print "DNSSEC_OK flag was ", $packet->header->do ? "not" : "", "set\n";
 	$packet->header->do(1);
@@ -393,6 +394,11 @@ sub do {
 sub co {
 	my ( $self, @value ) = @_;
 	return $self->_ednsflag( 0x4000, @value );
+}
+
+sub de {
+	my ( $self, @value ) = @_;
+	return $self->_ednsflag( 0x2000, @value );
 }
 
 

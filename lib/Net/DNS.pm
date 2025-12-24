@@ -320,7 +320,7 @@ dynamic DNS update requests.
 	$update = Net::DNS::Update->new( 'example.com' );
 
 	$update->push( prereq => nxrrset('example.com. AAAA') );
-	$update->push( update => rr_add('example.com. 86400 AAAA 2001::DB8::F00') );
+	$update->push( update => rr_add('example.com. 86400 AAAA 2001:DB8::F00') );
 
 =head2 yxrrset
 

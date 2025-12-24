@@ -19,7 +19,7 @@ foreach my $package (@prerequisite) {
 	exit;
 }
 
-plan tests => 49;
+plan tests => 53;
 
 
 my $name = 'DNSKEY.example';
@@ -87,6 +87,7 @@ for my $rr ( Net::DNS::RR->new(". $type") ) {
 
 	toggle( $rr, 'zone',   1, 0, 1, 0 );
 	toggle( $rr, 'revoke', 0, 1, 0, 1 );
+	toggle( $rr, 'adt',    1, 0, 1, 0 );
 	toggle( $rr, 'sep',    1, 0, 1, 0 );
 
 	my $class = ref($rr);

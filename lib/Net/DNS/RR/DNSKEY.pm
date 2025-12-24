@@ -103,6 +103,17 @@ sub revoke {
 }
 
 
+sub adt {
+	my ( $self, @value ) = @_;
+	if ( scalar @value ) {
+		for ( $self->{flags} |= 0x0002 ) {
+			$_ ^= 0x0002 unless shift @value;
+		}
+	}
+	return $self->{flags} & 0x0002;
+}
+
+
 sub sep {
 	my ( $self, @value ) = @_;
 	if ( scalar @value ) {
@@ -237,8 +248,8 @@ sub keytag {
 		'ECDSAP384SHA384'    => 14,			# [RFC6605]
 		'ED25519'	     => 15,			# [RFC8080]
 		'ED448'		     => 16,			# [RFC8080]
-		'SM2SM3'	     => 17,			# [RFC-cuiling-dnsop-sm2-alg-15]
-		'ECC-GOST12'	     => 23,			# [RFC-makarenko-gost2012-dnssec-05]
+		'SM2SM3'	     => 17,			# [RFC9563]
+		'ECC-GOST12'	     => 23,			# [RFC9558]
 
 		'INDIRECT'   => 252,				# [RFC4034]
 		'PRIVATEDNS' => 253,				# [RFC4034]
@@ -325,6 +336,20 @@ Boolean ZONE flag.
 	}
 
 Boolean REVOKE flag.
+
+=back
+
+=over 4
+
+=item adt
+
+	$rr->adt(1);
+
+	if ( $rr->adt ) {
+		...
+	}
+
+Authoritative Delegation Types (ADT) flag.
 
 =back
 

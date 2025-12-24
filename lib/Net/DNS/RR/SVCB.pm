@@ -188,7 +188,7 @@ sub targetname {
 
 sub mandatory {				## mandatory=key1,port,...
 	my ( $self, @value ) = @_;
-	my @list = map { $keybyname{lc $_} || $_ } map { split /,/ } @value;
+	my @list = map { $keybyname{lc $_} || $_ } @value;
 	my @keys = map { /(\d+)$/ ? $1 : die( $self->type . qq[: unexpected "$_"] ) } @list;
 	return $self->_SvcParam( 0, _integer16( sort { $a <=> $b } @keys ) );
 }

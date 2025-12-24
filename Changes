@@ -1,6 +1,12 @@
 $Id$                       -*-text-*-
 
 
+**** 1.54 [unreleased]
+
+	Resync with IANA DNS parameters registry.
+	Resync with IANA DNSSEC algorithms registry.
+
+
 **** 1.53 Aug 29, 2025
 
 	Suppress autovivified undefined $rr->{class} and $rr->{ttl}.
