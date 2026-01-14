@@ -185,7 +185,7 @@ sub string {
 
 	my @s = map { split '', $_ } @$self;			# escape special and ASCII non-printable
 	my $s = _decode_utf8( join '', map { $escape{$_} } @s );
-	return $s =~ /[ \t\n\r\f(),;]|^$/ ? qq("$s") : $s;	# quote special characters and empty string
+	return $s =~ /[ \t\n\r\f();]|^$/ ? qq("$s") : $s;	# quote special characters and empty string
 }
 
 

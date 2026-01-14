@@ -22,8 +22,8 @@ my $typecode = unpack 'xn', Net::DNS::RR->new( type => $type )->encode;
 ok( $typecode, "$type RR type code = $typecode" );
 
 
-for my $rr ( Net::DNS::RR->new( my $record = 'example. DELEG' ) ) {
-	ok( $rr, "new DELEG RR:	$record" );
+for my $rr ( Net::DNS::RR->new( my $record = "example. $type" ) ) {
+	ok( $rr, "parse RR:	$record" );
 	is( $rr->rdata,		 '',	'empty rdata' );
 	is( $rr->mandatory,	 undef, 'mandatory undefined' );
 	is( $rr->server_ipv4,	 undef, 'server_ipv4 undefined' );
@@ -35,35 +35,35 @@ for my $rr ( Net::DNS::RR->new( my $record = 'example. DELEG' ) ) {
 }
 
 
-for my $rr ( Net::DNS::RR->new( my $record = 'example. DELEG server-ipv4=192.0.2.1,192.0.2.2' ) ) {
-	ok( $rr,		 "new DELEG RR:	$record" );
+for my $rr ( Net::DNS::RR->new( my $record = "example. $type server-ipv4=192.0.2.1,192.0.2.2" ) ) {
+	ok( $rr,		 "parse RR:	$record" );
 	ok( defined $rr->key1(), 'correct parameter key defined' );
 	my @list = eval { $rr->server_ipv4 };
 	is( scalar(@list), 2, '$rr->server_ipv4 returns address list' );
 }
 
-for my $rr ( Net::DNS::RR->new( my $record = 'example. DELEG server-ipv6=2001:db8::1,2001:db8::2' ) ) {
-	ok( $rr,		 "new DELEG RR:	$record" );
+for my $rr ( Net::DNS::RR->new( my $record = "example. $type server-ipv6=2001:db8::1,2001:db8::2" ) ) {
+	ok( $rr,		 "parse RR:	$record" );
 	ok( defined $rr->key2(), 'correct parameter key defined' );
 	my @list = eval { $rr->server_ipv6 };
 	is( scalar(@list), 2, '$rr->server_ipv6 returns address list' );
 }
 
-for my $rr ( Net::DNS::RR->new( my $record = 'example. DELEG server-name=nameserver.example' ) ) {
-	ok( $rr,		 "new DELEG RR:	$record" );
+for my $rr ( Net::DNS::RR->new( my $record = "example. $type server-name=nameserver.example" ) ) {
+	ok( $rr,		 "parse RR:	$record" );
 	ok( defined $rr->key3(), 'correct parameter key defined' );
 	is( $rr->server_name, 'nameserver.example.', '$rr->server_name returns domain name' );
 }
 
-for my $rr ( Net::DNS::RR->new( my $record = 'example. DELEG include-delegi="devolved.example"' ) ) {
-	ok( $rr,		 "new DELEG RR:	$record" );
+for my $rr ( Net::DNS::RR->new( my $record = qq(example. $type include-delegi="devolved.example") ) ) {
+	ok( $rr,		 "parse RR:	$record" );
 	ok( defined $rr->key4(), 'correct parameter key defined' );
 	is( $rr->include_delegi, 'devolved.example.', '$rr->include_delegi returns domain name' );
 }
 
 
-for my $rr ( Net::DNS::RR->new( my $record = 'example. 0 IN DELEG' ) ) {
-	ok( $rr, "new DELEG RR:	$record" );
+for my $rr ( Net::DNS::RR->new( my $record = "example. 0 IN $type" ) ) {
+	ok( $rr, "parse RR:	$record" );
 	is( $rr->rdata, '', 'empty rdata' );
 	ok( $rr->mandatory( 1, 2, 3 ),		      'mandatory write access method' );
 	ok( $rr->server_ipv4('192.0.2.1'),	      'server_ipv4 write access method' );
@@ -85,16 +85,16 @@ for my $rr ( Net::DNS::RR->new( my $record = 'example. 0 IN DELEG' ) ) {
 }
 
 
-exception( 'duplicated parameter',   sub { Net::DNS::RR->new('example. DELEG include-delegi=x include-delegi=y') } );
-exception( 'incompatible parameter', sub { Net::DNS::RR->new('example. DELEG include-delegi=x server-name=y') } );
-exception( 'invalid argument',	     sub { Net::DNS::RR->new('example. DELEG include-delegi=.') } );
-exception( 'invalid argument',	     sub { Net::DNS::RR->new('example. DELEG server-name=.') } );
-exception( 'unexpected argument',    sub { Net::DNS::RR->new('example. DELEG')->key65500(qw(X Y)) } );
-exception( 'unrecognised parameter', sub { Net::DNS::RR->new('example. DELEG bogus') } );
-exception( 'mandatory key0 in list', sub { Net::DNS::RR->new('example. DELEG mandatory=server-ipv4,key0') } );
-exception( 'mandatory key repeated', sub { Net::DNS::RR->new('example. DELEG mandatory=key1,key1') } );
-exception( 'mandatory key required', sub { Net::DNS::RR->new('example. DELEG mandatory=key2,key3 key2=X') } );
-exception( 'mandatory key unknown',  sub { Net::DNS::RR->new('example. DELEG mandatory=bogus') } );
+exception( 'duplicated parameter',   sub { Net::DNS::RR->new("example. $type include-delegi=x include-delegi=y") } );
+exception( 'incompatible parameter', sub { Net::DNS::RR->new("example. $type include-delegi=x server-name=y") } );
+exception( 'invalid argument',	     sub { Net::DNS::RR->new("example. $type include-delegi=.") } );
+exception( 'invalid argument',	     sub { Net::DNS::RR->new("example. $type server-name=.") } );
+exception( 'unexpected argument',    sub { Net::DNS::RR->new("example. $type")->key65500(qw(X Y)) } );
+exception( 'unrecognised parameter', sub { Net::DNS::RR->new("example. $type bogus") } );
+exception( 'mandatory key0 in list', sub { Net::DNS::RR->new("example. $type mandatory=server-ipv4,key0") } );
+exception( 'mandatory key repeated', sub { Net::DNS::RR->new("example. $type mandatory=key1,key1") } );
+exception( 'mandatory key required', sub { Net::DNS::RR->new("example. $type mandatory=key2,key3 key2=X") } );
+exception( 'mandatory key unknown',  sub { Net::DNS::RR->new("example. $type mandatory=bogus") } );
 
 exit;
 

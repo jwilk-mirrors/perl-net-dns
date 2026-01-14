@@ -3,7 +3,7 @@ package Net::DNS::Parameters;
 ################################################
 ##
 ##	Domain Name System (DNS) Parameters
-##	(last updated 2025-10-13)
+##	(last updated 2025-12-29)
 ##
 ################################################
 
@@ -118,8 +118,8 @@ my @typebyname = (
 	SVCB	   => 64,					# RFC9460
 	HTTPS	   => 65,					# RFC9460
 	DSYNC	   => 66,					# RFC9859
-	HHIT	   => 67,					# draft-ietf-drip-registries-28
-	BRID	   => 68,					# draft-ietf-drip-registries-28
+	HHIT	   => 67,					# RFC9886
+	BRID	   => 68,					# RFC9886
 	SPF	   => 99,					# RFC7208
 	UINFO	   => 100,					# IANA-Reserved
 	UID	   => 101,					# IANA-Reserved

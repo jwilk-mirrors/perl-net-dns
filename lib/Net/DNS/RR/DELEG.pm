@@ -90,16 +90,17 @@ sub _parse_rdata {			## populate RR from rdata in argument list
 	my ( $self, @argument ) = @_;
 
 	while ( local $_ = shift @argument ) {
-		my @value;
-		m/^([^=]+)=?(.*)$/;
-		my $lhs = $1;
-		my $rhs = /=$/ ? shift @argument : $2;
-		for ($rhs) {
-			s/^"(.*)"$/$1/s;			# strip enclosing quotes
+		m/^([^=]+)(=?)(.*)$/;
+		my $key = $1;
+		my $val = length($3) ? $3 : $2 ? shift @argument : '';
+		if (/^key\d+/) {
+			$self->$key($val);
+		} else {
+			local $_ = $val;
+			s/^"([^"]*)"$/$1/s;			# strip enclosing quotes
 			s/\\,/\\044/g;				# disguise escaped comma
-			push @value, length() ? split /,/ : ();
+			$self->$key( split /,/ );
 		}
-		$self->$lhs( $lhs =~ /^key\d/i ? $rhs : @value );
 	}
 	return;
 }
@@ -140,7 +141,7 @@ sub mandatory {				## mandatory=key1,server-name,...
 	my @keys = map { /(\d+)$/ ? $1 : die( $self->type . qq[: unexpected "$_"] ) } @list;
 	return $self->_parameter( 0, _integer16( sort { $a <=> $b } @keys ) ) if @keys;
 	my $packed = $self->_parameter(0);
-	return _list( defined($packed) ? unpack 'n*', $packed : return );
+	return _list( defined($packed) ? map {"key$_"} unpack 'n*', $packed : return );
 }
 
 sub server_ipv4 {			## server-ipv4=192.0.2.53

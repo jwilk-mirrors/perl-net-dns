@@ -5,6 +5,8 @@ $Id$                       -*-text-*-
 
 	Resync with IANA DNS parameters registry.
 	Resync with IANA DNSSEC algorithms registry.
+	Implement DELEGI as derived subtype of DELEG RR.
+	Backport DELEG parser to SVCB.
 
 
 **** 1.53 Aug 29, 2025

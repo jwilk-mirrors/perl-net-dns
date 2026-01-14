@@ -112,29 +112,21 @@ sub _parse_rdata {			## populate RR from rdata in argument list
 	$self->svcpriority( shift @argument );
 	$self->targetname( shift @argument );
 
-	local $SIG{__WARN__} = sub { die @_ };
-	while ( my $svcparam = shift @argument ) {
-		for ($svcparam) {
-			my @value;
-			if (/^key\d+$/i) {
-				push @value, '';
-			} elsif (/^key\d+=(.*)$/i) {
-				local $_ = length($1) ? $1 : shift @argument;
-				s/^"([^"]*)"$/$1/;		# strip enclosing quotes
-				push @value, $_;
-			} elsif (/^[^=]+=(.*)$/) {
-				local $_ = length($1) ? $1 : shift @argument;
-				die <<"Amen" if /\\092[,\\]/;
+	while ( local $_ = shift @argument ) {
+		m/^([^=]+)(=?)(.*)$/;
+		my $key = $1;
+		my $val = length($3) ? $3 : $2 ? shift @argument : '';
+		if (/^key\d+/) {
+			$self->$key($val);
+		} else {
+			local $_ = $val;
+			die <<'RIP' if /\\092[,\\]/;
 SVCB:	Please use standard RFC1035 escapes
 	RFC9460 double-escape insanity not implemented
-Amen
-				s/^"([^"]*)"$/$1/;		# strip enclosing quotes
-				s/\\,/\\044/g;			# disguise (RFC1035) escaped comma
-				push @value, split /,/;
-			}
-
-			m/^([^=]+)/;				# extract identifier
-			$self->$1(@value);
+RIP
+			s/^"([^"]*)"$/$1/s;			# strip enclosing quotes
+			s/\\,/\\044/g;				# disguise (RFC1035) escaped comma
+			$self->$key( split /,/ );
 		}
 	}
 	return;
