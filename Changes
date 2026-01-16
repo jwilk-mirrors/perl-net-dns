@@ -1,7 +1,7 @@
 $Id$                       -*-text-*-
 
 
-**** 1.54 [unreleased]
+**** 1.54 Jan 16, 2026
 
 	Resync with IANA DNS parameters registry.
 	Resync with IANA DNSSEC algorithms registry.
