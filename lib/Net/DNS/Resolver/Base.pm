@@ -844,7 +844,7 @@ sub _read_tcp {
 	return $buffer if length($header) < 2;			# uncoverable branch true
 	my $size = unpack 'n', $header;
 
-	while ( my $fragment = _read_socket( $socket, $size - length $buffer ) ) {
+	while ( length( my $fragment = _read_socket( $socket, $size - length $buffer ) ) ) {
 		$buffer .= $fragment;
 	}
 	return $buffer;
@@ -990,7 +990,7 @@ sub _make_query_packet {
 		my $header = $packet->header;
 		$header->ad( $self->{adflag} );			# RFC6840, 5.7
 		$header->cd( $self->{cdflag} );			# RFC6840, 5.9
-		$header->do(1) if $self->{dnssec};
+		$header->do( $self->{dnssec} );
 		$header->rd( $self->{recurse} );
 	}
 
