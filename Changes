@@ -5,6 +5,9 @@ $Id$                       -*-text-*-
 
 	Fix UDP truncation tests which relied on large RSA RRSIGs.
 
+Fix rt.cpan.org #178183
+	Unhelpful TAINT error
+
 Fix rt.cpan.org #177003
 	TCP read loop treats 1-byte recv() of "0" (0x30) as EOF, corrupting AXFRs
 
