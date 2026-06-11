@@ -1,7 +1,7 @@
 $Id$                       -*-text-*-
 
 
-**** 1.55 [unreleased]
+**** 1.55 Jun 11, 2026
 
 	Fix UDP truncation tests which relied on large RSA RRSIGs.
 
