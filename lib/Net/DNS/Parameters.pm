@@ -3,7 +3,7 @@ package Net::DNS::Parameters;
 ################################################
 ##
 ##	Domain Name System (DNS) Parameters
-##	(last updated 2026-04-28)
+##	(last updated 2026-06-15)
 ##
 ################################################
 
@@ -307,6 +307,7 @@ my @dnserrorbyval = (
 	30 => 'Invalid Query Type',				# RFC9824
 	31 => 'Rate Limited',					# draft-muks-dns-ede-rate-limited-02
 	32 => 'Over Quota',					# draft-muks-dns-ede-rate-limited-02
+	33 => 'Negative Trust Anchor',				# draft-farrokhi-dnsop-ede-nta-00
 	);
 our %dnserrorbyval = @dnserrorbyval;
 

@@ -1,6 +1,12 @@
 $Id$                       -*-text-*-
 
 
+**** 1.56 [unreleased]
+
+Fix rt.cpan.org #179692/#176900
+	UNIX.pm: Unreachable code warning using Apache/mod_perl
+
+
 **** 1.55 Jun 11, 2026
 
 	Fix UDP truncation tests which relied on large RSA RRSIGs.
