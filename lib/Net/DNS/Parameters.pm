@@ -3,7 +3,7 @@ package Net::DNS::Parameters;
 ################################################
 ##
 ##	Domain Name System (DNS) Parameters
-##	(last updated 2026-06-15)
+##	(last updated 2026-07-06)
 ##
 ################################################
 
@@ -308,6 +308,7 @@ my @dnserrorbyval = (
 	31 => 'Rate Limited',					# draft-muks-dns-ede-rate-limited-02
 	32 => 'Over Quota',					# draft-muks-dns-ede-rate-limited-02
 	33 => 'Negative Trust Anchor',				# draft-farrokhi-dnsop-ede-nta-00
+	34 => 'New Delegation Only',				# draft-ietf-deleg-10
 	);
 our %dnserrorbyval = @dnserrorbyval;
 

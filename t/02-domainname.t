@@ -4,7 +4,7 @@
 
 use strict;
 use warnings;
-use Test::More tests => 35;
+use Test::More tests => 36;
 use TestToolkit;
 
 
@@ -121,6 +121,9 @@ exception( 'bad compression pointer', sub { Net::DNS::DomainName->decode( \$over
 
 my $loop = pack 'H*', '0344454603414243c000';
 exception( 'compression loop', sub { Net::DNS::DomainName->decode( \$loop, 4 ) } );
+
+my $deep = pack 'H*', '017800c000c003c005c007';
+exception( 'long compression chain', sub { Net::DNS::DomainName->decode( \$deep, 9, {}, 118 ) } );
 
 
 exit;

@@ -3,6 +3,12 @@ $Id$                       -*-text-*-
 
 **** 1.56 [unreleased]
 
+Fix rt.cpan.org #179946
+	Denial of Service via long DNS compression chains
+
+Fix rt.cpan.org #179945
+	Remote code injection via EDNS EXTENDED ERROR
+
 Fix rt.cpan.org #179692/#176900
 	UNIX.pm: Unreachable code warning using Apache/mod_perl
 

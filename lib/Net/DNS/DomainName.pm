@@ -79,8 +79,8 @@ sub decode {
 	my $self   = bless {label => $label}, shift;
 	my $buffer = shift;					# reference to data buffer
 	my $offset = shift || 0;				# offset within buffer
-	my $linked = shift;					# caller's compression index
-	my $cache  = $linked;
+	my $cache  = shift;					# caller's compression index
+	my $depth  = shift;					# recursion depth
 	$cache->{$offset} = $self;				# hashed objectref by offset
 
 	my $buflen = length $$buffer;
@@ -100,10 +100,9 @@ sub decode {
 		} else {					# compression pointer
 			my $link = 0x3FFF & unpack( "\@$index n", $$buffer );
 			croak 'corrupt compression pointer' unless $link < $offset;
-			croak 'invalid compression pointer' unless $linked;
+			croak 'deep compression recursion' if $depth++ > 120;
 
-			# uncoverable condition false
-			$self->{origin} = $cache->{$link} ||= __PACKAGE__->decode( $buffer, $link, $cache );
+			$self->{origin} = $cache->{$link} ||= __PACKAGE__->decode( $buffer, $link, $cache, $depth );
 			return wantarray ? ( $self, $index + 2 ) : $self;
 		}
 	}
