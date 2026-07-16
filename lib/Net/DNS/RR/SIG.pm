@@ -703,7 +703,7 @@ the public key in $keyrr.
 If a reference to a Net::DNS::Packet is supplied, the method performs
 a SIG0 verification on the packet data.
 
-The second argument can either be a Net::DNS::RR::KEYRR object or a
+The second argument can either be a Net::DNS::RR::KEY object or a
 reference to an array of such objects. Verification will return
 successful as soon as one of the keys in the array leads to positive
 validation.

@@ -750,7 +750,7 @@ $rrsetref contains a reference to an array of RR objects and the
 method verifies the RRset against the signature contained in the
 $sigrr object itself using the public key in $keyrr.
 
-The second argument can either be a Net::DNS::RR::KEYRR object or a
+The second argument can either be a Net::DNS::RR::DNSKEY object or a
 reference to an array of such objects. Verification will return
 successful as soon as one of the keys in the array leads to positive
 validation.

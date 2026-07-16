@@ -3,6 +3,9 @@ $Id$                       -*-text-*-
 
 **** 1.56 [unreleased]
 
+Fix rt.cpan.org #180088
+	Documentation issue for Net::DNS::RR::RRSIG::verify()
+
 Fix rt.cpan.org #179946
 	Denial of Service via long DNS compression chains
 
