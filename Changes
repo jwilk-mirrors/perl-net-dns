@@ -1,7 +1,7 @@
 $Id$                       -*-text-*-
 
 
-**** 1.56 [unreleased]
+**** 1.56 Jul 18, 2027
 
 Fix rt.cpan.org #180088
 	Documentation issue for Net::DNS::RR::RRSIG::verify()
