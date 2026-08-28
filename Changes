@@ -1,16 +1,27 @@
 $Id$                       -*-text-*-
 
 
-**** 1.56 Jul 18, 2027
+**** 1.57 [unreleased]
+
+	Resync with IANA DNS parameters registry.
+	EDNS: Add support for MQTYPE-QUERY option.
+
+Fix rt.cpan.org #180773
+	UNIX resolver can fail in taint mode
+
+
+**** 1.56 Jul 18, 2026
 
 Fix rt.cpan.org #180088
 	Documentation issue for Net::DNS::RR::RRSIG::verify()
 
 Fix rt.cpan.org #179946
 	Denial of Service via long DNS compression chains
+	[CVE-2026-64194]
 
 Fix rt.cpan.org #179945
 	Remote code injection via EDNS EXTENDED ERROR
+	[CVE-2026-64193]
 
 Fix rt.cpan.org #179692/#176900
 	UNIX.pm: Unreachable code warning using Apache/mod_perl

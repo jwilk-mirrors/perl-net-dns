@@ -3,7 +3,7 @@ package Net::DNS::Parameters;
 ################################################
 ##
 ##	Domain Name System (DNS) Parameters
-##	(last updated 2026-07-06)
+##	(last updated 2026-08-24)
 ##
 ################################################
 
@@ -121,6 +121,8 @@ my @typebyname = (
 	DSYNC	   => 66,					# RFC9859
 	HHIT	   => 67,					# RFC9886
 	BRID	   => 68,					# RFC9886
+	UNECE	   => 69,					# draft-woodcock-faltstrom-external-registry-rrtypes-00
+	ISO	   => 70,					# draft-woodcock-faltstrom-external-registry-rrtypes-00
 	SPF	   => 99,					# RFC7208
 	UINFO	   => 100,					# IANA-Reserved
 	UID	   => 101,					# IANA-Reserved
@@ -221,12 +223,13 @@ my @ednsoptionbyname = (
 	'SERVER-TAG'		  => 17,			# draft-bellis-dnsop-edns-tags-01
 	'REPORT-CHANNEL'	  => 18,			# RFC9567
 	ZONEVERSION		  => 19,			# RFC9660
-	'MQTYPE-QUERY'		  => 20,			# RFC-ietf-dnssd-multi-qtypes-14
-	'MQTYPE-RESPONSE'	  => 21,			# RFC-ietf-dnssd-multi-qtypes-14
+	'MQTYPE-QUERY'		  => 20,			# RFC10029
+	'MQTYPE-RESPONSE'	  => 21,			# RFC10029
 	'EDE-EXTRA-TEXT-LANGUAGE' => 22,			# draft-muks-dns-filtering-05
 	'FILTERING-CONTACT'	  => 23,			# draft-muks-dns-filtering-05
 	'FILTERING-ORGANIZATION'  => 24,			# draft-muks-dns-filtering-05
 	'FILTERING-DB'		  => 25,			# draft-muks-dns-filtering-05
+	'STRUCTURED-ERROR'	  => 26,			# RFC-ietf-dnsop-structured-dns-error-27
 	'UMBRELLA-IDENT' => 20292,				# https://developer.cisco.com/docs/cloud-security/#!integrating-network-devic
 	DEVICEID	 => 26946,				# https://developer.cisco.com/docs/cloud-security/#!network-devices-getting-s
 	);
@@ -252,6 +255,7 @@ our %dnsflagbyname = @dnsflagbyname;
 my @ednsflagbyname = (
 	DO => 0x8000,						# RFC4035 RFC3225 RFC6840
 	CO => 0x4000,						# RFC9824
+	DE => 0x2000,						# draft-ietf-dnsop-delext-08
 	);
 push @ednsflagbyname, map { /^\d/ ? $_ : lc($_) } @ednsflagbyname;
 our %ednsflagbyname = @ednsflagbyname;
@@ -309,6 +313,7 @@ my @dnserrorbyval = (
 	32 => 'Over Quota',					# draft-muks-dns-ede-rate-limited-02
 	33 => 'Negative Trust Anchor',				# draft-farrokhi-dnsop-ede-nta-00
 	34 => 'New Delegation Only',				# draft-ietf-deleg-10
+	35 => 'Blocked by Upstream DNS Server',			# RFC-ietf-dnsop-structured-dns-error-27
 	);
 our %dnserrorbyval = @dnserrorbyval;
 

@@ -222,6 +222,7 @@ sub verify {
 		'ED25519'	     => 15,			# [RFC8080]
 		'ED448'		     => 16,			# [RFC8080]
 		'SM2SM3'	     => 17,			# [RFC9563]
+		'MLDSA44'	     => 18,			# [draft-westerbaan-dnssec-mldsa]
 		'ECC-GOST12'	     => 23,			# [RFC9558]
 
 		'INDIRECT'   => 252,				# [RFC4034]

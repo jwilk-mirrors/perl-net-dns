@@ -44,9 +44,10 @@ sub _nosh {				## shell-free backtick emulation
 		close $pipe;
 		return @retval;
 	} else {
+		local %ENV = ( PATH => '/bin:/usr/bin' );
 		local $SIG{__WARN__} = sub { };
 		warn 'child process fails without warning';
-		eval { exec $prog, @arg };
+		eval { exec {$prog} $prog, @arg };
 		exit;			## uncoverable statement
 	}
 }

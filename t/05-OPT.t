@@ -4,7 +4,7 @@
 
 use strict;
 use warnings;
-use Test::More tests => 89;
+use Test::More tests => 94;
 use TestToolkit;
 
 use Net::DNS;
@@ -77,16 +77,9 @@ for my $edns ( Net::DNS::Packet->new()->edns ) {
 }
 
 
-my $edns = Net::DNS::Packet->new()->edns;
-
-foreach my $option ( keys %Net::DNS::Parameters::ednsoptionbyval ) {
-	$edns->option( $option => {'BASE16' => '076578616d706c6500'} );
-}
-
-
 my @testcase = (
-	["LLQ" => {"BASE16" => "000100000000000000000000000000000000"}],
-	[["NSID" => {"OPTION-DATA" => "rawbytes"}], ["NSID" => {"IDENTIFIER" => "7261776279746573"}]],
+	["UPDATE-LEASE"	 => [86400, 604800]],
+	["NSID"		 => {"OPTION-DATA" => "rawbytes"}],
 	["4"		 => {"OPTION-DATA" => ""}],
 	["DAU"		 => ( 8, 10, 13, 14, 15, 16 )],
 	["DHU"		 => ( 1, 2,  4 )],
@@ -97,17 +90,22 @@ my @testcase = (
 	[["COOKIE" => ["7261776279746573", ""]], ["COOKIE" => "7261776279746573"]],
 	["TCP-KEEPALIVE" => 200],
 	[["PADDING" => {"OPTION-DATA" => ""}], ["PADDING" => 0], ["PADDING" => ""]],
-	["PADDING"	  => {"OPTION-DATA" => "rawbytes"}],
-	["PADDING"	  => 100],
-	["CHAIN"	  => {"BASE16" => "076578616d706c6500"}],
-	["KEY-TAG"	  => ( 29281, 30562, 31092, 25971 )],
-	["EXTENDED-ERROR" => ( "INFO-CODE"    => 0, "EXTRA-TEXT" => '{"JSON":"EXAMPLE"}' )],
-	["EXTENDED-ERROR" => ( "INFO-CODE"    => 0, "EXTRA-TEXT" => '{JSON: unparsable}' )],
-	["EXTENDED-ERROR" => ( "INFO-CODE"    => 123 )],
-	["REPORT-CHANNEL" => ( "AGENT-DOMAIN" => "example." )],
+	["PADDING"	    => {"OPTION-DATA" => "rawbytes"}],
+	["PADDING"	    => 100],
+	["CHAIN"	    => {"BASE16" => "076578616d706c6500"}],
+	["KEY-TAG"	    => ( 29281, 30562, 31092, 25971 )],
+	["EXTENDED-ERROR"   => ( "INFO-CODE" => 123 )],
+	["EXTENDED-ERROR"   => ( "INFO-CODE" => 0, "EXTRA-TEXT" => '{JSON: unparsable}' )],
+	["EXTENDED-ERROR"   => ( "INFO-CODE" => 0, "EXTRA-TEXT" => '{"JSON":"EXAMPLE"}' )],
+	["STRUCTURED-ERROR" => {"OPTION-LENGTH" => 0}],
+	["REPORT-CHANNEL"   => ( "AGENT-DOMAIN" => "example." )],
 	[["ZONEVERSION" => ""], ["ZONEVERSION" => {"OPTION-DATA" => ""}], ["ZONEVERSION" => []]],
-	["ZONEVERSION" => [2, 0, "12345678"]],
+	["ZONEVERSION"	=> [2, 0, "12345678"]],
+	["MQTYPE-QUERY" => ( 43, 48 )],
 	);
+
+
+my $edns = Net::DNS::Packet->new()->edns;
 
 foreach (@testcase) {
 	my ( $canonical, @alternative ) = ref( $$_[0] ) eq 'ARRAY' ? @$_ : $_;
@@ -137,6 +135,8 @@ is( Net::DNS::RR::OPT::_JSONify('1.234'), '1.234',     '_JSONify string non-inte
 is( Net::DNS::RR::OPT::_JSONify('1e+20'), '1e+20',     '_JSONify string with exponent' );
 is( Net::DNS::RR::OPT::_JSONify('abcde'), '"abcde"',   '_JSONify non-numeric string' );
 is( Net::DNS::RR::OPT::_JSONify('\\092'), '"\\\\092"', '_JSONify escape character' );
+is( Net::DNS::RR::OPT::_JSONify( [] ),	  '[]',	       '_JSONify empty array' );
+is( Net::DNS::RR::OPT::_JSONify( {} ),	  '{}',	       '_JSONify empty hash' );
 
 my @json = Net::DNS::RR::OPT::_JSONify( {'BASE16' => '1234'} );
 is( "@json", qq[{"BASE16": "1234"}], 'short BASE16 string' );

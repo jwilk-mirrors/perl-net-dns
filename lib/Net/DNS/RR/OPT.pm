@@ -16,7 +16,7 @@ Net::DNS::RR::OPT - DNS OPT resource record
 use integer;
 
 use Carp;
-use Net::DNS::Parameters qw(:rcode :ednsoption);
+use Net::DNS::Parameters qw(:ednsoption);
 
 use constant UTIL => scalar eval { require Scalar::Util; Scalar::Util->can('isdual') };
 
@@ -204,7 +204,7 @@ sub _get_option {
 		my @value;
 		if ( length $value ) {
 			@value = eval { $package->_decompose($value) } if $structured;
-			@value = {BASE16 => unpack 'H*', $value} unless scalar @value;
+			@value = {BASE16 => pack 'U0a*', unpack 'H*', $value} unless scalar @value;
 			warn $@ if $@;
 		} else {
 			@value = $structured ? {'OPTION-LENGTH' => 0} : '';
@@ -265,20 +265,20 @@ sub _JSONify {
 
 	if ( ref($value) eq 'HASH' ) {
 		my @tags = sort keys %$value;
-		my $tail = pop @tags;
 		for ( $$value{BASE16} ) { $_ = pack( 'U0a*', $_ ) if defined }	  # mark as UTF-8
-		my @body = map { my @x = ( qq("$_":), _JSONify( $$value{$_} ) ); $x[-1] .= ','; @x } @tags;
-		push @body, ( qq("$tail":), _JSONify( $$value{$tail} ) );
-		$body[0] = '{' . $body[0];
-		$body[-1] .= '}';
-		return @body;
+		my @list = map { my @x = ( qq("$_":), _JSONify( $$value{$_} ) ); $x[-1] .= ','; @x } @tags;
+		return '{}' unless @list;
+		$list[0]  =~ s/^/\{/;
+		$list[-1] =~ s/,?$/\}/;
+		return @list;
 	}
 
 	if ( ref($value) eq 'ARRAY' ) {
-		my @array = @$value;
-		my @tail  = map { _JSONify($_) } grep {defined} pop @array;
-		my @body  = map { my @x = _JSONify($_); $x[-1] .= ','; @x } @array;
-		return ( '[', @body, @tail, ']' );
+		my @list = map { my @x = _JSONify($_); $x[-1] .= ','; @x } @$value;
+		return '[]' unless @list;
+		$list[0]  =~ s/^/\[/;
+		$list[-1] =~ s/,?$/\]/;
+		return @list;
 	}
 
 	my $string = "$value";		## stringify, then use isdual() as discriminant
@@ -286,8 +286,8 @@ sub _JSONify {
 	for ($string) {
 		unless ( utf8::is_utf8($value) ) {
 			return $_ if /^-?\d+$/;			# integer (string representation)
-			return $_ if /^-?\d+\.\d+$/;		# non-integer
-			return $_ if /^-?\d+(\.\d+)?e[+-]\d\d?$/i;
+			return $_ if /^-?\d+\.\d*$/;		# non-integer
+			return $_ if /^-?\d+(\.\d*)?[Ee][+-]?\d+$/;    # with exponent
 		}
 		s/\\/\\\\/g;					# escaped escape
 		s/^"(.*)"$/$1/;					# strip enclosing quotes
@@ -298,14 +298,24 @@ sub _JSONify {
 
 
 ## no critic ProhibitMultiplePackages
-package Net::DNS::RR::OPT::NSID;				# RFC5001
+package Net::DNS::RR::OPT::UPDATE_LEASE;			# RFC9664
+my @field2 = qw(LEASE KEY-LEASE);
 
 sub _compose {
-	my ( undef, @argument ) = map { ref($_) ? %$_ : $_ } @_;
-	return pack 'H*', pop @argument;
+	my ( undef, @argument ) = @_;
+	for ( ref( $argument[0] ) ) {
+		@argument = @{$argument[0]}	     if /ARRAY/;
+		@argument = @{$argument[0]}{@field2} if /HASH/;
+	}
+	return pack 'NN*', grep {defined} @argument;
 }
 
-sub _decompose { return pack 'U0a*', unpack 'H*', pop @_ }	# mark as UTF-8
+sub _decompose {
+	my @time = grep {defined} unpack 'N*', pop @_;
+	my ( %object, $i );
+	$object{$field2[$i++]} = $_ foreach @time;
+	return \%object;
+}
 
 
 package Net::DNS::RR::OPT::DAU;					# RFC6975
@@ -326,7 +336,6 @@ our @ISA = qw(Net::DNS::RR::OPT::DAU);
 
 
 package Net::DNS::RR::OPT::CLIENT_SUBNET;			# RFC7871
-
 my %family = qw(1 Net::DNS::RR::A	2 Net::DNS::RR::AAAA);
 my @field8 = qw(FAMILY SOURCE-PREFIX SCOPE-PREFIX ADDRESS);
 
@@ -359,13 +368,11 @@ sub _compose {
 }
 
 sub _decompose {
-	my $argument = pop @_;
-	return {'EXPIRE-TIMER' => unpack 'N', $argument};
+	return {'EXPIRE-TIMER' => unpack 'N', pop @_};
 }
 
 
 package Net::DNS::RR::OPT::COOKIE;				# RFC7873
-
 my @field10 = qw(CLIENT SERVER);
 
 sub _compose {
@@ -392,8 +399,7 @@ sub _compose {
 }
 
 sub _decompose {
-	my $argument = pop @_;
-	return {'TIMEOUT' => unpack 'n', $argument};
+	return {'TIMEOUT' => unpack 'n', pop @_};
 }
 
 
@@ -439,7 +445,7 @@ package Net::DNS::RR::OPT::EXTENDED_ERROR;			# RFC8914
 
 sub _compose {
 	my ( undef, @arg ) = @_;
-	my %arg	 = ref( $arg[0] ) ? %{$arg[0]} : @arg;
+	my %arg	 = ( 'INFO-CODE' => 0, ref( $arg[0] ) ? %{$arg[0]} : @arg );
 	my $text = join '', Net::DNS::RR::OPT::_JSONify( $arg{'EXTRA-TEXT'} || '' );
 	return pack 'na*', $arg{'INFO-CODE'}, Net::DNS::Text->new($text)->raw;
 }
@@ -447,13 +453,13 @@ sub _compose {
 sub _decompose {
 	my ( $code, $text ) = unpack 'na*', pop @_;
 	my $error = $Net::DNS::Parameters::dnserrorbyval{$code};
-	my @error = defined($error) ? ( 'ERROR' => $error ) : ();
+	my @error = defined($error) ? ( 'ERROR-TEXT' => $error ) : ();
 	my $extra = Net::DNS::Text->decode( \$text, 0, length $text );
 	for ( $extra->value ) {
-		last unless /^[\[\{]/;
-		s/[`]([^`]*)[`]/$1/g;	## suppress backticks
-		s/([\$\@])/\\$1/g;	## Here be dragons!
-		my $REGEX = q/("[^"]*"|[\[\]{}:,]|[-0-9.Ee+]+)|\s+|(.)/;
+		last unless /^\s*[\{]/;
+		s/([\$\@])/\\$1/g;	## suppress interpolation within quoted strings
+		## extract JSON lexical tokens, discard unmatched characters  
+		my $REGEX = q/("[^"]*")|([-+]?\d+\.?\d*(?:[Ee][-+]?\d+)?)|::|([{}:,\[\]])|./;
 		my @split = grep { defined && length } split /$REGEX/o;
 		my $value = eval join( ' ', 'no integer;', map { s/^:$/=>/; $_ } @split );
 		return {'INFO-CODE' => $code, @error, 'EXTRA-TEXT' => $value} if ref($value);
@@ -476,7 +482,6 @@ sub _decompose {
 
 
 package Net::DNS::RR::OPT::ZONEVERSION;				# RFC9660
-
 my @field19 = qw(LABELCOUNT TYPE VERSION);
 
 sub _compose {
@@ -489,11 +494,27 @@ sub _compose {
 }
 
 sub _decompose {
-	my %object;
 	my ( $l, $t, $v ) = unpack 'C2H*', pop @_;
+	my %object;
 	@object{@field19} = ( $l, $t, pack 'U0a*', $v );	# mark hex data as UTF-8
 	return \%object;
 }
+
+
+package Net::DNS::RR::OPT::MQTYPE_RESPONSE;			# RFC10029
+
+sub _compose {
+	my ( undef, @mqtype ) = map { ref($_) ? @$_ : $_ } @_;
+	return pack 'n*', map { Net::DNS::Parameters::typebyname($_) } @mqtype;
+}
+
+sub _decompose {
+	my @mqtype = unpack 'n*', pop @_;
+	return [map { Net::DNS::Parameters::typebyval($_) } @mqtype];
+}
+
+package Net::DNS::RR::OPT::MQTYPE_QUERY;			# RFC10029
+our @ISA = qw(Net::DNS::RR::OPT::MQTYPE_RESPONSE);
 
 ########################################
 
