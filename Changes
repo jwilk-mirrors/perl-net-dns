@@ -6,6 +6,9 @@ $Id$                       -*-text-*-
 	Resync with IANA DNS parameters registry.
 	EDNS: Add support for MQTYPE-QUERY option.
 
+Fix rt.cpan.org #181125
+	Unbounded recursion when re-encoding message with misplaced TSIG
+
 Fix rt.cpan.org #180773
 	UNIX resolver can fail in taint mode
 

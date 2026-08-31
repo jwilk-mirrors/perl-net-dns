@@ -34,7 +34,9 @@ eval { require MIME::Base64 };
 sub _decode_rdata {			## decode rdata from wire-format octet string
 	my ( $self, $data, $offset ) = @_;
 
-	my $limit = $offset + $self->{rdlength};
+	my $limit = $offset + delete $self->{rdlength};
+	croak('misplaced or corrupt TSIG') unless $limit == length $$data;
+
 	( $self->{algorithm}, $offset ) = Net::DNS::DomainName->decode( $data, $offset );
 
 	# Design decision: Use 32 bits, which will work until the end of time()!
@@ -52,7 +54,6 @@ sub _decode_rdata {			## decode rdata from wire-format octet string
 	$self->{other} = unpack "\@$offset xx a$other_size", $$data;
 	$offset += $other_size + 2;
 
-	croak('misplaced or corrupt TSIG') unless $limit == length $$data;
 	my $raw = substr $$data, 0, $self->{offset}++;
 	$self->{rawref} = \$raw;
 	return;
@@ -62,16 +63,17 @@ sub _decode_rdata {			## decode rdata from wire-format octet string
 sub _encode_rdata {			## encode rdata as wire-format octet string
 	my $self = shift;
 
-	my $offset  = shift;
-	my $undef   = shift;
-	my $message = shift;
-	my $macbin  = $self->macbin;
+	my $offset    = shift;
+	my $undef     = shift;
+	my $message   = shift;
+	my $algorithm = $self->{algorithm} || return '';
+	my $macbin    = $self->macbin;
 	unless ($macbin) {
 		my $sigdata = $self->sig_data($message);	# form data to be signed
 		$macbin = $self->macbin( $self->_mac_function($sigdata) );
 	}
 
-	my $rdata = $self->{algorithm}->canonical;
+	my $rdata = $algorithm->canonical;
 
 	# Design decision: Use 32 bits, which will work until the end of time()!
 	$rdata .= pack 'xxN n', $self->time_signed, $self->fudge;
@@ -115,9 +117,10 @@ sub encode {				## override RR method
 
 
 sub string {				## override RR method
-	my $self	= shift;
-	my $owner	= $self->{owner}->string;
-	my $type	= $self->type;
+	my $self = shift;
+	my $name = $self->{owner}->string;
+	my $type = $self->type;
+	return "; $name	$type	; no data" unless $self->{algorithm};
 	my $algorithm	= $self->algorithm;
 	my $time_signed = $self->time_signed;
 	my $fudge	= $self->fudge;
@@ -127,12 +130,12 @@ sub string {				## override RR method
 	my $other	= $self->other;
 
 	return <<"QQ";
-; $owner	$type	
+; $name	$type	
 ;	algorithm:	$algorithm
 ;	time signed:	$time_signed	fudge:	$fudge
 ;	signature:	$signature
 ;	original id:	$original_id
-;			$error	$other
+;	error:		$error	$other
 QQ
 }
 
@@ -251,8 +254,7 @@ sub sig_data {
 		local $message->{additional} = \@unsigned;	# remake header image
 		my @part = qw(question answer authority additional);
 		my @size = map { scalar @{$message->{$_}} } @part;
-		if ( my $rawref = $self->{rawref} ) {
-			delete $self->{rawref};
+		if ( my $rawref = delete $self->{rawref} ) {
 			my $hbin = pack 'n6', $self->original_id, $message->{status}, @size;
 			$message = join '', $hbin, substr $$rawref, length $hbin;
 		} else {
@@ -746,7 +748,7 @@ by forging the message authentication code (MAC).
 The generated key must be added to the /etc/named.conf configuration
 or a separate file introduced by the $INCLUDE directive:
 
-	key "host1-host2.example. {
+	key "host1-host2.example." {
 		algorithm hmac-sha256;
 		secret "Secret+known+only+by+participating+entities=";
 	};
