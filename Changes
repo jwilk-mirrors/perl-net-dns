@@ -1,7 +1,7 @@
 $Id$                       -*-text-*-
 
 
-**** 1.57 [unreleased]
+**** 1.57 Sep 1, 2026
 
 	Resync with IANA DNS parameters registry.
 	EDNS: Add support for MQTYPE-QUERY option.
