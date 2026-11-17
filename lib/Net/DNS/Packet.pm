@@ -640,8 +640,8 @@ sub sign_tsig {
 Verify TSIG signature of a reply to the corresponding query.
 
 
-	$opaque  = $packet1->verify( $query ) || die $packet1->verifyerr;
-	$opaque  = $packet2->verify( $opaque );
+	$opaque	 = $packet1->verify( $query ) || die $packet1->verifyerr;
+	$opaque	 = $packet2->verify( $opaque );
 	$verifed = $packet3->verify( $opaque ) || die $packet3->verifyerr;
 
 Verify TSIG signature of a multi-packet reply to the corresponding query.

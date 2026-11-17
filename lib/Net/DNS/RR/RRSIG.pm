@@ -34,9 +34,9 @@ my @deprecated;
 if (DNSSEC) {
 	my @module = qw(Private DSA RSA ECDSA EdDSA MLDSA Digest);
 	foreach my $class ( map {"Net::DNS::SEC::$_"} @module ) {
-		my @index = eval join '', qw(r e q u i r e), " $class; ${class}::_index()";	## no critic
+		my @index = eval join '', qw(r e q u i r e), " $class; $class->_index()";	## no critic
 		push @algorithms, map { ( $_ => $class ) } @index;
-		push @deprecated, eval "${class}::_deprecate()";			   	## no critic
+		push @deprecated, eval { $class->_deprecate() };
 	}
 	croak 'Net::DNS::SEC version not supported' unless scalar(@algorithms);
 }

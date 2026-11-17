@@ -36,6 +36,8 @@ sub _decode_rdata {			## decode rdata from wire-format octet string
 
 	my $limit = $offset + delete $self->{rdlength};
 	croak('misplaced or corrupt TSIG') unless $limit == length $$data;
+	my $raw = substr $$data, 0, $self->{offset}++;
+	$self->{rawref} = \$raw;
 
 	( $self->{algorithm}, $offset ) = Net::DNS::DomainName->decode( $data, $offset );
 
@@ -53,9 +55,6 @@ sub _decode_rdata {			## decode rdata from wire-format octet string
 	my $other_size = unpack "\@$offset n", $$data;
 	$self->{other} = unpack "\@$offset xx a$other_size", $$data;
 	$offset += $other_size + 2;
-
-	my $raw = substr $$data, 0, $self->{offset}++;
-	$self->{rawref} = \$raw;
 	return;
 }
 
